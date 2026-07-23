@@ -83,7 +83,7 @@ public partial class MainViewModel : ObservableObject
     private string _statusText = "就绪";
 
     [ObservableProperty]
-    private double _downloadMbps;
+    private double? _downloadMbps;
 
     [ObservableProperty]
     private double? _uploadMbps;
@@ -93,49 +93,49 @@ public partial class MainViewModel : ObservableObject
     /// <summary>
     /// 总速率（下载+上传）
     /// </summary>
-    public double TotalRateMbps => DownloadMbps + (UploadMbps ?? 0);
+    public double? TotalRateMbps => DownloadMbps.HasValue || UploadMbps.HasValue ? (DownloadMbps ?? 0) + (UploadMbps ?? 0) : null;
 
     /// <summary>
     /// 总流量（字节）
     /// </summary>
     [ObservableProperty]
-    private long _totalBytes;
+    private long? _totalBytes;
 
     [ObservableProperty]
-    private double _latencyMs;
+    private double? _latencyMs;
 
     /// <summary>
     /// 外网延迟（公网 IP Ping）
     /// </summary>
     [ObservableProperty]
-    private double _wanLatencyMs;
+    private double? _wanLatencyMs;
 
     /// <summary>
     /// 10 秒后平均网速
     /// </summary>
     [ObservableProperty]
-    private double _averageMbps;
+    private double? _averageMbps;
 
     /// <summary>
     /// NIC 下载累计平均值
     /// </summary>
     [ObservableProperty]
-    private double _averageDownloadMbps;
+    private double? _averageDownloadMbps;
 
     /// <summary>
     /// NIC 上传累计平均值
     /// </summary>
     [ObservableProperty]
-    private double _averageUploadMbps;
+    private double? _averageUploadMbps;
 
     [ObservableProperty]
-    private double _averageTotalMbps;
+    private double? _averageTotalMbps;
 
     /// <summary>
     /// 实时测速时长（秒）
     /// </summary>
     [ObservableProperty]
-    private double _elapsedSeconds;
+    private double? _elapsedSeconds;
 
     [ObservableProperty]
     private ObservableCollection<SpeedTestResult> _recentRecords = new();
@@ -338,7 +338,7 @@ public partial class MainViewModel : ObservableObject
         if (dlUrls.Count == 0 && ulUrls.Count == 0) { StatusText = "无可用测速地址"; return; }
         if (Adapters.Count == 0) { StatusText = "未检测到可用网卡"; return; }
 
-        StartTestCommon(Math.Max(dlUrls.Count, ulUrls.Count), "全速");
+        StartTestCommon(Math.Max(dlUrls.Count, ulUrls.Count), "双向");
         try
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
@@ -370,7 +370,7 @@ public partial class MainViewModel : ObservableObject
         StatusText = $"{urlCount} 个 URL · {mode}测速中...";
         _cts = new CancellationTokenSource();
         ActiveThreadCount = 0;
-        ElapsedSeconds = 0;
+        ElapsedSeconds = null;
         _elapsedTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.2) };
         var sw = Stopwatch.StartNew();
         _stopwatch = sw;
@@ -378,12 +378,12 @@ public partial class MainViewModel : ObservableObject
         _elapsedTimer.Tick += _elapsedTickHandler;
         _elapsedTimer.Start();
 
-        DownloadMbps = 0;
+        DownloadMbps = null;
         UploadMbps = null;
         OnPropertyChanged(nameof(UploadMbpsDisplay));
-        LatencyMs = 0; WanLatencyMs = 0;
-        AverageMbps = 0; AverageDownloadMbps = 0; AverageUploadMbps = 0;
-        TotalBytes = 0;
+        LatencyMs = null; WanLatencyMs = null;
+        AverageMbps = null; AverageDownloadMbps = null; AverageUploadMbps = null; AverageTotalMbps = null;
+        TotalBytes = null;
         DownloadRatePoints.Clear();
         UploadRatePoints.Clear();
         UrlTestDetails.Clear();
@@ -397,6 +397,10 @@ public partial class MainViewModel : ObservableObject
     private void FinishTest(SpeedTestResult result)
     {
         if (result.LatencyMs > 0) LatencyMs = result.LatencyMs;
+        result.WanLatencyMs = (WanLatencyMs ?? 0) > 0 ? WanLatencyMs : null;
+        result.AverageTotalMbps = AverageTotalMbps ?? 0;
+        result.TotalBytes = TotalBytes ?? 0;
+        result.TestType = _currentTestMode;
         UrlTestDetails = new ObservableCollection<UrlTestDetail>(result.UrlDetails);
         _ = Task.Run(() => _dataService.SaveResult(result));
         _lastResult = result;
@@ -411,10 +415,10 @@ public partial class MainViewModel : ObservableObject
         StatusText = $"测速完成 · {ok} 成功{(fail > 0 ? $" · {fail} 失败/超时" : "")}";
 
         var dlg = new Views.TestResultWindow(
-            _currentTestMode, ElapsedSeconds,
+            _currentTestMode, ElapsedSeconds ?? 0,
             result.DownloadMbps, result.UploadMbps,
-            TotalBytes,
-            AverageTotalMbps, LatencyMs, WanLatencyMs)
+            TotalBytes ?? 0,
+            AverageTotalMbps ?? 0, LatencyMs ?? 0, WanLatencyMs ?? 0)
         {
             Owner = Application.Current.MainWindow
         };
@@ -434,6 +438,7 @@ public partial class MainViewModel : ObservableObject
         IsTesting = false;
         _cts?.Dispose();
         _cts = null;
+        _urlDetailMap.Clear();
     }
 
     // ==================== 回调（避免 lambda 重复分配） ====================
@@ -504,6 +509,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void CancelTest()
     {
+        if (!IsTesting) return;
         _elapsedTimer?.Stop();
         StatusText = "已取消";
         _cts?.Cancel();

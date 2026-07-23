@@ -78,7 +78,7 @@
                         Style="{StaticResource AccentButtonStyle}"
                         Command="{Binding StartUploadTestCommand}"
                         IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
-                <Button Content="全速测速" Width="80" Margin="4,0,0,0" Padding="8,6"
+                <Button Content="双向测速" Width="80" Margin="4,0,0,0" Padding="8,6"
                         Style="{StaticResource AccentButtonStyle}"
                         Command="{Binding StartFullTestCommand}"
                         IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
@@ -324,15 +324,24 @@
                 <DataGrid x:Name="RecentDataGrid" ItemsSource="{Binding RecentRecords}" MaxHeight="120" Height="120">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="时间" Binding="{Binding Timestamp, StringFormat={}{0:MM-dd HH:mm:ss}}"
-                                            Width="130" />
-                        <DataGridTextColumn Header="配置" Binding="{Binding NodeName}" Width="100" />
-                        <DataGridTextColumn Header="线程" Binding="{Binding ThreadCount}" Width="50" />
-                        <DataGridTextColumn Header="下载" Binding="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}"
-                                            Width="95" />
-                        <DataGridTextColumn Header="延迟" Binding="{Binding LatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
-                                            Width="80" />
-                        <DataGridTextColumn Header="耗时" Binding="{Binding DurationSeconds, Converter={StaticResource DurationDisplayConverter}}"
+                                            Width="110" />
+                        <DataGridTextColumn Header="类型" Binding="{Binding TestType}" Width="45" />
+                        <DataGridTextColumn Header="配置" Binding="{Binding NodeName}" Width="80" />
+                        <DataGridTextColumn Header="线程" Binding="{Binding ThreadCount}" Width="40" />
+                        <DataGridTextColumn Header="下载平均" Binding="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}"
+                                            Width="90" />
+                        <DataGridTextColumn Header="上传平均" Binding="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}"
+                                            Width="90" />
+                        <DataGridTextColumn Header="内网延迟" Binding="{Binding LatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
                                             Width="70" />
+                        <DataGridTextColumn Header="外网延迟" Binding="{Binding WanLatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
+                                            Width="70" />
+                        <DataGridTextColumn Header="总均速" Binding="{Binding AverageTotalMbps, Converter={StaticResource RateDisplayConverter}}"
+                                            Width="90" />
+                        <DataGridTextColumn Header="总流量" Binding="{Binding TotalBytes, Converter={StaticResource BytesDisplayConverter}}"
+                                            Width="85" />
+                        <DataGridTextColumn Header="耗时" Binding="{Binding DurationSeconds, Converter={StaticResource DurationDisplayConverter}}"
+                                            Width="80" />
                         <DataGridTextColumn Header="网卡" Binding="{Binding NetworkAdapterName}" Width="*" />
                     </DataGrid.Columns>
                 </DataGrid>

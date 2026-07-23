@@ -62,12 +62,12 @@ public class SpeedTestService
         Action<long>? onTotalBytes = null,
         CancellationToken ct = default)
     {
-        if (urls.Count == 0)
+        if (urls == null || urls.Count == 0)
             throw new ArgumentException("URL 列表不能为空");
         if (adapters == null || adapters.Count == 0)
             throw new ArgumentException("至少需要一个活跃网卡");
 
-        threadCount = Math.Clamp(threadCount, 1, _options.ThreadCount);
+        threadCount = Math.Clamp(threadCount, 1, Math.Max(1, _options.ThreadCount));
 
         var overall = Stopwatch.StartNew();
         var urlDetails = new List<UrlTestDetail>();
@@ -79,7 +79,7 @@ public class SpeedTestService
 
         // 内部取消令牌：方法返回时取消所有后台任务
         using var internalCts = new CancellationTokenSource();
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(_options.TestTimeoutSec));
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, _options.TestTimeoutSec)));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, internalCts.Token, timeoutCts.Token);
         var ctLinked = linkedCts.Token;
 
@@ -178,14 +178,15 @@ public class SpeedTestService
             .Select(g =>
             {
                 var first = g.First();
+                var succeeded = g.Where(d => !d.IsFailed).ToList();
                 var merged = new UrlTestDetail
                 {
                     Url = first.Url,
                     Host = first.Host,
-                    AvgMbps = g.Average(d => d.AvgMbps),
-                    PeakMbps = g.Max(d => d.PeakMbps),
+                    AvgMbps = succeeded.Count > 0 ? succeeded.Average(d => d.AvgMbps) : 0,
+                    PeakMbps = succeeded.Count > 0 ? succeeded.Max(d => d.PeakMbps) : 0,
                     BytesDownloaded = g.Sum(d => d.BytesDownloaded),
-                    DurationSeconds = g.Average(d => d.DurationSeconds),
+                    DurationSeconds = succeeded.Count > 0 ? succeeded.Average(d => d.DurationSeconds) : 0,
                     IsFailed = g.All(d => d.IsFailed),
                     ErrorMessage = g.FirstOrDefault(d => d.IsFailed)?.ErrorMessage
                 };
@@ -456,12 +457,12 @@ public class SpeedTestService
     {
         if (urls.Count == 0) throw new ArgumentException("URL 列表不能为空");
         if (adapters == null || adapters.Count == 0) throw new ArgumentException("至少需要一个活跃网卡");
-        threadCount = Math.Clamp(threadCount, 1, _options.ThreadCount);
+        threadCount = Math.Clamp(threadCount, 1, Math.Max(1, _options.ThreadCount));
         var overall = Stopwatch.StartNew(); int activeThreads = 0; var dummy = new LongRef();
         var nicState = new NicState();
 
         using var internalCts = new CancellationTokenSource();
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(_options.TestTimeoutSec));
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, _options.TestTimeoutSec)));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, internalCts.Token, timeoutCts.Token);
         var ctLinked = linkedCts.Token;
         using var semaphore = new SemaphoreSlim(threadCount, threadCount);
@@ -487,12 +488,12 @@ public class SpeedTestService
         var ts = Math.Max(overall.Elapsed.TotalSeconds, 0.1); double dl, ul;
         if (nicState.R) { var e = Math.Max(ts - _options.AverageDelaySec, 0.1); dl = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (e * 1_000_000.0)); ul = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (e * 1_000_000.0)); }
         else { dl = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts * 1_000_000.0)); ul = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts * 1_000_000.0)); }
-        double fl = 0; if (!string.IsNullOrEmpty(gateway)) try { fl = await TestGatewayLatencyAsync(gateway, ct); } catch { }
-        var ulBytes = nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS;
+        double fl = 0; if (!string.IsNullOrEmpty(gateway)) try { fl = await TestGatewayLatencyAsync(gateway, ctLinked); } catch { }
+        var ulBytes = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
         return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl, UploadMbps = ul, PeakMbps = 0, LatencyMs = fl, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = 0, BytesUploaded = ulBytes, DurationSeconds = ts, ThreadCount = threadCount, UrlDetails = new() };
     }
 
-    // ====== 全速测速（下载+上传同时跑） ======
+    // ====== 双向测速（下载+上传同时跑） ======
 
     public async Task<SpeedTestResult> RunFullTestAsync(
         List<string> dlUrls, List<string> ulUrls, int threadCount, List<NetworkAdapterInfo> adapters, string profileName,
@@ -508,12 +509,12 @@ public class SpeedTestService
         if (!hasDl) return await RunUploadTestAsync(ulUrls, threadCount, adapters, profileName, gateway, onDownloadProgress, onUploadProgress, onAdapterRates, onActiveThreadCount, onLatency, onWanLatency, onAverageDownload, onAverageUpload, onAverageTotal, onTotalBytes, ct);
         if (!hasUl) return await RunMultiUrlTestAsync(dlUrls, threadCount, adapters, profileName, gateway, null, onDownloadProgress, onUploadProgress, onAdapterRates, onActiveThreadCount, onLatency, onWanLatency, onAverageDownload: onAverageDownload, onAverageUpload: onAverageUpload, onAverageTotal: onAverageTotal, onTotalBytes: onTotalBytes, ct: ct);
 
-        threadCount = Math.Clamp(threadCount, 1, _options.ThreadCount);
+        threadCount = Math.Clamp(threadCount, 1, Math.Max(1, _options.ThreadCount));
         var overall = Stopwatch.StartNew(); int activeThreads = 0;
         var nicState = new NicState(); var bytesDl = new LongRef();
 
         using var internalCts = new CancellationTokenSource();
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(_options.TestTimeoutSec));
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, _options.TestTimeoutSec)));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, internalCts.Token, timeoutCts.Token);
         var ctLinked = linkedCts.Token;
         using var semaphore = new SemaphoreSlim(threadCount, threadCount);
@@ -553,7 +554,7 @@ public class SpeedTestService
         var ts_ = Math.Max(overall.Elapsed.TotalSeconds, 0.1); double dl_, ul_;
         if (nicState.R) { var e = Math.Max(ts_ - _options.AverageDelaySec, 0.1); dl_ = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (e * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (e * 1_000_000.0)); }
         else { dl_ = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts_ * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts_ * 1_000_000.0)); }
-        double fl_ = 0; if (!string.IsNullOrEmpty(gateway)) try { fl_ = await TestGatewayLatencyAsync(gateway, ct); } catch { }
+        double fl_ = 0; if (!string.IsNullOrEmpty(gateway)) try { fl_ = await TestGatewayLatencyAsync(gateway, ctLinked); } catch { }
         long dlBytes_ = bytesDl.Value, ulBytes_ = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
         return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = 0, LatencyMs = fl_, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = threadCount, UrlDetails = new() };
     }

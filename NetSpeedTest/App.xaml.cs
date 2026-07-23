@@ -25,14 +25,12 @@ public partial class App : Application
 
         var services = new ServiceCollection();
 
-        // 加载配置文件
+        // 加载配置文件（出厂默认 + 用户自定义层层覆盖）
         var localSettingsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NetSpeedTest");
         Directory.CreateDirectory(localSettingsDir);
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
-            .SetBasePath(localSettingsDir)
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), optional: true, reloadOnChange: false)
+            .AddJsonFile(Path.Combine(localSettingsDir, "appsettings.json"), optional: true, reloadOnChange: false)
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
 
@@ -55,7 +53,7 @@ public partial class App : Application
             {
                 Timeout = System.Threading.Timeout.InfiniteTimeSpan
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.1.1");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.2.0");
             return client;
         });
 
@@ -119,7 +117,7 @@ public partial class App : Application
                     .CreateSubKey(@"Software\NetSpeedTest");
                 eulaKey?.SetValue("EulaAccepted", 1);
             }
-        catch (Exception ex) { System.Windows.MessageBox.Show($"更新日志加载失败: {ex.Message}", "NetSpeedTest"); }
+        catch (Exception ex) { System.Windows.MessageBox.Show($"EULA 保存失败: {ex.Message}", "NetSpeedTest"); }
         }
 
         var mainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
@@ -151,7 +149,7 @@ public partial class App : Application
                 catch { }
             }
         }
-        catch (Exception ex) { System.Windows.MessageBox.Show($"更新日志加载失败: {ex.Message}", "NetSpeedTest"); }
+        catch (Exception ex) { System.Windows.MessageBox.Show($"EULA 保存失败: {ex.Message}", "NetSpeedTest"); }
     }
 
     public T GetService<T>() where T : notnull => _serviceProvider.GetRequiredService<T>();

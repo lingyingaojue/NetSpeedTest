@@ -9,7 +9,7 @@
             <StackPanel HorizontalAlignment="Center">
                 <TextBlock Text="NetSpeedTest" FontSize="22" FontWeight="Bold"
                            Foreground="{StaticResource AccentBrush}" HorizontalAlignment="Center" />
-                <TextBlock Text="版本 V1.1.1" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"
+                <TextBlock Text="版本 V1.2.0" FontSize="13" Foreground="{StaticResource TextSecondaryBrush}"
                            HorizontalAlignment="Center" Margin="0,8,0,0" />
                 <TextBlock Text="网络测速工具" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
                            HorizontalAlignment="Center" Margin="0,4,0,0" />

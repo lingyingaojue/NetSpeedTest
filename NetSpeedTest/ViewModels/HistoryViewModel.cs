@@ -54,6 +54,13 @@ public partial class HistoryViewModel : ObservableObject
     [ObservableProperty]
     private SpeedTestResult? _selectedRecord;
 
+    private bool CanDeleteRecord => SelectedRecord != null;
+
+    partial void OnSelectedRecordChanged(SpeedTestResult? value)
+    {
+        DeleteRecordCommand.NotifyCanExecuteChanged();
+    }
+
     // ==================== 构造函数 ====================
 
     public HistoryViewModel(DataService dataService)
@@ -93,7 +100,8 @@ public partial class HistoryViewModel : ObservableObject
         if (_currentPage > 1)
         {
             _currentPage--;
-            LoadPage(_currentPage);
+            try { LoadPage(_currentPage); }
+            catch { _currentPage++; PageNumber = 1; TotalPages = 1; CanGoNext = false; CanGoPrevious = false; }
         }
     }
 
@@ -105,13 +113,14 @@ public partial class HistoryViewModel : ObservableObject
     {
         if (_currentPage >= TotalPages) return;
         _currentPage++;
-        LoadPage(_currentPage);
+        try { LoadPage(_currentPage); }
+        catch { _currentPage--; PageNumber = _currentPage; TotalPages = 1; CanGoNext = false; CanGoPrevious = false; }
     }
 
     /// <summary>
     /// 删除选中的记录
     /// </summary>
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanDeleteRecord))]
     private void DeleteRecord()
     {
         if (SelectedRecord == null) return;

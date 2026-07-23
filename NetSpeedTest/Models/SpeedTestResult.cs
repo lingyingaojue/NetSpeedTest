@@ -24,6 +24,14 @@ public class SpeedTestResult
 
     public double? UploadMbps { get; set; }
 
+    public double? WanLatencyMs { get; set; }
+
+    public double AverageTotalMbps { get; set; }
+
+    public long TotalBytes { get; set; }
+
+    public string TestType { get; set; } = "";
+
     /// <summary>
     /// 平均延迟（ms）
     /// </summary>

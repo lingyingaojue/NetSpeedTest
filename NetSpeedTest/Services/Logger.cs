@@ -5,8 +5,8 @@ namespace NetSpeedTest.Services;
 
 public static class Logger
 {
-    private static bool _enabled;
-    private static string? _path;
+    private static volatile bool _enabled;
+    private static volatile string? _path;
     private static readonly object _lock = new();
 
     public static bool Enabled

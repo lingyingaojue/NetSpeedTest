@@ -20,10 +20,23 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _nicPollIntervalMs;
     [ObservableProperty] private int _threadRampUpMs;
 
+    public int[] ThreadOptions { get; } = { 2, 4, 8, 16, 32, 64, 128, 256, 512 };
+
+    public int ThreadIndex
+    {
+        get => Math.Clamp(Array.IndexOf(ThreadOptions, ThreadCount), 0, 8);
+        set => ThreadCount = ThreadOptions[Math.Clamp(value, 0, 8)];
+    }
+
+    partial void OnThreadCountChanged(int value)
+    {
+        OnPropertyChanged(nameof(ThreadIndex));
+    }
+
     public SettingsViewModel(SpeedTestOptions options)
     {
         _options = options;
-        ThreadCount = options.ThreadCount;
+        ThreadCount = ThreadOptions.Contains(options.ThreadCount) ? options.ThreadCount : 128;
         TestTimeoutSec = options.TestTimeoutSec;
         AverageDelaySec = options.AverageDelaySec;
         RateWindowSec = options.RateWindowSec;
@@ -35,7 +48,7 @@ public partial class SettingsViewModel : ObservableObject
     private void Save()
     {
         ThreadCount = Math.Clamp(ThreadCount, 1, 512);
-        TestTimeoutSec = Math.Clamp(TestTimeoutSec, 5, 900);
+        TestTimeoutSec = Math.Clamp(TestTimeoutSec, 5, 600);
         AverageDelaySec = Math.Clamp(AverageDelaySec, 1, 30);
         RateWindowSec = Math.Clamp(RateWindowSec, 0.5, 10.0);
         NicPollIntervalMs = Math.Clamp(NicPollIntervalMs, 200, 5000);

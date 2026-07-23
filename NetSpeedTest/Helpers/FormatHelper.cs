@@ -30,7 +30,7 @@ public static class FormatHelper
 
     public static string FormatDuration(double seconds)
     {
-        if (double.IsNaN(seconds) || double.IsInfinity(seconds) || seconds < 0) return "--";
+        if (double.IsNaN(seconds) || double.IsInfinity(seconds) || seconds < 0 || seconds > int.MaxValue) return "--";
         if (seconds <= 0) return "0.0 s";
         if (seconds < 1) return (seconds * 1000).ToString("F0", CultureInfo.InvariantCulture) + " ms";
         if (seconds < 60) return seconds.ToString("F1", CultureInfo.InvariantCulture) + " s";

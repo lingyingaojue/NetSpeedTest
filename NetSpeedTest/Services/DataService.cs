@@ -44,7 +44,11 @@ public class DataService
                 BytesUploaded INTEGER NOT NULL,
                 DurationSeconds REAL NOT NULL,
                 ThreadCount INTEGER NOT NULL DEFAULT 1,
-                PeakMbps REAL NOT NULL DEFAULT 0
+                PeakMbps REAL NOT NULL DEFAULT 0,
+                WanLatencyMs REAL,
+                AverageTotalMbps REAL NOT NULL DEFAULT 0,
+                TotalBytes INTEGER NOT NULL DEFAULT 0,
+                TestType TEXT NOT NULL DEFAULT ''
             )
             """;
         cmd1.ExecuteNonQuery();
@@ -73,18 +77,30 @@ public class DataService
     /// </summary>
     private static void MigrateTable(SqliteConnection connection)
     {
+        var columns = new Dictionary<string, string>
+        {
+            ["PeakMbps"] = "ALTER TABLE SpeedTestRecords ADD COLUMN PeakMbps REAL NOT NULL DEFAULT 0",
+            ["WanLatencyMs"] = "ALTER TABLE SpeedTestRecords ADD COLUMN WanLatencyMs REAL",
+            ["AverageTotalMbps"] = "ALTER TABLE SpeedTestRecords ADD COLUMN AverageTotalMbps REAL NOT NULL DEFAULT 0",
+            ["TotalBytes"] = "ALTER TABLE SpeedTestRecords ADD COLUMN TotalBytes INTEGER NOT NULL DEFAULT 0",
+            ["TestType"] = "ALTER TABLE SpeedTestRecords ADD COLUMN TestType TEXT NOT NULL DEFAULT ''",
+        };
+
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "PRAGMA table_info(SpeedTestRecords)";
-        var exists = false;
+        var existing = new HashSet<string>();
         using var reader = cmd.ExecuteReader();
         while (reader.Read())
-            if (reader.GetString(1) == "PeakMbps") { exists = true; break; }
+            existing.Add(reader.GetString(1));
 
-        if (!exists)
+        foreach (var (name, sql) in columns)
         {
-            using var alter = connection.CreateCommand();
-            alter.CommandText = "ALTER TABLE SpeedTestRecords ADD COLUMN PeakMbps REAL NOT NULL DEFAULT 0";
-            alter.ExecuteNonQuery();
+            if (!existing.Contains(name))
+            {
+                using var alter = connection.CreateCommand();
+                alter.CommandText = sql;
+                try { alter.ExecuteNonQuery(); } catch { }
+            }
         }
     }
 
@@ -99,8 +115,9 @@ public class DataService
         using var cmd = connection.CreateCommand();
         cmd.CommandText = """
             INSERT INTO SpeedTestRecords (Timestamp, DownloadMbps, UploadMbps, LatencyMs, JitterMs,
-                PacketLoss, NodeName, NetworkAdapterName, BytesDownloaded, BytesUploaded, DurationSeconds, ThreadCount, PeakMbps)
-            VALUES (@ts, @dl, @ul, @lat, @jit, @pl, @nn, @na, @bd, @bu, @dur, @tc, @pk)
+                PacketLoss, NodeName, NetworkAdapterName, BytesDownloaded, BytesUploaded, DurationSeconds, ThreadCount, PeakMbps,
+                WanLatencyMs, AverageTotalMbps, TotalBytes, TestType)
+            VALUES (@ts, @dl, @ul, @lat, @jit, @pl, @nn, @na, @bd, @bu, @dur, @tc, @pk, @wl, @at, @tb, @tt)
             """;
 
         cmd.Parameters.AddWithValue("@ts", result.Timestamp.ToString("o"));
@@ -116,6 +133,10 @@ public class DataService
         cmd.Parameters.AddWithValue("@dur", result.DurationSeconds);
         cmd.Parameters.AddWithValue("@tc", result.ThreadCount);
         cmd.Parameters.AddWithValue("@pk", result.PeakMbps);
+        cmd.Parameters.AddWithValue("@wl", (object?)result.WanLatencyMs ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@at", result.AverageTotalMbps);
+        cmd.Parameters.AddWithValue("@tb", result.TotalBytes);
+        cmd.Parameters.AddWithValue("@tt", result.TestType);
 
         cmd.ExecuteNonQuery();
     }
@@ -133,7 +154,8 @@ public class DataService
         using var cmd = connection.CreateCommand();
         cmd.CommandText = """
             SELECT Id, Timestamp, DownloadMbps, UploadMbps, LatencyMs, JitterMs, PacketLoss,
-                   NodeName, NetworkAdapterName, BytesDownloaded, BytesUploaded, DurationSeconds, ThreadCount, PeakMbps
+                   NodeName, NetworkAdapterName, BytesDownloaded, BytesUploaded, DurationSeconds, ThreadCount, PeakMbps,
+                   WanLatencyMs, AverageTotalMbps, TotalBytes, TestType
             FROM SpeedTestRecords
             ORDER BY Timestamp DESC
             LIMIT @limit OFFSET @offset
@@ -150,6 +172,8 @@ public class DataService
                 try { threadCount = reader.GetInt32(12); } catch { }
                 double peakMbps = 0;
                 try { peakMbps = reader.GetDouble(13); } catch { }
+                string testType = "";
+                try { testType = reader.GetString(17); } catch { }
 
                 results.Add(new SpeedTestResult
                 {
@@ -166,7 +190,11 @@ public class DataService
                     BytesUploaded = reader.GetInt64(10),
                     DurationSeconds = reader.GetDouble(11),
                     ThreadCount = threadCount,
-                    PeakMbps = peakMbps
+                    PeakMbps = peakMbps,
+                    WanLatencyMs = reader.IsDBNull(14) ? null : reader.GetDouble(14),
+                    AverageTotalMbps = reader.GetDouble(15),
+                    TotalBytes = reader.GetInt64(16),
+                    TestType = testType
                 });
             }
             catch { }
