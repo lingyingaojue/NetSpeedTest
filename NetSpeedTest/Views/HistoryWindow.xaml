@@ -1,0 +1,78 @@
+<Window x:Class="NetSpeedTest.Views.HistoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:NetSpeedTest.Converters"
+        Title="历史记录" Height="520" Width="900"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundBrush}">
+    <Window.Resources>
+        <converters:RateDisplayConverter x:Key="RateDisplayConverter" />
+        <converters:BytesDisplayConverter x:Key="BytesDisplayConverter" />
+        <converters:DurationDisplayConverter x:Key="DurationDisplayConverter" />
+        <converters:LatencyDisplayConverter x:Key="LatencyDisplayConverter" />
+    </Window.Resources>
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ======== 历史记录表格 ======== -->
+        <DataGrid Grid.Row="0" ItemsSource="{Binding Records}"
+                  SelectedItem="{Binding SelectedRecord}"
+                  MouseDoubleClick="DataGrid_MouseDoubleClick">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="测速时间" Binding="{Binding Timestamp, StringFormat={}{0:yyyy-MM-dd HH:mm:ss}}"
+                                    Width="150" />
+                <DataGridTextColumn Header="配置" Binding="{Binding NodeName}" Width="120" />
+                <DataGridTextColumn Header="下载速率" Binding="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}"
+                                    Width="100" />
+                <DataGridTextColumn Header="上传速率" Binding="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}"
+                                    Width="100" />
+                <DataGridTextColumn Header="延迟" Binding="{Binding LatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
+                                    Width="90" />
+                <DataGridTextColumn Header="耗时" Binding="{Binding DurationSeconds, Converter={StaticResource DurationDisplayConverter}}"
+                                    Width="80" />
+                <DataGridTextColumn Header="下载字节" Binding="{Binding BytesDownloaded, Converter={StaticResource BytesDisplayConverter}}"
+                                    Width="100" />
+                <DataGridTextColumn Header="网卡" Binding="{Binding NetworkAdapterName}" Width="120" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ======== 底部分页栏 ======== -->
+        <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Margin="0,8,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="上一页"
+                        Command="{Binding PreviousPageCommand}"
+                        IsEnabled="{Binding CanGoPrevious}"
+                        Width="70" />
+
+                <TextBlock Grid.Column="1" Text="{Binding PageNumber, StringFormat='第 {0} 页'}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           FontSize="13" VerticalAlignment="Center" Margin="16,0" />
+
+                <TextBlock Grid.Column="2" Text="{Binding TotalPages, StringFormat='/ 共 {0} 页'}"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           FontSize="12" VerticalAlignment="Center" Margin="0,0,16,0" />
+
+                <Button Grid.Column="3" Content="下一页"
+                        Command="{Binding NextPageCommand}"
+                        IsEnabled="{Binding CanGoNext}"
+                        Width="70" />
+
+                <Button Grid.Column="4" Content="删除选中"
+                        Command="{Binding DeleteRecordCommand}"
+                        Background="{StaticResource ErrorBrush}"
+                        Width="80" Margin="12,0,0,0" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

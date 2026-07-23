@@ -1,0 +1,64 @@
+<Window x:Class="NetSpeedTest.Views.TestResultWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="测速完成" Width="500" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="{StaticResource BackgroundBrush}">
+    <StackPanel Margin="24">
+        <TextBlock Text="测速完成" FontSize="22" FontWeight="Bold"
+                   Foreground="{StaticResource AccentBrush}"
+                   HorizontalAlignment="Center" Margin="0,0,0,14" />
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="测速时长" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                       Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="ElapsedValue" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel x:Name="DownloadRow" Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="下载 (平均)" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                       Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="DlValue" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{StaticResource DownloadChartStroke}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel x:Name="UploadRow" Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="上传 (平均)" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                       Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="UlValue" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{StaticResource UploadChartStroke}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="总均速" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                       Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="TotalAvgValue" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="总流量" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                       Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="TotalBytesValue" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="内网延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                       Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="LanValue" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="外网延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                       Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="WanValue" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <Button Content="确定" Width="100" Style="{StaticResource AccentButtonStyle}"
+                Margin="0,4,0,0" Click="Close_Click" />
+    </StackPanel>
+</Window>
