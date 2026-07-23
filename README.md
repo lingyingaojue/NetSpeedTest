@@ -1,5 +1,10 @@
 # NetSpeedTest
 
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-WPF-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
+[![Platform](https://img.shields.io/badge/platform-Windows%20x86-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
+[![Release](https://img.shields.io/badge/release-v1.1.1-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+
 Windows 平台网络测速工具，基于 .NET WPF 构建。支持实时监测网络上传/下载速率、延迟检测和丢包率追踪。
 
 ## 功能特性
