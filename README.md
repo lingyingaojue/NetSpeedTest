@@ -1,69 +1,103 @@
 # NetSpeedTest
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-WPF-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
-[![Platform](https://img.shields.io/badge/platform-Windows%20x86-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
+[![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
+[![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
 [![Release](https://img.shields.io/badge/release-v1.1.1-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 
-Windows 平台网络测速工具，基于 .NET WPF 构建。支持实时监测网络上传/下载速率、延迟检测和丢包率追踪。
+Windows 桌面端网络测速工具，支持 CDN 节点测速、配置导入导出、历史记录管理。
+
+基于 **.NET 8 + WPF + MVVM** 架构开发，MIT 开源协议。
 
 ![截图](assets/screenshot.png)
 
 ## 功能特性
 
-- 🚀 **全速测试** — 多线程并发下载/上传，准确测量带宽上限
-- 📊 **实时图表** — 速率曲线实时绘制，直观展示测试过程
-- 🏓 **延迟检测** — 多目标 Ping 测试，精准测量网络延迟
-- 📉 **丢包率** — 自动统计丢包情况
-- 📋 **历史记录** — 测试结果自动保存，支持历史回溯
-- 🎛️ **多配置** — 支持自定义测试配置，适配不同场景
-- 🖥️ **多分辨率** — 适配 1280×700（默认）/ 1000×600（最小）等多种分辨率
-- 🌐 **自定义 CDN** — 支持配置自定义测速服务器/CDN 节点
-- 🎨 **WPF 原生界面** — 流畅的 Windows 原生体验
+- 🚀 **一键测速** — 选择配置和 URL，一键完成下载/上传带宽检测，实时速率波形图
+- 📡 **网络质量检测** — Ping 延迟、抖动、丢包率综合评估
+- 🌐 **CDN 节点测速** — 支持任意 HTTP 可达地址，利用 CDN 文件进行下载测速，POST 上传无需专用端点
+- 🎛️ **配置管理** — 自由创建、编辑、删除测速配置（Profile），每个配置可包含多个下载/上传 URL
+- 📂 **HBCS 格式兼容** — 支持导入/导出 HBCS 测速配置文件（v1/v2），与主流安卓测速软件互通
+- 📋 **历史记录** — 每次测速结果自动保存到本地 SQLite，支持分页查看、删除
+- 🖥️ **网卡识别** — 自动识别物理网卡，展示 IP、网关、协商速率等信息
+- 🎨 **深色主题** — 现代化深色 UI，支持 Windows DPI 缩放
 
 ## 技术栈
 
 | 技术 | 说明 |
 |------|------|
-| .NET (WPF) | 桌面 UI 框架 |
-| C# | 主要开发语言 |
-| XAML | 界面布局 |
-| MVVM | 架构模式 |
+| .NET 8 | 目标框架 |
+| WPF | 桌面 UI 框架 |
+| CommunityToolkit.Mvvm | MVVM 架构 |
+| LiveCharts2 | 实时速率波形图 |
+| SQLite | 本地数据持久化 |
+| System.Net.Http | HTTP 测速引擎 |
 
-## 项目结构
+## 快速开始
 
+### 环境要求
+
+- Windows 10 / 11
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+
+### 编译运行
+
+```bash
+git clone https://github.com/lingyingaojue/NetSpeedTest.git
+cd NetSpeedTest
+dotnet restore
+dotnet build
+dotnet run --project NetSpeedTest/NetSpeedTest.csproj
 ```
-NetSpeedTest/
-├── Converters/     # 数据转换器（速率、延迟、字节显示等）
-├── Helpers/        # 工具类
-├── Models/         # 数据模型（网络适配器、测速结果等）
-├── Resources/      # 样式资源
-├── Services/       # 核心服务（测速、数据、日志等）
-├── ViewModels/     # 视图模型（MVVM）
-├── Views/          # 界面窗口
-└── NetSpeedTest.slnx  # 解决方案文件
+
+### 使用步骤
+
+1. 启动后自动加载本机网卡信息
+2. 点击「测速配置管理」导入 `.bin` / `.json` 配置文件，或新建配置
+3. 在主界面选择配置和下载 URL
+4. 点击「开始测速」
+5. 查看实时波形和测速结果卡片
+
+## 配置文件格式
+
+支持导入 HBCS 格式的配置文件（`.bin` / `.json`）：
+
+```json
+{
+  "format": "HBCS_SPEED_TEST_CONFIG",
+  "version": 1,
+  "profiles": [
+    {
+      "id": 1,
+      "name": "示例配置",
+      "downloadUrls": ["https://example.com/test_100mb.bin"],
+      "uploadUrls": ["https://example.com/test_100mb.bin"]
+    }
+  ]
+}
 ```
 
-## 构建
+> 💡 上传测速原理：HTTP POST 发送数据时，速率在客户端即可计算，不依赖服务器接受文件。因此任意可达 URL 均可用于上传测速。
 
-1. 安装 [.NET SDK](https://dotnet.microsoft.com/download)
-2. 克隆仓库：
-   ```bash
-   git clone https://github.com/lingyingaojue/NetSpeedTest.git
-   ```
-3. 构建项目：
-   ```bash
-   dotnet build NetSpeedTest.slnx
-   ```
-4. 运行：
-   ```bash
-   dotnet run --project NetSpeedTest
-   ```
+## 更新日志
 
-## 下载
+### v1.1.1
+- 修复 NIC 计数器基线漂移导致的流量异常问题
+- 修复测试结束后的历史记录刷新竞态条件
+- 修复 EULA 持久化机制的多路径一致性问题
+- 适配多分辨率场景（1280×700 默认 / 1000×600 最小）
+- 全平台数值格式统一为 InvariantCulture
+- 新增首次运行更新日志弹窗
 
-前往 [Releases](https://github.com/lingyingaojue/NetSpeedTest/releases) 页面下载最新编译版本。
+### v1.0.0
+- 核心测速引擎（下载/上传/Ping）
+- 配置管理（新建/编辑/删除/导入/导出）
+- 实时速率波形图
+- 历史记录（分页/删除）
+- 网卡信息识别
+- 深色主题 UI
+- 兼容 HBCS v1/v2 格式
 
 ## 许可证
 
-MIT License © 2026 lingyingaojue
+[MIT License](LICENSE) © 2026 lingyingaojue
