@@ -45,6 +45,18 @@ public class NetworkAdapterInfo
     /// </summary>
     public long? LinkSpeedBps { get; set; }
 
+    public string TypeName { get; set; } = "";
+
+    public string StatusText { get; set; } = "";
+
+    public string? IPv6Address { get; set; }
+
+    public string? DnsServers { get; set; }
+
+    public string? DhcpServer { get; set; }
+
+    public int? Mtu { get; set; }
+
     /// <summary>
     /// 是否物理网卡
     /// </summary>

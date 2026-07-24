@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="测速完成" Width="500" SizeToContent="Height"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Icon="/Resources/app.png"
         Background="{StaticResource BackgroundBrush}">
     <StackPanel Margin="24">
         <TextBlock Text="测速完成" FontSize="22" FontWeight="Bold"
@@ -17,14 +18,14 @@
         </StackPanel>
 
         <StackPanel x:Name="DownloadRow" Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="下载 (平均)" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="下载平均速度" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="DlValue" FontSize="18" FontWeight="SemiBold"
                        Foreground="{StaticResource DownloadChartStroke}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel x:Name="UploadRow" Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="上传 (平均)" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="上传平均速度" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="UlValue" FontSize="18" FontWeight="SemiBold"
                        Foreground="{StaticResource UploadChartStroke}" VerticalAlignment="Center" />
@@ -45,14 +46,14 @@
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="内网延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="内网平均延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="LanValue" FontSize="18" FontWeight="SemiBold"
                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBlock Text="外网延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="外网平均延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="WanValue" FontSize="18" FontWeight="SemiBold"
                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />

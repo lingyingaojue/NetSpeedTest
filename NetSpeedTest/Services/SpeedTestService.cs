@@ -84,12 +84,12 @@ public class SpeedTestService
         var ctLinked = linkedCts.Token;
 
         // 信号量控制并发度
-        using var semaphore = new SemaphoreSlim(threadCount, threadCount);
+        using var semaphore = new SemaphoreSlim(threadCount + _options.CompensationExtraThreads, threadCount + _options.CompensationExtraThreads);
 
         StartNicMonitor(overall, ctLinked, adapters, nicState,
             onDownloadProgress, onUploadProgress, onAdapterRates,
             onAverageDownload, onAverageUpload, onAverageTotal, onAverageSpeed,
-            new LongRef { Value = totalBytesDownloaded }, onTotalBytes);
+            new LongRef { Value = totalBytesDownloaded }, onTotalBytes, tc: threadCount);
 
         StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency);
 
@@ -98,6 +98,7 @@ public class SpeedTestService
         for (int i = 0; i < threadCount; i++)
         {
             if (ct.IsCancellationRequested) break;
+            if (nicState.AdaptiveCap > 0 && i >= nicState.AdaptiveCap) break;
 
             var url = urls[i % urls.Count];
             tasks.Add(Task.Run(async () =>
@@ -105,10 +106,10 @@ public class SpeedTestService
                 try { await semaphore.WaitAsync(ctLinked); }
                 catch { return; }
                 var current = Interlocked.Increment(ref activeThreads);
-                onActiveThreadCount?.Invoke(current);
 
                 try
                 {
+                    onActiveThreadCount?.Invoke(current);
                     var detail = new UrlTestDetail { Url = url, Host = GetHostFromUrl(url) };
                     lock (globalLock) { urlDetails.Add(detail); }
 
@@ -210,8 +211,10 @@ public class SpeedTestService
         if (nicState.R)
         {
             var effSec = Math.Max(totalSec - _options.AverageDelaySec, 0.1);
-            nicDlAvg = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (effSec * 1_000_000.0));
-            nicUlAvg = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (effSec * 1_000_000.0));
+            var dropSec = _options.CompensationEnabled ? nicState.TotalDropDuration : 0;
+            var adjSec = Math.Max(effSec - dropSec, 0.1);
+            nicDlAvg = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (adjSec * 1_000_000.0));
+            nicUlAvg = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (adjSec * 1_000_000.0));
         }
         else
         {
@@ -401,13 +404,23 @@ public class SpeedTestService
 
     // ====== 共享监控方法 ======
 
-    private sealed class NicState { public long FR, FS, AR, AS, BR, BS; public bool R; }
+    private sealed class NicState {
+        public long FR, FS, AR, AS, BR, BS;
+        public bool R;
+        public volatile bool IsCompensating;
+        public double PeakRate, BelowThresholdSec, DropStartTime;
+        public long DropStartBytes;
+        public double TotalDropDuration;
+        public long TotalDropBytes;
+        public volatile int SaturationHits, AdaptiveCap;
+        public double PeakEfficiency;
+    }
     private sealed class LongRef { public long Value; }
 
     private void StartNicMonitor(Stopwatch overall, CancellationToken c, List<NetworkAdapterInfo> ad, NicState st,
         Action<double, double, long>? dl, Action<double, double, long>? ul, Action<string, double, double>? ar,
         Action<double>? adl, Action<double>? aul, Action<double>? atl, Action<double>? as_, LongRef tbd,
-        Action<long>? tb = null)
+        Action<long>? tb = null, int tc = 128)
     {
         _ = Task.Run(async () =>
         {
@@ -428,6 +441,48 @@ public class SpeedTestService
                     if (!st.R && e >= _options.AverageDelaySec) { st.R = true; st.BR = lb.Values.Sum(x => x.R); st.BS = lb.Values.Sum(x => x.S); }
                     tb?.Invoke(Math.Max(0, st.AR + st.AS - st.FR - st.FS));
                     if (lt > 0) { var dt = e - lt; var dr = dt > 0 ? (dd * 8.0) / (dt * 1_000_000.0) : 0; var ur = dt > 0 ? (du * 8.0) / (dt * 1_000_000.0) : 0; dh.Add((e, dr)); dh.RemoveAll(x => e - x.Item1 > ws); uh.Add((e, ur)); uh.RemoveAll(x => e - x.Item1 > ws); dl?.Invoke(e, dh.Count > 0 ? dh.Average(x => x.Item2) : dr, Interlocked.Read(ref totalBytes.Value)); ul?.Invoke(e, uh.Count > 0 ? uh.Average(x => x.Item2) : ur, 0); if (st.R) { var ae = e - _options.AverageDelaySec; adl?.Invoke(ae > 0 ? (st.AR - st.BR) * 8.0 / (ae * 1_000_000.0) : 0); aul?.Invoke(ae > 0 ? (st.AS - st.BS) * 8.0 / (ae * 1_000_000.0) : 0); atl?.Invoke(ae > 0 ? (st.AR - st.BR + st.AS - st.BS) * 8.0 / (ae * 1_000_000.0) : 0); } }
+                    if (_options.CompensationEnabled && st.R)
+                    {
+                        var sr = dh.Count > 0 ? dh.Average(x => x.Item2) : 0;
+                        var ur_ = uh.Count > 0 ? uh.Average(x => x.Item2) : 0;
+                        var combined = Math.Max(sr, ur_);
+                        if (combined > st.PeakRate) st.PeakRate = combined;
+                        if (!st.IsCompensating && st.PeakRate > 0 && combined < st.PeakRate * _options.CompensationThreshold)
+                        {
+                            st.BelowThresholdSec += _options.NicPollIntervalMs / 1000.0;
+                            if (st.BelowThresholdSec >= _options.CompensationConfirmSec)
+                            {
+                                st.IsCompensating = true;
+                                st.DropStartTime = e;
+                                st.DropStartBytes = st.AR + st.AS;
+                            }
+                        }
+                        else if (st.IsCompensating && combined > st.PeakRate * 0.8)
+                        {
+                            st.IsCompensating = false;
+                            st.TotalDropDuration += e - st.DropStartTime;
+                            st.TotalDropBytes += Math.Max(0, st.AR + st.AS - st.DropStartBytes);
+                        }
+                        else if (!st.IsCompensating) { st.BelowThresholdSec = 0; }
+                    }
+                    if (_options.AdaptiveThreadsEnabled && st.R && dh.Count > 0 && tc >= 8)
+                    {
+                        var tr = (dh.Count > 0 ? dh.Average(x => x.Item2) : 0)
+                               + (uh.Count > 0 ? uh.Average(x => x.Item2) : 0);
+                        var eff = tr / tc;
+                        if (eff > st.PeakEfficiency) st.PeakEfficiency = eff;
+                        if (eff < st.PeakEfficiency * 0.3)
+                        {
+                            st.SaturationHits++;
+                            if (st.SaturationHits >= 2) st.AdaptiveCap = tc;
+                        }
+                        else if (eff > st.PeakEfficiency * 0.7)
+                        {
+                            st.SaturationHits = 0;
+                            if (st.AdaptiveCap > 0) st.AdaptiveCap = 0;
+                        }
+                        else { st.SaturationHits = 0; }
+                    }
                     lt = e;
                     if (!as2 && e >= _options.AverageDelaySec) { as2 = true; asb = Interlocked.Read(ref totalBytes.Value); ast = e; }
                     if (as2 && as_ != null) { var b = Interlocked.Read(ref totalBytes.Value) - asb; var t_ = e - ast; as_(t_ > 0 ? (b * 8.0) / (t_ * 1_000_000.0) : 0); }
@@ -440,8 +495,8 @@ public class SpeedTestService
 
     private void StartGatewayAndWanLatency(string? gateway, CancellationToken ctLinked, Action<double>? onLatency, Action<double>? onWanLatency)
     {
-        if (!string.IsNullOrEmpty(gateway)) { Logger.Log($"网关延迟测试启动: gateway={gateway}"); _ = Task.Run(async () => { try { while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(gateway, ctLinked); if (v > 0) onLatency?.Invoke(v); } catch { break; } try { await Task.Delay(2000, ctLinked); } catch { break; } } } catch { } }); }
-        _ = Task.Run(async () => { var t = new[] { "www.baidu.com", "8.8.8.8", "114.114.114.114", "www.aliyun.com", "www.qq.com", "www.jd.com", "www.163.com", "www.bilibili.com", "1.1.1.1", "223.5.5.5", "119.29.29.29", "www.taobao.com" }; while (!ctLinked.IsCancellationRequested) { try { using var c3 = new CancellationTokenSource(TimeSpan.FromSeconds(3)); using var tk = CancellationTokenSource.CreateLinkedTokenSource(ctLinked, c3.Token); double b = double.MaxValue; object l = new(); var p = t.Select(async x => { var v = await TestGatewayLatencyAsync(x, tk.Token); if (v > 0) lock (l) { if (v < b) { b = v; onWanLatency?.Invoke(v); } } }); await Task.WhenAny(Task.WhenAll(p), Task.Delay(3000, ctLinked)); } catch { } try { await Task.Delay(2000, ctLinked); } catch { break; } } });
+        if (!string.IsNullOrEmpty(gateway)) { Logger.Log($"网关延迟测试启动: gateway={gateway}"); _ = Task.Run(async () => { try { while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(gateway, ctLinked); if (v > 0) onLatency?.Invoke(v); } catch { break; } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } } catch { } }); }
+        _ = Task.Run(async () => { var t = new[] { "www.baidu.com", "8.8.8.8", "114.114.114.114", "www.aliyun.com", "www.qq.com", "www.jd.com", "www.163.com", "www.bilibili.com", "1.1.1.1", "223.5.5.5", "119.29.29.29", "www.taobao.com" }; while (!ctLinked.IsCancellationRequested) { try { using var c3 = new CancellationTokenSource(TimeSpan.FromSeconds(3)); using var tk = CancellationTokenSource.CreateLinkedTokenSource(ctLinked, c3.Token); double b = double.MaxValue; object l = new(); var p = t.Select(async x => { var v = await TestGatewayLatencyAsync(x, tk.Token); if (v > 0) lock (l) { if (v < b) b = v; } }); await Task.WhenAny(Task.WhenAll(p), Task.Delay(3000, ctLinked)); if (b < double.MaxValue) onWanLatency?.Invoke(b); } catch { } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } });
     }
 
     // ====== 上传测速 ======
@@ -465,30 +520,31 @@ public class SpeedTestService
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, _options.TestTimeoutSec)));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, internalCts.Token, timeoutCts.Token);
         var ctLinked = linkedCts.Token;
-        using var semaphore = new SemaphoreSlim(threadCount, threadCount);
+        using var semaphore = new SemaphoreSlim(threadCount + _options.CompensationExtraThreads, threadCount + _options.CompensationExtraThreads);
 
-        StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, dummy, onTotalBytes);
+        StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, dummy, onTotalBytes, tc: threadCount);
         StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency);
 
         var rng = new Random(Guid.NewGuid().GetHashCode()); var buf = new byte[64 * 1024]; rng.NextBytes(buf);
         var tasks = new List<Task>();
         for (int i = 0; i < threadCount; i++)
         {
-            if (ct.IsCancellationRequested) break; var url = urls[i % urls.Count];
+            if (ct.IsCancellationRequested) break;
+            if (nicState.AdaptiveCap > 0 && i >= nicState.AdaptiveCap) break; var url = urls[i % urls.Count];
             tasks.Add(Task.Run(async () =>
             {
                 try { await semaphore.WaitAsync(ctLinked); } catch { return; }
-                var c = Interlocked.Increment(ref activeThreads); onActiveThreadCount?.Invoke(c);
-                try { while (!ctLinked.IsCancellationRequested) { try { using var co = new ByteArrayContent(buf); co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co }; using var _ = await _httpClient.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, ctLinked); } catch (OperationCanceledException) { break; } catch { try { await Task.Delay(500, ctLinked); } catch { break; } } } }
+                var c = Interlocked.Increment(ref activeThreads);
+                try { onActiveThreadCount?.Invoke(c); while (!ctLinked.IsCancellationRequested) { try { using var co = new ByteArrayContent(buf); co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co }; using var _ = await _httpClient.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, ctLinked); } catch (OperationCanceledException) { break; } catch { try { await Task.Delay(500, ctLinked); } catch { break; } } } }
                 finally { try { semaphore.Release(); } catch (SemaphoreFullException) { } catch (ObjectDisposedException) { } onActiveThreadCount?.Invoke(Interlocked.Decrement(ref activeThreads)); }
             }));
             if (_options.ThreadRampUpMs > 0 && i + 1 < threadCount) { try { await Task.Delay(_options.ThreadRampUpMs, ctLinked); } catch { break; } }
         }
         await Task.WhenAll(tasks); overall.Stop(); internalCts.Cancel();
         var ts = Math.Max(overall.Elapsed.TotalSeconds, 0.1); double dl, ul;
-        if (nicState.R) { var e = Math.Max(ts - _options.AverageDelaySec, 0.1); dl = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (e * 1_000_000.0)); ul = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (e * 1_000_000.0)); }
+        if (nicState.R) { var e = Math.Max(ts - _options.AverageDelaySec, 0.1); var drop = _options.CompensationEnabled ? nicState.TotalDropDuration : 0; var adj = Math.Max(e - drop, 0.1); dl = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (adj * 1_000_000.0)); ul = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (adj * 1_000_000.0)); }
         else { dl = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts * 1_000_000.0)); ul = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts * 1_000_000.0)); }
-        double fl = 0; if (!string.IsNullOrEmpty(gateway)) try { fl = await TestGatewayLatencyAsync(gateway, ctLinked); } catch { }
+        double fl = 0; if (!string.IsNullOrEmpty(gateway)) try { fl = await TestGatewayLatencyAsync(gateway, ct); } catch { }
         var ulBytes = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
         return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl, UploadMbps = ul, PeakMbps = 0, LatencyMs = fl, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = 0, BytesUploaded = ulBytes, DurationSeconds = ts, ThreadCount = threadCount, UrlDetails = new() };
     }
@@ -517,9 +573,9 @@ public class SpeedTestService
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, _options.TestTimeoutSec)));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, internalCts.Token, timeoutCts.Token);
         var ctLinked = linkedCts.Token;
-        using var semaphore = new SemaphoreSlim(threadCount, threadCount);
+        using var semaphore = new SemaphoreSlim(threadCount + _options.CompensationExtraThreads, threadCount + _options.CompensationExtraThreads);
 
-        StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, bytesDl, onTotalBytes);
+        StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, bytesDl, onTotalBytes, tc: threadCount);
         StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency);
 
         var rng = new Random(Guid.NewGuid().GetHashCode()); var buf = new byte[64 * 1024]; rng.NextBytes(buf);
@@ -527,14 +583,16 @@ public class SpeedTestService
         for (int i = 0; i < threadCount; i++)
         {
             if (ct.IsCancellationRequested) break;
+            if (nicState.AdaptiveCap > 0 && i >= nicState.AdaptiveCap) break;
             bool isDl = i % 2 == 0;
             var url = isDl ? dlUrls[(i / 2) % dlUrls.Count] : ulUrls[(i / 2) % ulUrls.Count];
             tasks.Add(Task.Run(async () =>
             {
                 try { await semaphore.WaitAsync(ctLinked); } catch { return; }
-                var c = Interlocked.Increment(ref activeThreads); onActiveThreadCount?.Invoke(c);
+                var c = Interlocked.Increment(ref activeThreads);
                 try
                 {
+                    onActiveThreadCount?.Invoke(c);
                     while (!ctLinked.IsCancellationRequested)
                     {
                         try
@@ -552,9 +610,9 @@ public class SpeedTestService
 
         await Task.WhenAll(tasks); overall.Stop(); internalCts.Cancel();
         var ts_ = Math.Max(overall.Elapsed.TotalSeconds, 0.1); double dl_, ul_;
-        if (nicState.R) { var e = Math.Max(ts_ - _options.AverageDelaySec, 0.1); dl_ = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (e * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (e * 1_000_000.0)); }
+        if (nicState.R) { var e = Math.Max(ts_ - _options.AverageDelaySec, 0.1); var drop = _options.CompensationEnabled ? nicState.TotalDropDuration : 0; var adj = Math.Max(e - drop, 0.1); dl_ = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (adj * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (adj * 1_000_000.0)); }
         else { dl_ = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts_ * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts_ * 1_000_000.0)); }
-        double fl_ = 0; if (!string.IsNullOrEmpty(gateway)) try { fl_ = await TestGatewayLatencyAsync(gateway, ctLinked); } catch { }
+        double fl_ = 0; if (!string.IsNullOrEmpty(gateway)) try { fl_ = await TestGatewayLatencyAsync(gateway, ct); } catch { }
         long dlBytes_ = bytesDl.Value, ulBytes_ = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
         return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = 0, LatencyMs = fl_, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = threadCount, UrlDetails = new() };
     }

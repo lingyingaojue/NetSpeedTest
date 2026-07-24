@@ -106,7 +106,7 @@ MIT 许可证的全部条款。
                 "NetSpeedTest", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result != MessageBoxResult.Yes) return;
 
-            try { Microsoft.Win32.Registry.CurrentUser.DeleteSubKey(@"Software\NetSpeedTest", false); } catch (Exception ex) { Logger.Log($"EULA revoke failed: {ex.Message}"); }
+            try { using var rk = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\NetSpeedTest", true); rk?.DeleteValue("EulaAccepted", false); } catch (Exception ex) { Logger.Log($"EULA revoke failed: {ex.Message}"); }
             Revoked = true;
         }
         Close();

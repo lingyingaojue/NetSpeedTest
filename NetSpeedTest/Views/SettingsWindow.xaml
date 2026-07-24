@@ -2,10 +2,12 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xml:lang="en-US"
-        Title="测速设置" Height="450" Width="460"
+        Title="测速设置" Height="590" Width="460"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Icon="/Resources/app.png"
         Background="{StaticResource BackgroundBrush}">
-    <Grid Margin="20">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -13,7 +15,9 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -84,12 +88,68 @@
             <Slider Minimum="200" Maximum="5000" Value="{Binding NicPollIntervalMs}" TickFrequency="100" IsSnapToTickEnabled="True" />
         </StackPanel>
 
+        <!-- 延迟轮询间隔 -->
+        <StackPanel Grid.Row="6" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="延迟轮询间隔 (毫秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                           Width="160" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding LatencyPollIntervalMs, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
+                           Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right" />
+            </StackPanel>
+            <Slider Minimum="500" Maximum="10000" Value="{Binding LatencyPollIntervalMs}" TickFrequency="500" IsSnapToTickEnabled="True" />
+        </StackPanel>
+
+        <!-- 掉速补偿 -->
+        <Expander Grid.Row="8" Header="掉速补偿" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                  IsExpanded="False" Margin="0,0,0,8">
+            <StackPanel>
+                <CheckBox Content="启用补偿" IsChecked="{Binding CompensationEnabled}" Margin="0,6,0,8"
+                          Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" />
+                <StackPanel Margin="0,0,0,12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="补偿阈值" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"
+                                   Width="160" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding CompensationThreshold, StringFormat={}{0:F2}}" FontSize="13" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right" />
+                    </StackPanel>
+                    <Slider Minimum="0.3" Maximum="0.8" Value="{Binding CompensationThreshold}"
+                            TickFrequency="0.05" IsSnapToTickEnabled="True"
+                            IsEnabled="{Binding CompensationEnabled}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,0,12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="补偿线程数" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"
+                                   Width="160" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding CompensationExtraThreads, StringFormat={}{0}}" FontSize="13" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right" />
+                    </StackPanel>
+                    <Slider Minimum="0" Maximum="64" Value="{Binding CompensationExtraThreads}"
+                            TickFrequency="4" IsSnapToTickEnabled="True"
+                            IsEnabled="{Binding CompensationEnabled}" />
+                </StackPanel>
+                <StackPanel Margin="0,0,0,12">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="确认时长 (秒)" FontSize="12" Foreground="{StaticResource TextPrimaryBrush}"
+                                   Width="160" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding CompensationConfirmSec, StringFormat={}{0}}" FontSize="13" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right" />
+                    </StackPanel>
+                    <Slider Minimum="1" Maximum="10" Value="{Binding CompensationConfirmSec}"
+                            TickFrequency="1" IsSnapToTickEnabled="True"
+                            IsEnabled="{Binding CompensationEnabled}" />
+                </StackPanel>
+                <CheckBox Content="启用自适应线程上限" IsChecked="{Binding AdaptiveThreadsEnabled}" Margin="0,6,0,8"
+                          Foreground="{StaticResource TextPrimaryBrush}" FontSize="12" />
+            </StackPanel>
+        </Expander>
+
         <!-- 按钮 -->
-        <StackPanel Grid.Row="7" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+        <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button Content="保存" Width="80" Style="{StaticResource AccentButtonStyle}"
                     Command="{Binding SaveCommand}" />
             <Button Content="取消" Width="60" Margin="8,0,0,0"
                     Command="{Binding CancelCommand}" />
         </StackPanel>
     </Grid>
+    </ScrollViewer>
 </Window>

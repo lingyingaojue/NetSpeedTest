@@ -53,7 +53,7 @@ public partial class App : Application
             {
                 Timeout = System.Threading.Timeout.InfiniteTimeSpan
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.2.0");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.1");
             return client;
         });
 
@@ -149,7 +149,7 @@ public partial class App : Application
                 catch { }
             }
         }
-        catch (Exception ex) { System.Windows.MessageBox.Show($"EULA 保存失败: {ex.Message}", "NetSpeedTest"); }
+        catch (Exception ex) { System.Windows.MessageBox.Show($"版本检查失败: {ex.Message}", "NetSpeedTest"); }
     }
 
     public T GetService<T>() where T : notnull => _serviceProvider.GetRequiredService<T>();

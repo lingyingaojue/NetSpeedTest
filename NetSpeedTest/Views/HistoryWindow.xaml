@@ -4,6 +4,7 @@
         xmlns:converters="clr-namespace:NetSpeedTest.Converters"
         Title="历史记录" Height="520" Width="900"
         WindowStartupLocation="CenterOwner"
+        Icon="/Resources/app.png"
         Background="{StaticResource BackgroundBrush}">
     <Window.Resources>
         <converters:RateDisplayConverter x:Key="RateDisplayConverter" />
@@ -18,7 +19,7 @@
         </Grid.RowDefinitions>
 
         <!-- ======== 历史记录表格 ======== -->
-        <DataGrid Grid.Row="0" ItemsSource="{Binding Records}"
+        <DataGrid Grid.Row="0" ItemsSource="{Binding Records}" AutoGenerateColumns="False" IsReadOnly="True"
                   SelectedItem="{Binding SelectedRecord}"
                   MouseDoubleClick="DataGrid_MouseDoubleClick">
             <DataGrid.Columns>
@@ -54,6 +55,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <Button Grid.Column="0" Content="上一页"
@@ -74,7 +76,11 @@
                         IsEnabled="{Binding CanGoNext}"
                         Width="70" />
 
-                <Button Grid.Column="4" Content="删除选中"
+                <Button Grid.Column="4" Content="清除全部" Width="80" Margin="12,0,0,0"
+                        Command="{Binding ClearAllRecordsCommand}"
+                        Background="{StaticResource ErrorBrush}" />
+
+                <Button Grid.Column="5" Content="删除选中"
                         Command="{Binding DeleteRecordCommand}"
                         Background="{StaticResource ErrorBrush}"
                         Width="80" Margin="12,0,0,0" />

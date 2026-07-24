@@ -55,6 +55,20 @@ public class NetworkInfoService
                     .FirstOrDefault(g => g.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.Address?.ToString()
                     ?? ipProps.GatewayAddresses.FirstOrDefault()?.Address?.ToString();
 
+                var ipv6 = ipProps.UnicastAddresses
+                    .FirstOrDefault(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)?.Address?.ToString();
+                var dns = string.Join(", ", ipProps.DnsAddresses.Select(d => d.ToString()).Where(s => !string.IsNullOrEmpty(s)));
+                var dhcpServer = ipProps.DhcpServerAddresses.FirstOrDefault()?.ToString();
+                var mtu = ni.GetIPProperties().GetIPv4Properties()?.Mtu;
+                var typeName = ni.NetworkInterfaceType switch
+                {
+                    NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet => "以太网",
+                    NetworkInterfaceType.Wireless80211 => "WiFi",
+                    _ => ni.NetworkInterfaceType.ToString()
+                };
+                var statusText = ni.OperationalStatus == OperationalStatus.Up ? "已连接" :
+                                 ni.OperationalStatus == OperationalStatus.Down ? "已断开" : "未知";
+
                 var adapter = new NetworkAdapterInfo
                 {
                     Id = ni.Id,
@@ -65,6 +79,12 @@ public class NetworkInfoService
                     Gateway = gateway,
                     MacAddress = ni.GetPhysicalAddress().ToString(),
                     LinkSpeedBps = ni.Speed > 0 ? ni.Speed : null,
+                    IPv6Address = ipv6,
+                    DnsServers = dns.Length > 0 ? dns : null,
+                    DhcpServer = dhcpServer,
+                    Mtu = mtu,
+                    TypeName = typeName,
+                    StatusText = statusText,
                     IsPhysical = true,
                     IsWifi = ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211,
                     IsOperational = true

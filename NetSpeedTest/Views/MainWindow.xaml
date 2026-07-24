@@ -4,6 +4,7 @@
         xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         xmlns:converters="clr-namespace:NetSpeedTest.Converters"
         Title="NetSpeedTest" Height="700" Width="1280" MinHeight="600" MinWidth="1000"
+        Icon="/Resources/app.png"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
 
@@ -14,15 +15,16 @@
         <converters:LatencyDisplayConverter x:Key="LatencyDisplayConverter" />
         <converters:BoolInverterConverter x:Key="BoolInverter" />
         <converters:NotNullConverter x:Key="NotNullConverter" />
+        <converters:SpeedDisplayConverter x:Key="SpeedDisplayConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     </Window.Resources>
 
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="0.6*" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="0.4*" />
         </Grid.RowDefinitions>
 
         <!-- ===== 顶部导航栏 ===== -->
@@ -47,8 +49,8 @@
                        Foreground="{StaticResource TextPrimaryBrush}"
                        VerticalAlignment="Center" Margin="0,0,20,0" />
 
-            <TextBlock Grid.Column="1" Text="配置" Foreground="{StaticResource TextSecondaryBrush}"
-                       FontSize="11" Margin="16,0,6,0" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1" Text="配置" Foreground="{StaticResource TextPrimaryBrush}"
+                       FontSize="12" Margin="16,0,6,0" VerticalAlignment="Center" />
             <ComboBox Grid.Column="2" Width="140"
                       ItemsSource="{Binding Profiles}"
                       SelectedItem="{Binding SelectedProfile}">
@@ -59,8 +61,8 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
 
-            <TextBlock Grid.Column="3" Text="活跃线程" Foreground="{StaticResource TextSecondaryBrush}"
-                       FontSize="11" Margin="16,0,8,0" VerticalAlignment="Center" />
+            <TextBlock Grid.Column="3" Text="活跃线程" Foreground="{StaticResource TextPrimaryBrush}"
+                       FontSize="12" Margin="16,0,8,0" VerticalAlignment="Center" />
             <Border Grid.Column="4" Background="{StaticResource SurfaceBrush}"
                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4"
                     Padding="6,2" Margin="0,0,8,0" MinWidth="36">
@@ -104,8 +106,8 @@
             <Button Grid.Column="11" Content="关于" Width="60" Margin="6,0,0,0"
                     Command="{Binding OpenAboutCommand}" />
 
-            <TextBlock Grid.Column="12" Text="{Binding StatusText}" FontSize="11"
-                       Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Grid.Column="12" Text="{Binding StatusText}" FontSize="12"
+                       Foreground="{StaticResource TextPrimaryBrush}"
                        VerticalAlignment="Center" HorizontalAlignment="Right"
                        Margin="12,0,0,0" TextTrimming="CharacterEllipsis" />
         </Grid>
@@ -125,7 +127,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="下载速率" FontSize="13" FontWeight="SemiBold"
+                    <TextBlock Grid.Row="0" Text="下载速率" FontSize="16" FontWeight="SemiBold"
                                Foreground="{StaticResource DownloadChartStroke}" Margin="0,0,0,8" />
                     <lvc:CartesianChart Grid.Row="1" Series="{Binding DownloadChartSeries}"
                                         XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
@@ -143,7 +145,7 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Text="上传速率" FontSize="13" FontWeight="SemiBold"
+                    <TextBlock Grid.Row="0" Text="上传速率" FontSize="16" FontWeight="SemiBold"
                                Foreground="{StaticResource UploadChartStroke}" Margin="0,0,0,8" />
                     <lvc:CartesianChart Grid.Row="1" Series="{Binding UploadChartSeries}"
                                         XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
@@ -153,7 +155,7 @@
         </Grid>
 
         <!-- 全部网卡实时速率 -->
-        <ItemsControl Grid.Row="2" ItemsSource="{Binding AllAdapterRates}" Margin="0,4,0,0">
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding AllAdapterRates}" Margin="0,4,0,0" MinHeight="36">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" />
@@ -164,16 +166,16 @@
                     <Border Background="{StaticResource SurfaceBrush}" CornerRadius="4"
                             Padding="8,4" Margin="4,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Name}" FontSize="11"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                            <TextBlock Text="{Binding Name}" FontSize="13"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
                                        VerticalAlignment="Center" Margin="0,0,8,0" />
-                            <TextBlock FontSize="12" FontWeight="Bold"
+                            <TextBlock FontSize="16" FontWeight="Bold"
                                        Foreground="{StaticResource DownloadChartStroke}"
                                        VerticalAlignment="Center">
                                 <Run Text="▼ " />
                                 <Run Text="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
-                            <TextBlock FontSize="12" FontWeight="Bold"
+                            <TextBlock FontSize="16" FontWeight="Bold"
                                        Foreground="{StaticResource UploadChartStroke}"
                                        VerticalAlignment="Center" Margin="8,0,0,0">
                                 <Run Text="▲ " />
@@ -189,163 +191,244 @@
         <Grid Grid.Row="3">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
-                <RowDefinition Height="120" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <!-- 结果摘要卡片 -->
             <Border Grid.Row="0" Style="{StaticResource CardStyle}" Margin="0,0,0,8">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="测速时长" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="测速时长" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding ElapsedSeconds, Converter={StaticResource DurationDisplayConverter}}"
                                        Foreground="{StaticResource AccentBrush}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
 
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="下载速率" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="下载速率" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}"
                                        Foreground="{StaticResource DownloadChartStroke}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
 
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="下载平均" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="下载平均" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding AverageDownloadMbps, Converter={StaticResource RateDisplayConverter}}"
                                        Foreground="{StaticResource SuccessBrush}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
 
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="上传速率" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="上传速率" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}"
                                        Foreground="{StaticResource UploadChartStroke}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
 
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="上行平均" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="上行平均" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding AverageUploadMbps, Converter={StaticResource RateDisplayConverter}}"
                                        Foreground="{StaticResource SuccessBrush}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
 
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="总速率" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="总速率" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding TotalRateMbps, Converter={StaticResource RateDisplayConverter}}"
                                        Foreground="{StaticResource AccentBrush}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
 
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="总均速" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="总均速" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding AverageTotalMbps, Converter={StaticResource RateDisplayConverter}}"
                                        Foreground="{StaticResource SuccessBrush}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
 
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="总流量" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="总流量" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding TotalBytes, Converter={StaticResource BytesDisplayConverter}}"
                                        Foreground="{StaticResource TextPrimaryBrush}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
 
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="内网延迟" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="内网延迟" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding LatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
                                        Foreground="{StaticResource SuccessBrush}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
 
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
-                        <TextBlock Text="外网延迟" Foreground="{StaticResource TextSecondaryBrush}" FontSize="11"
+                        <TextBlock Text="外网延迟" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding WanLatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
                                        Foreground="{StaticResource WarningBrush}"
-                                       FontSize="16" FontWeight="Bold" />
+                                       FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>
 
                     <Button Content="导出" Width="50" VerticalAlignment="Center"
-                            Command="{Binding ExportResultCommand}" FontSize="11"
+                            Command="{Binding ExportResultCommand}" FontSize="12"
                             Margin="10,0,0,0" />
                 </StackPanel>
             </Border>
 
-            <!-- 历史记录 -->
-            <Border Grid.Row="1" Style="{StaticResource CardStyle}" Padding="0">
-                <DataGrid x:Name="RecentDataGrid" ItemsSource="{Binding RecentRecords}" MaxHeight="120" Height="120">
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="时间" Binding="{Binding Timestamp, StringFormat={}{0:MM-dd HH:mm:ss}}"
-                                            Width="110" />
-                        <DataGridTextColumn Header="类型" Binding="{Binding TestType}" Width="45" />
-                        <DataGridTextColumn Header="配置" Binding="{Binding NodeName}" Width="80" />
-                        <DataGridTextColumn Header="线程" Binding="{Binding ThreadCount}" Width="40" />
-                        <DataGridTextColumn Header="下载平均" Binding="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}"
-                                            Width="90" />
-                        <DataGridTextColumn Header="上传平均" Binding="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}"
-                                            Width="90" />
-                        <DataGridTextColumn Header="内网延迟" Binding="{Binding LatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
-                                            Width="70" />
-                        <DataGridTextColumn Header="外网延迟" Binding="{Binding WanLatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
-                                            Width="70" />
-                        <DataGridTextColumn Header="总均速" Binding="{Binding AverageTotalMbps, Converter={StaticResource RateDisplayConverter}}"
-                                            Width="90" />
-                        <DataGridTextColumn Header="总流量" Binding="{Binding TotalBytes, Converter={StaticResource BytesDisplayConverter}}"
-                                            Width="85" />
-                        <DataGridTextColumn Header="耗时" Binding="{Binding DurationSeconds, Converter={StaticResource DurationDisplayConverter}}"
-                                            Width="80" />
-                        <DataGridTextColumn Header="网卡" Binding="{Binding NetworkAdapterName}" Width="*" />
-                    </DataGrid.Columns>
-                </DataGrid>
-            </Border>
+            <!-- 网卡详细信息 -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Adapters}" Margin="0,0,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource SurfaceBrush}" CornerRadius="6"
+                                    Padding="10,8" Margin="0,0,0,6">
+                                <StackPanel>
+                                    <!-- 标题栏 -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                        <Ellipse Width="10" Height="10" Margin="0,0,6,0">
+                                            <Ellipse.Style>
+                                                <Style TargetType="Ellipse">
+                                                    <Setter Property="Fill" Value="#2EA043" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding StatusText}" Value="已断开">
+                                                            <Setter Property="Fill" Value="#DA3633" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Ellipse.Style>
+                                        </Ellipse>
+                                        <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                        <Border Background="{StaticResource AccentBrush}" CornerRadius="4"
+                                                Padding="6,2" Margin="8,0,0,0">
+                                            <TextBlock Text="{Binding TypeName}" FontSize="12" Foreground="White" />
+                                        </Border>
+                                        <Border Background="{StaticResource AccentBrush}" CornerRadius="4"
+                                                Padding="6,2" Margin="4,0,0,0">
+                                            <TextBlock Text="{Binding LinkSpeedBps, Converter={StaticResource SpeedDisplayConverter}}"
+                                                       FontSize="12" Foreground="White" />
+                                        </Border>
+                                    </StackPanel>
+                                    <!-- 3×3 网卡详情 -->
+                                    <UniformGrid Columns="3">
+                                        <StackPanel>
+                                            <TextBlock Text="IP 地址" FontSize="12"
+                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding IPAddress, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource DownloadChartStroke}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="默认网关" FontSize="12"
+                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding Gateway, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource SuccessBrush}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="子网掩码" FontSize="12"
+                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding SubnetMask, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="MAC 地址" FontSize="12"
+                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding MacAddress, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource WarningBrush}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="IPv6 地址" FontSize="12"
+                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding IPv6Address, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="DNS 服务器" FontSize="12"
+                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding DnsServers, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource UploadChartStroke}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="DHCP 服务器" FontSize="12"
+                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding DhcpServer, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource DownloadChartStroke}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="MTU" FontSize="12"
+                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding Mtu, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                                        </StackPanel>
+                                        <StackPanel>
+                                            <TextBlock Text="连接状态" FontSize="12"
+                                                       Foreground="{StaticResource TextMutedBrush}" />
+                                            <TextBlock Text="{Binding StatusText}" FontSize="16" FontWeight="SemiBold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding StatusText}" Value="已断开">
+                                                                <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
         </Grid>
     </Grid>
 </Window>

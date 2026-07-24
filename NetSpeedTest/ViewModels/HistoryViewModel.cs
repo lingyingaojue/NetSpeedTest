@@ -136,4 +136,20 @@ public partial class HistoryViewModel : ObservableObject
         _dataService.DeleteRecord(SelectedRecord.Id);
         LoadPage(_currentPage);
     }
+
+    [RelayCommand]
+    private void ClearAllRecords()
+    {
+        var result = MessageBox.Show(
+            "确定要清除所有历史记录吗？此操作不可撤销。",
+            "确认清除",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+        if (result != MessageBoxResult.Yes) return;
+
+        _dataService.ClearAllRecords();
+        _currentPage = 1;
+        try { LoadPage(_currentPage); }
+        catch { Records = new ObservableCollection<SpeedTestResult>(); TotalPages = 1; CanGoNext = false; CanGoPrevious = false; }
+    }
 }

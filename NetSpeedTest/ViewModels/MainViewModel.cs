@@ -32,6 +32,8 @@ public partial class MainViewModel : ObservableObject
     private Stopwatch? _stopwatch;
     private SpeedTestResult? _lastResult;
     private string _currentTestMode = "";
+    private readonly List<double> _lanLatencies = new();
+    private readonly List<double> _wanLatencies = new();
 
     // ==================== 可绑定属性 ====================
 
@@ -366,7 +368,7 @@ public partial class MainViewModel : ObservableObject
     {
         IsTesting = true;
         _currentTestMode = mode;
-        (Application.Current.MainWindow as Views.MainWindow)?.SetChartFocus(mode == "上传");
+        (Application.Current.MainWindow as Views.MainWindow)?.SetChartFocus(mode);
         StatusText = $"{urlCount} 个 URL · {mode}测速中...";
         _cts = new CancellationTokenSource();
         ActiveThreadCount = 0;
@@ -381,7 +383,9 @@ public partial class MainViewModel : ObservableObject
         DownloadMbps = null;
         UploadMbps = null;
         OnPropertyChanged(nameof(UploadMbpsDisplay));
+        OnPropertyChanged(nameof(TotalRateMbps));
         LatencyMs = null; WanLatencyMs = null;
+        _lanLatencies.Clear(); _wanLatencies.Clear();
         AverageMbps = null; AverageDownloadMbps = null; AverageUploadMbps = null; AverageTotalMbps = null;
         TotalBytes = null;
         DownloadRatePoints.Clear();
@@ -396,27 +400,29 @@ public partial class MainViewModel : ObservableObject
 
     private void FinishTest(SpeedTestResult result)
     {
-        if (result.LatencyMs > 0) LatencyMs = result.LatencyMs;
-        result.WanLatencyMs = (WanLatencyMs ?? 0) > 0 ? WanLatencyMs : null;
+        if (_lanLatencies.Count > 0) { result.LatencyMs = _lanLatencies.Average(); LatencyMs = result.LatencyMs; }
+        else if (result.LatencyMs > 0) LatencyMs = result.LatencyMs;
+        if (_wanLatencies.Count > 0) result.WanLatencyMs = _wanLatencies.Average();
+        result.WanLatencyMs = (result.WanLatencyMs ?? 0) > 0 ? result.WanLatencyMs : null;
+        WanLatencyMs = result.WanLatencyMs;
         result.AverageTotalMbps = AverageTotalMbps ?? 0;
         result.TotalBytes = TotalBytes ?? 0;
         result.TestType = _currentTestMode;
+        if (_currentTestMode == "上传") result.DownloadMbps = null;
+        if (_currentTestMode == "下载") result.UploadMbps = null;
         UrlTestDetails = new ObservableCollection<UrlTestDetail>(result.UrlDetails);
-        _ = Task.Run(() => _dataService.SaveResult(result));
+        _ = Task.Run(() => { try { _dataService.SaveResult(result); } catch (Exception ex) { Logger.Log($"SaveResult failed: {ex.Message}"); } });
         _lastResult = result;
         RecentRecords.Insert(0, result);
         while (RecentRecords.Count > 20)
             RecentRecords.RemoveAt(RecentRecords.Count - 1);
-        Application.Current.Dispatcher.InvokeAsync(() =>
-            (Application.Current.MainWindow as Views.MainWindow)?.ScrollHistoryToTop(),
-            DispatcherPriority.Loaded);
         var ok = result.UrlDetails.Count(d => !d.IsFailed);
         var fail = result.UrlDetails.Count(d => d.IsFailed);
         StatusText = $"测速完成 · {ok} 成功{(fail > 0 ? $" · {fail} 失败/超时" : "")}";
 
         var dlg = new Views.TestResultWindow(
             _currentTestMode, ElapsedSeconds ?? 0,
-            result.DownloadMbps, result.UploadMbps,
+            result.DownloadMbps ?? 0, result.UploadMbps,
             TotalBytes ?? 0,
             AverageTotalMbps ?? 0, LatencyMs ?? 0, WanLatencyMs ?? 0)
         {
@@ -463,6 +469,7 @@ public partial class MainViewModel : ObservableObject
     private void OnDownloadProgress(double elapsed, double totalRate, long totalBytes)
     {
         if (!IsTesting) return;
+        if (_currentTestMode == "上传") return;
         Application.Current.Dispatcher.InvokeAsync(() =>
         {
             DownloadMbps = totalRate;
@@ -476,6 +483,7 @@ public partial class MainViewModel : ObservableObject
     private void OnUploadProgress(double elapsed, double totalRate, long totalBytes)
     {
         if (!IsTesting) return;
+        if (_currentTestMode == "下载") return;
         Application.Current.Dispatcher.InvokeAsync(() =>
         {
             UploadMbps = totalRate;
@@ -498,12 +506,12 @@ public partial class MainViewModel : ObservableObject
     }
 
     private void OnActiveThreadCount(int count) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => ActiveThreadCount = count); }
-    private void OnLatency(double latency) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => LatencyMs = latency); }
-    private void OnWanLatency(double latency) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => WanLatencyMs = latency); }
+    private void OnLatency(double latency) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => { LatencyMs = latency; _lanLatencies.Add(latency); }); }
+    private void OnWanLatency(double latency) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => { WanLatencyMs = latency; _wanLatencies.Add(latency); }); }
     private void OnTotalBytes(long bytes) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => TotalBytes = bytes); }
     private void OnAverageSpeed(double avg) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => AverageMbps = avg); }
-    private void OnAverageDownload(double avg) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => AverageDownloadMbps = avg); }
-    private void OnAverageUpload(double avg) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => AverageUploadMbps = avg); }
+    private void OnAverageDownload(double avg) { if (!IsTesting) return; if (_currentTestMode == "上传") return; Application.Current.Dispatcher.InvokeAsync(() => AverageDownloadMbps = avg); }
+    private void OnAverageUpload(double avg) { if (!IsTesting) return; if (_currentTestMode == "下载") return; Application.Current.Dispatcher.InvokeAsync(() => AverageUploadMbps = avg); }
     private void OnAverageTotal(double avg) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => AverageTotalMbps = avg); }
 
     [RelayCommand]
@@ -511,6 +519,8 @@ public partial class MainViewModel : ObservableObject
     {
         if (!IsTesting) return;
         _elapsedTimer?.Stop();
+        if (_elapsedTimer != null && _elapsedTickHandler != null)
+            _elapsedTimer.Tick -= _elapsedTickHandler;
         StatusText = "已取消";
         _cts?.Cancel();
     }

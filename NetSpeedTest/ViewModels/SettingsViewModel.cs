@@ -19,6 +19,12 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private double _rateWindowSec;
     [ObservableProperty] private int _nicPollIntervalMs;
     [ObservableProperty] private int _threadRampUpMs;
+    [ObservableProperty] private int _latencyPollIntervalMs;
+    [ObservableProperty] private bool _compensationEnabled;
+    [ObservableProperty] private double _compensationThreshold;
+    [ObservableProperty] private int _compensationExtraThreads;
+    [ObservableProperty] private int _compensationConfirmSec;
+    [ObservableProperty] private bool _adaptiveThreadsEnabled;
 
     public int[] ThreadOptions { get; } = { 2, 4, 8, 16, 32, 64, 128, 256, 512 };
 
@@ -42,6 +48,12 @@ public partial class SettingsViewModel : ObservableObject
         RateWindowSec = options.RateWindowSec;
         NicPollIntervalMs = options.NicPollIntervalMs;
         ThreadRampUpMs = options.ThreadRampUpMs;
+        LatencyPollIntervalMs = options.LatencyPollIntervalMs;
+        CompensationEnabled = options.CompensationEnabled;
+        CompensationThreshold = options.CompensationThreshold;
+        CompensationExtraThreads = options.CompensationExtraThreads;
+        CompensationConfirmSec = options.CompensationConfirmSec;
+        AdaptiveThreadsEnabled = options.AdaptiveThreadsEnabled;
     }
 
     [RelayCommand]
@@ -53,6 +65,10 @@ public partial class SettingsViewModel : ObservableObject
         RateWindowSec = Math.Clamp(RateWindowSec, 0.5, 10.0);
         NicPollIntervalMs = Math.Clamp(NicPollIntervalMs, 200, 5000);
         ThreadRampUpMs = Math.Clamp(ThreadRampUpMs, 0, 5000);
+        LatencyPollIntervalMs = Math.Clamp(LatencyPollIntervalMs, 500, 10000);
+        CompensationThreshold = Math.Clamp(CompensationThreshold, 0.3, 0.8);
+        CompensationExtraThreads = Math.Clamp(CompensationExtraThreads, 0, 64);
+        CompensationConfirmSec = Math.Clamp(CompensationConfirmSec, 1, 10);
 
         try
         {
@@ -70,7 +86,13 @@ public partial class SettingsViewModel : ObservableObject
                 ["AverageDelaySec"] = AverageDelaySec,
                 ["RateWindowSec"] = RateWindowSec,
                 ["NicPollIntervalMs"] = NicPollIntervalMs,
-                ["ThreadRampUpMs"] = ThreadRampUpMs
+                ["ThreadRampUpMs"] = ThreadRampUpMs,
+                ["LatencyPollIntervalMs"] = LatencyPollIntervalMs,
+                ["CompensationEnabled"] = CompensationEnabled,
+                ["CompensationThreshold"] = CompensationThreshold,
+                ["CompensationExtraThreads"] = CompensationExtraThreads,
+                ["CompensationConfirmSec"] = CompensationConfirmSec,
+                ["AdaptiveThreadsEnabled"] = AdaptiveThreadsEnabled
             };
             File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 
@@ -80,6 +102,12 @@ public partial class SettingsViewModel : ObservableObject
             _options.RateWindowSec = RateWindowSec;
             _options.NicPollIntervalMs = NicPollIntervalMs;
             _options.ThreadRampUpMs = ThreadRampUpMs;
+            _options.LatencyPollIntervalMs = LatencyPollIntervalMs;
+            _options.CompensationEnabled = CompensationEnabled;
+            _options.CompensationThreshold = CompensationThreshold;
+            _options.CompensationExtraThreads = CompensationExtraThreads;
+            _options.CompensationConfirmSec = CompensationConfirmSec;
+            _options.AdaptiveThreadsEnabled = AdaptiveThreadsEnabled;
 
             MessageBox.Show("设置已保存", "NetSpeedTest", MessageBoxButton.OK, MessageBoxImage.Information);
             CloseWindow();

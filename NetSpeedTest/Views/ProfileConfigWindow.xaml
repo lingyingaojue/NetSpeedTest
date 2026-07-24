@@ -4,6 +4,7 @@
         xmlns:converters="clr-namespace:NetSpeedTest.Converters"
         Title="测速配置管理" Height="620" Width="820"
         WindowStartupLocation="CenterOwner"
+        Icon="/Resources/app.png"
         Background="{StaticResource BackgroundBrush}">
 
     <Window.Resources>

@@ -1,4 +1,7 @@
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media.Animation;
+using NetSpeedTest.Helpers;
 
 namespace NetSpeedTest.Views;
 
@@ -10,22 +13,28 @@ public partial class MainWindow : Window
         Closed += (_, _) => Application.Current.Shutdown();
     }
 
-    public void SetChartFocus(bool? isUpload)
+    public void SetChartFocus(string? mode)
     {
         Dispatcher.Invoke(() =>
         {
-            if (isUpload == null)
-            { DlCol.Width = new GridLength(1, GridUnitType.Star); UlCol.Width = new GridLength(1, GridUnitType.Star); }
-            else if (isUpload.Value)
-            { DlCol.Width = new GridLength(0.5, GridUnitType.Star); UlCol.Width = new GridLength(1.5, GridUnitType.Star); }
-            else
-            { DlCol.Width = new GridLength(1.5, GridUnitType.Star); UlCol.Width = new GridLength(0.5, GridUnitType.Star); }
-        });
-    }
+            var dlTarget = mode == "上传" ? new GridLength(0, GridUnitType.Star) : new GridLength(1, GridUnitType.Star);
+            var ulTarget = mode == "下载" ? new GridLength(0, GridUnitType.Star) : new GridLength(1, GridUnitType.Star);
 
-    public void ScrollHistoryToTop()
-    {
-        if (RecentDataGrid.Items.Count > 0)
-            RecentDataGrid.ScrollIntoView(RecentDataGrid.Items[0]);
+            var anim = new GridLengthAnimation
+            {
+                Duration = TimeSpan.FromMilliseconds(300),
+                From = DlCol.Width,
+                To = dlTarget
+            };
+            DlCol.BeginAnimation(ColumnDefinition.WidthProperty, anim);
+
+            anim = new GridLengthAnimation
+            {
+                Duration = TimeSpan.FromMilliseconds(300),
+                From = UlCol.Width,
+                To = ulTarget
+            };
+            UlCol.BeginAnimation(ColumnDefinition.WidthProperty, anim);
+        });
     }
 }

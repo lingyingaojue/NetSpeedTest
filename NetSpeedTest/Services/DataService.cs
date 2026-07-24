@@ -33,7 +33,7 @@ public class DataService
             CREATE TABLE IF NOT EXISTS SpeedTestRecords (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 Timestamp TEXT NOT NULL,
-                DownloadMbps REAL NOT NULL,
+                DownloadMbps REAL,
                 UploadMbps REAL,
                 LatencyMs REAL NOT NULL,
                 JitterMs REAL NOT NULL,
@@ -121,7 +121,7 @@ public class DataService
             """;
 
         cmd.Parameters.AddWithValue("@ts", result.Timestamp.ToString("o"));
-        cmd.Parameters.AddWithValue("@dl", result.DownloadMbps);
+        cmd.Parameters.AddWithValue("@dl", (object?)result.DownloadMbps ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@ul", (object?)result.UploadMbps ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@lat", result.LatencyMs);
         cmd.Parameters.AddWithValue("@jit", result.JitterMs);
@@ -179,7 +179,7 @@ public class DataService
                 {
                     Id = reader.GetInt32(0),
                     Timestamp = DateTime.Parse(reader.GetString(1), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-                    DownloadMbps = reader.GetDouble(2),
+                    DownloadMbps = reader.IsDBNull(2) ? null : reader.GetDouble(2),
                     UploadMbps = reader.IsDBNull(3) ? null : reader.GetDouble(3),
                     LatencyMs = reader.GetDouble(4),
                     JitterMs = reader.GetDouble(5),
@@ -214,6 +214,15 @@ public class DataService
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "DELETE FROM SpeedTestRecords WHERE Id = @id";
         cmd.Parameters.AddWithValue("@id", id);
+        cmd.ExecuteNonQuery();
+    }
+
+    public void ClearAllRecords()
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = "DELETE FROM SpeedTestRecords";
         cmd.ExecuteNonQuery();
     }
 

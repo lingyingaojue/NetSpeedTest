@@ -18,7 +18,7 @@ public class SpeedTestResult
     /// <summary>
     /// 下载速率（Mbps）
     /// </summary>
-    public double DownloadMbps { get; set; }
+    public double? DownloadMbps { get; set; }
 
     public double PeakMbps { get; set; }
 
