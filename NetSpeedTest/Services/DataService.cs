@@ -99,7 +99,7 @@ public class DataService
             {
                 using var alter = connection.CreateCommand();
                 alter.CommandText = sql;
-                try { alter.ExecuteNonQuery(); } catch { }
+                try { alter.ExecuteNonQuery(); } catch (Exception ex) { Logger.Log($"Migration failed: {ex.Message}"); }
             }
         }
     }
@@ -168,12 +168,9 @@ public class DataService
         {
             try
             {
-                int threadCount = 1;
-                try { threadCount = reader.GetInt32(12); } catch { }
-                double peakMbps = 0;
-                try { peakMbps = reader.GetDouble(13); } catch { }
-                string testType = "";
-                try { testType = reader.GetString(17); } catch { }
+                int threadCount = reader.IsDBNull(12) ? 1 : reader.GetInt32(12);
+                double peakMbps = reader.IsDBNull(13) ? 0 : reader.GetDouble(13);
+                string testType = reader.IsDBNull(17) ? "" : reader.GetString(17);
 
                 results.Add(new SpeedTestResult
                 {
@@ -197,7 +194,7 @@ public class DataService
                     TestType = testType
                 });
             }
-            catch { }
+            catch (Exception ex) { Logger.Log($"Record read failed: {ex.Message}"); }
         }
 
         return results;
@@ -236,5 +233,35 @@ public class DataService
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "SELECT COUNT(*) FROM SpeedTestRecords";
         return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+    }
+
+    public SpeedTestStats GetStatistics()
+    {
+        try
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            connection.Open();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*), MAX(DownloadMbps), MAX(UploadMbps), AVG(DownloadMbps), MIN(LatencyMs) FROM SpeedTestRecords";
+            using var reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                return new SpeedTestStats
+                {
+                    TotalCount = reader.GetInt32(0),
+                    MaxDownloadMbps = reader.IsDBNull(1) ? null : reader.GetDouble(1),
+                    MaxUploadMbps = reader.IsDBNull(2) ? null : reader.GetDouble(2),
+                    AvgDownloadMbps = reader.IsDBNull(3) ? null : reader.GetDouble(3),
+                    MinLatencyMs = reader.IsDBNull(4) ? null : reader.GetDouble(4)
+                };
+            }
+        }
+        catch { }
+        return new SpeedTestStats();
+    }
+
+    public List<SpeedTestResult> GetAllRecords()
+    {
+        return GetRecords(1, int.MaxValue);
     }
 }

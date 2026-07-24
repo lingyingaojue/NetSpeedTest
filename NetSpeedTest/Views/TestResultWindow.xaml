@@ -52,6 +52,13 @@
                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
         </StackPanel>
 
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="抖动延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+                       Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="JitterValue" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
             <TextBlock Text="外网平均延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
@@ -59,7 +66,10 @@
                        Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
         </StackPanel>
 
-        <Button Content="确定" Width="100" Style="{StaticResource AccentButtonStyle}"
-                Margin="0,4,0,0" Click="Close_Click" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
+            <Button Content="复制" Width="80" Click="Copy_Click" />
+            <Button Content="确定" Width="80" Margin="8,0,0,0"
+                    Style="{StaticResource AccentButtonStyle}" Click="Close_Click" />
+        </StackPanel>
     </StackPanel>
 </Window>

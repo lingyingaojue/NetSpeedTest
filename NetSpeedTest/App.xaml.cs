@@ -14,7 +14,7 @@ namespace NetSpeedTest;
 /// <summary>
 /// 应用程序入口，负责 DI 容器注册和初始化
 /// </summary>
-public partial class App : Application
+    public partial class App : Application
 {
     private readonly ServiceProvider _serviceProvider;
 
@@ -51,9 +51,9 @@ public partial class App : Application
             };
             var client = new HttpClient(handler)
             {
-                Timeout = System.Threading.Timeout.InfiniteTimeSpan
+                Timeout = TimeSpan.FromSeconds(900)
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.1");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.2");
             return client;
         });
 
@@ -104,7 +104,7 @@ public partial class App : Application
                 .OpenSubKey(@"Software\NetSpeedTest");
             eulaAccepted = eulaKey?.GetValue("EulaAccepted") != null;
         }
-        catch { }
+                catch (Exception ex) { Logger.Log($"Version registry write failed: {ex.Message}"); }
 
         if (!eulaAccepted)
         {
@@ -146,7 +146,7 @@ public partial class App : Application
                         .CreateSubKey(@"Software\NetSpeedTest");
                     wk?.SetValue("LastVersion", currentVersion);
                 }
-                catch { }
+        catch (Exception ex) { Logger.Log($"EULA registry check failed: {ex.Message}"); }
             }
         }
         catch (Exception ex) { System.Windows.MessageBox.Show($"版本检查失败: {ex.Message}", "NetSpeedTest"); }

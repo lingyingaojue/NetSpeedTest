@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -67,7 +68,7 @@ public class SpeedTestService
         if (adapters == null || adapters.Count == 0)
             throw new ArgumentException("至少需要一个活跃网卡");
 
-        threadCount = Math.Clamp(threadCount, 1, Math.Max(1, _options.ThreadCount));
+        threadCount = Math.Clamp(threadCount, 1, 512);
 
         var overall = Stopwatch.StartNew();
         var urlDetails = new List<UrlTestDetail>();
@@ -93,58 +94,72 @@ public class SpeedTestService
 
         StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency);
 
-        // 创建线程池：每 1 秒 +2 线程，每个 URL 可被多线程同时连接
+        // URL 调度：按实时 AvgMbps 选最快可用节点
+        string SelectBestUrl()
+        {
+            lock (globalLock)
+            {
+                var best = urlDetails
+                    .Where(d => !d.IsFailed && d.AvgMbps > 0)
+                    .MaxBy(d => d.AvgMbps);
+                if (best != null) return best.Url ?? urls[0];
+                var active = urlDetails
+                    .Where(d => !d.IsFailed)
+                    .OrderByDescending(d => d.DurationSeconds)
+                    .FirstOrDefault();
+                if (active != null) return active.Url ?? urls[0];
+                return urls[0];
+            }
+        }
+
+        // 线程池：每线程循环下载，动态选 URL
         var tasks = new List<Task>();
         for (int i = 0; i < threadCount; i++)
         {
             if (ct.IsCancellationRequested) break;
             if (nicState.AdaptiveCap > 0 && i >= nicState.AdaptiveCap) break;
 
-            var url = urls[i % urls.Count];
             tasks.Add(Task.Run(async () =>
             {
-                try { await semaphore.WaitAsync(ctLinked); }
-                catch { return; }
+                try { await semaphore.WaitAsync(ctLinked); } catch { return; }
                 var current = Interlocked.Increment(ref activeThreads);
-
                 try
                 {
                     onActiveThreadCount?.Invoke(current);
-                    var detail = new UrlTestDetail { Url = url, Host = GetHostFromUrl(url) };
-                    lock (globalLock) { urlDetails.Add(detail); }
+                    while (!ctLinked.IsCancellationRequested)
+                    {
+                        var url = SelectBestUrl();
+                        var detail = new UrlTestDetail { Url = url, Host = GetHostFromUrl(url) };
+                        lock (globalLock) { urlDetails.Add(detail); }
 
-                    long prevBytes = 0;
-                    try
-                    {
-                        var result = await TestDownloadAsync(url,
-                            (elapsed, rate, bytes) =>
-                            {
-                                long delta = bytes - prevBytes;
-                                prevBytes = bytes;
-                                if (delta > 0) Interlocked.Add(ref totalBytesDownloaded, delta);
-                                detail.BytesDownloaded = bytes;
-                                detail.AvgMbps = rate;
-                                detail.DurationSeconds = elapsed;
-                                onUrlProgress?.Invoke(url, detail.Host, elapsed, rate, bytes);
-                            },
-                            ctLinked);
-                        detail.AvgMbps = result.avgMbps;
-                        detail.PeakMbps = result.peakMbps;
-                        detail.BytesDownloaded = result.totalBytes;
-                        detail.DurationSeconds = result.duration;
-                        detail.RateHistory = result.history;
-
-                        lock (globalLock) { allRateSamples.AddRange(result.history.Select(p => p.RateMbps)); }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        detail.IsFailed = true;
-                        detail.ErrorMessage = "超时取消";
-                    }
-                    catch (Exception ex)
-                    {
-                        detail.IsFailed = true;
-                        detail.ErrorMessage = ex.Message;
+                        long prevBytes = 0;
+                        try
+                        {
+                            var result = await TestDownloadAsync(url,
+                                (elapsed, rate, bytes) =>
+                                {
+                                    long delta = bytes - prevBytes;
+                                    prevBytes = bytes;
+                                    if (delta > 0) Interlocked.Add(ref totalBytesDownloaded, delta);
+                                    detail.BytesDownloaded = bytes;
+                                    detail.AvgMbps = rate;
+                                    detail.DurationSeconds = elapsed;
+                                    onUrlProgress?.Invoke(url, detail.Host, elapsed, rate, bytes);
+                                },
+                                ctLinked);
+                            detail.AvgMbps = result.avgMbps;
+                            detail.PeakMbps = result.peakMbps;
+                            detail.BytesDownloaded = result.totalBytes;
+                            detail.DurationSeconds = result.duration;
+                            detail.RateHistory = result.history;
+                            lock (globalLock) { allRateSamples.AddRange(result.history.Select(p => p.RateMbps)); }
+                        }
+                        catch (OperationCanceledException) { break; }
+                        catch (Exception ex)
+                        {
+                            detail.IsFailed = true;
+                            detail.ErrorMessage = ex.Message;
+                        }
                     }
                 }
                 finally
@@ -155,7 +170,6 @@ public class SpeedTestService
                 }
             }));
 
-            // 线程启动间隔
             if (_options.ThreadRampUpMs > 0 && i + 1 < threadCount)
             {
                 try { await Task.Delay(_options.ThreadRampUpMs, ctLinked); }
@@ -173,25 +187,24 @@ public class SpeedTestService
         var totalBytes = successful.Sum(d => d.BytesDownloaded);
         var peakAggMbps = allRateSamples.Count > 0 ? allRateSamples.Max() : 0;
 
-        // 去重：合并同一 URL 的多线程明细
+        // 去重：合并同URL多轮明细（线程循环可能多次访问同一URL）
         var dedupedDetails = urlDetails
             .GroupBy(d => d.Url)
             .Select(g =>
             {
+                var succeeded = g.Where(d => !d.IsFailed && d.BytesDownloaded > 0).ToList();
                 var first = g.First();
-                var succeeded = g.Where(d => !d.IsFailed).ToList();
-                var merged = new UrlTestDetail
+                return new UrlTestDetail
                 {
                     Url = first.Url,
                     Host = first.Host,
                     AvgMbps = succeeded.Count > 0 ? succeeded.Average(d => d.AvgMbps) : 0,
                     PeakMbps = succeeded.Count > 0 ? succeeded.Max(d => d.PeakMbps) : 0,
-                    BytesDownloaded = g.Sum(d => d.BytesDownloaded),
-                    DurationSeconds = succeeded.Count > 0 ? succeeded.Average(d => d.DurationSeconds) : 0,
+                    BytesDownloaded = succeeded.Sum(d => d.BytesDownloaded),
+                    DurationSeconds = succeeded.Count > 0 ? succeeded.Sum(d => d.DurationSeconds) : 0,
                     IsFailed = g.All(d => d.IsFailed),
                     ErrorMessage = g.FirstOrDefault(d => d.IsFailed)?.ErrorMessage
                 };
-                return merged;
             })
             .ToList();
 
@@ -199,7 +212,7 @@ public class SpeedTestService
         double finalLatency = 0;
         if (!string.IsNullOrEmpty(gateway))
         {
-            try { finalLatency = await TestGatewayLatencyAsync(gateway, ct); } catch { }
+            try { finalLatency = await TestGatewayLatencyAsync(gateway, ct); } catch (Exception ex) { Logger.Log($"Final latency failed: {ex.Message}"); }
         }
 
         // 停止所有后台报告任务
@@ -252,15 +265,51 @@ public class SpeedTestService
         catch { return url; }
     }
 
-    /// <summary>
-    /// 延迟测试：ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD 四层回退
-    /// </summary>
-    private async Task<double> TestGatewayLatencyAsync(string host, CancellationToken ct)
+    private static IPAddress? ResolveHost(string host)
     {
-        const int count = 10;
+        if (IPAddress.TryParse(host, out var ip)) return ip;
+        try { return Dns.GetHostAddresses(host).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork); }
+        catch (Exception ex) { Logger.Log($"DNS resolve failed for {host}: {ex.Message}"); return null; }
+    }
+
+    /// <summary>
+    /// 延迟测试：UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD 五层回退
+    /// </summary>
+    private async Task<double> TestGatewayLatencyAsync(string host, CancellationToken ct, IPAddress? ip = null)
+    {
         var latencies = new List<double>();
 
-        // 第一层：ICMP Ping
+        // 第一层：UDP 探测（端口 33434，主机回 ICMP Port Unreachable）
+        try
+        {
+            var ipv4 = ip ?? (await Dns.GetHostAddressesAsync(host, ct)).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
+            if (ipv4 != null)
+            {
+                using var udp = new UdpClient();
+                udp.Connect(ipv4, 33434);
+                udp.Client.SendTimeout = 1000;
+                udp.Client.ReceiveTimeout = 1000;
+                var probe = new byte[] { 0x00 };
+                for (int i = 0; i < 5; i++)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    try
+                    {
+                        var sw = Stopwatch.StartNew();
+                        await udp.SendAsync(probe, probe.Length);
+                        try { await udp.ReceiveAsync(); latencies.Add(sw.Elapsed.TotalMilliseconds); }
+                        catch (SocketException) { latencies.Add(sw.Elapsed.TotalMilliseconds); }
+                    }
+                    catch { }
+                    if (i < 4) try { await Task.Delay(50, ct); } catch { break; }
+                }
+            }
+        }
+        catch { }
+        if (latencies.Count > 0) { Logger.Log($"延迟({host}): UDP={latencies.Average():F1}ms"); return latencies.Average(); }
+
+        // 第二层：ICMP Ping
+        const int count = 10;
         using var ping = new Ping();
         for (int i = 0; i < count; i++)
         {
@@ -277,7 +326,7 @@ public class SpeedTestService
         }
         if (latencies.Count > 0) { Logger.Log($"延迟({host}): ICMP={latencies.Average():F1}ms"); return latencies.Average(); }
 
-        // 第二层：TCP 连接 443
+        // 第三层：TCP 连接 443
         for (int i = 0; i < 5; i++)
         {
             ct.ThrowIfCancellationRequested();
@@ -294,7 +343,7 @@ public class SpeedTestService
         }
         if (latencies.Count > 0) { Logger.Log($"延迟({host}): TCP443={latencies.Average():F1}ms"); return latencies.Average(); }
 
-        // 第三层：HTTPS HEAD
+        // 第四层：HTTPS HEAD
         for (int i = 0; i < 3; i++)
         {
             ct.ThrowIfCancellationRequested();
@@ -312,7 +361,7 @@ public class SpeedTestService
         }
         if (latencies.Count > 0) { Logger.Log($"延迟({host}): HTTPS_HEAD={latencies.Average():F1}ms"); return latencies.Average(); }
 
-        // 第四层：HTTP HEAD（网关/路由器端口 80）
+        // 第五层：HTTP HEAD（网关/路由器端口 80）
         for (int i = 0; i < 3; i++)
         {
             ct.ThrowIfCancellationRequested();
@@ -496,7 +545,7 @@ public class SpeedTestService
     private void StartGatewayAndWanLatency(string? gateway, CancellationToken ctLinked, Action<double>? onLatency, Action<double>? onWanLatency)
     {
         if (!string.IsNullOrEmpty(gateway)) { Logger.Log($"网关延迟测试启动: gateway={gateway}"); _ = Task.Run(async () => { try { while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(gateway, ctLinked); if (v > 0) onLatency?.Invoke(v); } catch { break; } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } } catch { } }); }
-        _ = Task.Run(async () => { var t = new[] { "www.baidu.com", "8.8.8.8", "114.114.114.114", "www.aliyun.com", "www.qq.com", "www.jd.com", "www.163.com", "www.bilibili.com", "1.1.1.1", "223.5.5.5", "119.29.29.29", "www.taobao.com" }; while (!ctLinked.IsCancellationRequested) { try { using var c3 = new CancellationTokenSource(TimeSpan.FromSeconds(3)); using var tk = CancellationTokenSource.CreateLinkedTokenSource(ctLinked, c3.Token); double b = double.MaxValue; object l = new(); var p = t.Select(async x => { var v = await TestGatewayLatencyAsync(x, tk.Token); if (v > 0) lock (l) { if (v < b) b = v; } }); await Task.WhenAny(Task.WhenAll(p), Task.Delay(3000, ctLinked)); if (b < double.MaxValue) onWanLatency?.Invoke(b); } catch { } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } });
+        _ = Task.Run(async () => { var hosts = new[] { "www.baidu.com", "8.8.8.8", "114.114.114.114", "www.aliyun.com", "www.qq.com", "www.jd.com", "www.163.com", "www.bilibili.com", "1.1.1.1", "223.5.5.5", "119.29.29.29", "www.taobao.com" }; var hostIps = hosts.Select(h => (host: h, ip: ResolveHost(h))).ToArray(); bool first = true; while (!ctLinked.IsCancellationRequested) { try { using var c3 = new CancellationTokenSource(TimeSpan.FromSeconds(3)); using var tk = CancellationTokenSource.CreateLinkedTokenSource(ctLinked, c3.Token); double b = double.MaxValue; object l = new(); var p = hostIps.Select(async x => { var v = await TestGatewayLatencyAsync(x.host, tk.Token, x.ip); if (v > 0) lock (l) { if (v < b) b = v; } }); await Task.WhenAny(Task.WhenAll(p), Task.Delay(3000, ctLinked)); if (b < double.MaxValue) onWanLatency?.Invoke(b); } catch { } if (!first) { try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } first = false; } });
     }
 
     // ====== 上传测速 ======
@@ -512,7 +561,7 @@ public class SpeedTestService
     {
         if (urls.Count == 0) throw new ArgumentException("URL 列表不能为空");
         if (adapters == null || adapters.Count == 0) throw new ArgumentException("至少需要一个活跃网卡");
-        threadCount = Math.Clamp(threadCount, 1, Math.Max(1, _options.ThreadCount));
+        threadCount = Math.Clamp(threadCount, 1, 512);
         var overall = Stopwatch.StartNew(); int activeThreads = 0; var dummy = new LongRef();
         var nicState = new NicState();
 
@@ -565,7 +614,7 @@ public class SpeedTestService
         if (!hasDl) return await RunUploadTestAsync(ulUrls, threadCount, adapters, profileName, gateway, onDownloadProgress, onUploadProgress, onAdapterRates, onActiveThreadCount, onLatency, onWanLatency, onAverageDownload, onAverageUpload, onAverageTotal, onTotalBytes, ct);
         if (!hasUl) return await RunMultiUrlTestAsync(dlUrls, threadCount, adapters, profileName, gateway, null, onDownloadProgress, onUploadProgress, onAdapterRates, onActiveThreadCount, onLatency, onWanLatency, onAverageDownload: onAverageDownload, onAverageUpload: onAverageUpload, onAverageTotal: onAverageTotal, onTotalBytes: onTotalBytes, ct: ct);
 
-        threadCount = Math.Clamp(threadCount, 1, Math.Max(1, _options.ThreadCount));
+        threadCount = Math.Clamp(threadCount, 1, 512);
         var overall = Stopwatch.StartNew(); int activeThreads = 0;
         var nicState = new NicState(); var bytesDl = new LongRef();
 
@@ -580,32 +629,39 @@ public class SpeedTestService
 
         var rng = new Random(Guid.NewGuid().GetHashCode()); var buf = new byte[64 * 1024]; rng.NextBytes(buf);
         var tasks = new List<Task>();
-        for (int i = 0; i < threadCount; i++)
+        for (int i = 0; i < threadCount; i += 2)
         {
             if (ct.IsCancellationRequested) break;
             if (nicState.AdaptiveCap > 0 && i >= nicState.AdaptiveCap) break;
-            bool isDl = i % 2 == 0;
-            var url = isDl ? dlUrls[(i / 2) % dlUrls.Count] : ulUrls[(i / 2) % ulUrls.Count];
-            tasks.Add(Task.Run(async () =>
+
+            for (int j = 0; j < 2; j++)
             {
-                try { await semaphore.WaitAsync(ctLinked); } catch { return; }
-                var c = Interlocked.Increment(ref activeThreads);
-                try
+                int idx = i + j;
+                if (idx >= threadCount) break;
+                bool isDl = j == 0;
+                var url = isDl ? dlUrls[(idx / 2) % dlUrls.Count] : ulUrls[(idx / 2) % ulUrls.Count];
+                tasks.Add(Task.Run(async () =>
                 {
-                    onActiveThreadCount?.Invoke(c);
-                    while (!ctLinked.IsCancellationRequested)
+                    try { await semaphore.WaitAsync(ctLinked); } catch { return; }
+                    var c = Interlocked.Increment(ref activeThreads);
+                    try
                     {
-                        try
+                        onActiveThreadCount?.Invoke(c);
+                        while (!ctLinked.IsCancellationRequested)
                         {
-                            if (isDl) { using var resp = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ctLinked); await using var s = await resp.Content.ReadAsStreamAsync(ctLinked); var b = ArrayPool<byte>.Shared.Rent(64 * 1024); try { while (!ctLinked.IsCancellationRequested) { var r = await s.ReadAsync(b.AsMemory(0, 64 * 1024), ctLinked); if (r == 0) break; Interlocked.Add(ref bytesDl.Value, r); } } finally { ArrayPool<byte>.Shared.Return(b); } }
-                            else { using var co = new ByteArrayContent(buf); co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co }; using var _ = await _httpClient.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, ctLinked); }
+                            try
+                            {
+                                if (isDl) { using var resp = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ctLinked); await using var s = await resp.Content.ReadAsStreamAsync(ctLinked); var b = ArrayPool<byte>.Shared.Rent(64 * 1024); try { while (!ctLinked.IsCancellationRequested) { var r = await s.ReadAsync(b.AsMemory(0, 64 * 1024), ctLinked); if (r == 0) break; Interlocked.Add(ref bytesDl.Value, r); } } finally { ArrayPool<byte>.Shared.Return(b); } }
+                                else { using var co = new ByteArrayContent(buf); co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co }; using var _ = await _httpClient.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, ctLinked); }
+                            }
+                            catch (OperationCanceledException) { break; } catch { try { await Task.Delay(500, ctLinked); } catch { break; } }
                         }
-                        catch (OperationCanceledException) { break; } catch { try { await Task.Delay(500, ctLinked); } catch { break; } }
                     }
-                }
-                finally { try { semaphore.Release(); } catch (SemaphoreFullException) { } catch (ObjectDisposedException) { } onActiveThreadCount?.Invoke(Interlocked.Decrement(ref activeThreads)); }
-            }));
-            if (_options.ThreadRampUpMs > 0 && i + 1 < threadCount) { try { await Task.Delay(_options.ThreadRampUpMs, ctLinked); } catch { break; } }
+                    finally { try { semaphore.Release(); } catch (SemaphoreFullException) { } catch (ObjectDisposedException) { } onActiveThreadCount?.Invoke(Interlocked.Decrement(ref activeThreads)); }
+                }));
+            }
+
+            if (_options.ThreadRampUpMs > 0 && i + 2 < threadCount) { try { await Task.Delay(_options.ThreadRampUpMs, ctLinked); } catch { break; } }
         }
 
         await Task.WhenAll(tasks); overall.Stop(); internalCts.Cancel();

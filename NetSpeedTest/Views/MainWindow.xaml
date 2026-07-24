@@ -7,6 +7,13 @@
         Icon="/Resources/app.png"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
+    <Window.InputBindings>
+        <KeyBinding Key="Enter" Command="{Binding StartDownloadTestCommand}" />
+        <KeyBinding Key="Escape" Command="{Binding CancelTestCommand}" />
+        <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding StartDownloadTestCommand}" />
+        <KeyBinding Key="U" Modifiers="Ctrl" Command="{Binding StartUploadTestCommand}" />
+        <KeyBinding Key="B" Modifiers="Ctrl" Command="{Binding StartFullTestCommand}" />
+    </Window.InputBindings>
 
     <Window.Resources>
         <converters:RateDisplayConverter x:Key="RateDisplayConverter" />
@@ -207,9 +214,11 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
+                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6"
+                            Visibility="{Binding ShowDownloadMetrics, Converter={StaticResource BoolToVisibility}}" />
 
-                    <StackPanel Margin="10,0" HorizontalAlignment="Center">
+                    <StackPanel Margin="10,0" HorizontalAlignment="Center"
+                                Visibility="{Binding ShowDownloadMetrics, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock Text="下载速率" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
@@ -219,9 +228,11 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
+                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6"
+                            Visibility="{Binding ShowDownloadMetrics, Converter={StaticResource BoolToVisibility}}" />
 
-                    <StackPanel Margin="10,0" HorizontalAlignment="Center">
+                    <StackPanel Margin="10,0" HorizontalAlignment="Center"
+                                Visibility="{Binding ShowDownloadMetrics, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock Text="下载平均" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
@@ -231,9 +242,11 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
+                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6"
+                            Visibility="{Binding ShowUploadMetrics, Converter={StaticResource BoolToVisibility}}" />
 
-                    <StackPanel Margin="10,0" HorizontalAlignment="Center">
+                    <StackPanel Margin="10,0" HorizontalAlignment="Center"
+                                Visibility="{Binding ShowUploadMetrics, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock Text="上传速率" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
@@ -243,9 +256,11 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
+                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6"
+                            Visibility="{Binding ShowUploadMetrics, Converter={StaticResource BoolToVisibility}}" />
 
-                    <StackPanel Margin="10,0" HorizontalAlignment="Center">
+                    <StackPanel Margin="10,0" HorizontalAlignment="Center"
+                                Visibility="{Binding ShowUploadMetrics, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock Text="上行平均" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
@@ -255,9 +270,11 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
+                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6"
+                            Visibility="{Binding ShowTotalMetrics, Converter={StaticResource BoolToVisibility}}" />
 
-                    <StackPanel Margin="10,0" HorizontalAlignment="Center">
+                    <StackPanel Margin="10,0" HorizontalAlignment="Center"
+                                Visibility="{Binding ShowTotalMetrics, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock Text="总速率" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
@@ -267,9 +284,11 @@
                         </StackPanel>
                     </StackPanel>
 
-                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
+                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6"
+                            Visibility="{Binding ShowTotalMetrics, Converter={StaticResource BoolToVisibility}}" />
 
-                    <StackPanel Margin="10,0" HorizontalAlignment="Center">
+                    <StackPanel Margin="10,0" HorizontalAlignment="Center"
+                                Visibility="{Binding ShowTotalMetrics, Converter={StaticResource BoolToVisibility}}">
                         <TextBlock Text="总均速" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
                                    HorizontalAlignment="Center" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
@@ -299,6 +318,18 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
                             <TextBlock Text="{Binding LatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
                                        Foreground="{StaticResource SuccessBrush}"
+                                       FontSize="18" FontWeight="Bold" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Width="1" Background="{StaticResource BorderBrush}" Margin="6,6" />
+
+                    <StackPanel Margin="10,0" HorizontalAlignment="Center">
+                        <TextBlock Text="抖动延迟" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
+                                   HorizontalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,1,0,0">
+                            <TextBlock x:Name="JitterText" Text="--"
+                                       Foreground="{StaticResource TextPrimaryBrush}"
                                        FontSize="18" FontWeight="Bold" />
                         </StackPanel>
                     </StackPanel>

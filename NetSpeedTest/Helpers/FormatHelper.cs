@@ -47,7 +47,7 @@ public static class FormatHelper
 
     public static string FormatLatency(double ms)
     {
-        if (double.IsNaN(ms) || double.IsInfinity(ms) || ms < 0) return "--";
+        if (double.IsNaN(ms) || double.IsInfinity(ms) || ms <= 0) return "--";
         return ms.ToString("F0", CultureInfo.InvariantCulture) + " ms";
     }
 }

@@ -85,17 +85,23 @@ public class ProfileService
                 Name = reader.GetString(1),
                 DownloadUrls = SafeDeserialize(reader.GetString(2)),
                 UploadUrls = SafeDeserialize(reader.GetString(3)),
-                CreatedAt = DateTime.Parse(reader.GetString(4), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind),
-                UpdatedAt = DateTime.Parse(reader.GetString(5), CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind)
+                CreatedAt = SafeParseDate(reader.GetString(4)),
+                UpdatedAt = SafeParseDate(reader.GetString(5))
             });
         }
         return result;
     }
 
+    private static DateTime SafeParseDate(string s)
+    {
+        try { return DateTime.Parse(s, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind); }
+        catch (Exception ex) { Logger.Log($"Date parse failed: {ex.Message}"); return DateTime.MinValue; }
+    }
+
     private static List<string> SafeDeserialize(string json)
     {
         try { return JsonSerializer.Deserialize<List<string>>(json) ?? new(); }
-        catch { return new(); }
+        catch (Exception ex) { Logger.Log($"JSON deserialize failed: {ex.Message}"); return new(); }
     }
 
     /// <summary>

@@ -1,8 +1,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 using NetSpeedTest.Models;
+using NetSpeedTest.Helpers;
 using NetSpeedTest.Services;
 using System.Collections.ObjectModel;
+using System.Globalization;
+using System.IO;
 using System.Windows;
 
 namespace NetSpeedTest.ViewModels;
@@ -54,6 +58,9 @@ public partial class HistoryViewModel : ObservableObject
     [ObservableProperty]
     private SpeedTestResult? _selectedRecord;
 
+    [ObservableProperty]
+    private SpeedTestStats _stats = new();
+
     private bool CanDeleteRecord => SelectedRecord != null;
 
     partial void OnSelectedRecordChanged(SpeedTestResult? value)
@@ -66,7 +73,7 @@ public partial class HistoryViewModel : ObservableObject
     public HistoryViewModel(DataService dataService)
     {
         _dataService = dataService;
-        try { LoadPage(_currentPage); }
+        try { LoadPage(_currentPage); LoadStats(); }
         catch (Exception ex)
         {
             Logger.Log($"History load failed: {ex.Message}");
@@ -76,6 +83,12 @@ public partial class HistoryViewModel : ObservableObject
     }
 
     // ==================== 数据加载 ====================
+
+    private void LoadStats()
+    {
+        try { Stats = _dataService.GetStatistics(); }
+        catch { Stats = new SpeedTestStats(); }
+    }
 
     private void LoadPage(int page)
     {
@@ -135,6 +148,7 @@ public partial class HistoryViewModel : ObservableObject
 
         _dataService.DeleteRecord(SelectedRecord.Id);
         LoadPage(_currentPage);
+        LoadStats();
     }
 
     [RelayCommand]
@@ -149,7 +163,39 @@ public partial class HistoryViewModel : ObservableObject
 
         _dataService.ClearAllRecords();
         _currentPage = 1;
-        try { LoadPage(_currentPage); }
+        try { LoadPage(_currentPage); LoadStats(); }
         catch { Records = new ObservableCollection<SpeedTestResult>(); TotalPages = 1; CanGoNext = false; CanGoPrevious = false; }
     }
+
+    [RelayCommand]
+    private void ExportCsv()
+    {
+        try
+        {
+            var dialog = new SaveFileDialog
+            {
+                Filter = "CSV 文件 (*.csv)|*.csv",
+                Title = "导出历史记录",
+                FileName = $"speedtest_history_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+            };
+            if (dialog.ShowDialog() != true) return;
+
+            var records = _dataService.GetAllRecords();
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("Time,Type,Profile,Threads,DownloadAvg(Mbps),UploadAvg(Mbps),LANLatency(ms),WANLatency(ms),TotalAvg(Mbps),TotalBytes,Duration(s),Adapter");
+            foreach (var r in records)
+            {
+                sb.AppendLine($"{r.Timestamp:yyyy-MM-dd HH:mm:ss},{r.TestType},{EscapeCsv(r.NodeName)},{r.ThreadCount}," +
+                    $"{FormatCsv(r.DownloadMbps)},{FormatCsv(r.UploadMbps)},{r.LatencyMs:F0}," +
+                    $"{FormatCsv(r.WanLatencyMs)},{r.AverageTotalMbps:F1},{r.TotalBytes},{r.DurationSeconds:F1}," +
+                    $"{EscapeCsv(r.NetworkAdapterName)}");
+            }
+            File.WriteAllText(dialog.FileName, sb.ToString(), System.Text.Encoding.UTF8);
+            MessageBox.Show($"已导出 {records.Count} 条记录", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex) { MessageBox.Show($"导出失败: {ex.Message}", "NetSpeedTest"); }
+    }
+
+    private static string EscapeCsv(string? s) => $"\"{(s ?? "").Replace("\"", "\"\"")}\"";
+    private static string FormatCsv(double? v) => v.HasValue ? v.Value.ToString("F1", CultureInfo.InvariantCulture) : "";
 }

@@ -14,12 +14,38 @@
     </Window.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!-- ======== 统计栏 ======== -->
+        <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8" Padding="10,6">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
+                    <Run Text="共 "/><Run Text="{Binding Stats.TotalCount}" Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/><Run Text=" 次"/>
+                </TextBlock>
+                <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,0"/>
+                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
+                    <Run Text="最快下载 "/><Run Text="{Binding Stats.MaxDownloadMbps, Converter={StaticResource RateDisplayConverter}}" Foreground="{StaticResource SuccessBrush}" FontWeight="Bold"/>
+                </TextBlock>
+                <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,0"/>
+                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
+                    <Run Text="最快上传 "/><Run Text="{Binding Stats.MaxUploadMbps, Converter={StaticResource RateDisplayConverter}}" Foreground="{StaticResource SuccessBrush}" FontWeight="Bold"/>
+                </TextBlock>
+                <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,0"/>
+                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
+                    <Run Text="平均下载 "/><Run Text="{Binding Stats.AvgDownloadMbps, Converter={StaticResource RateDisplayConverter}}" Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/>
+                </TextBlock>
+                <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,0"/>
+                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
+                    <Run Text="最低延迟 "/><Run Text="{Binding Stats.MinLatencyMs, Converter={StaticResource LatencyDisplayConverter}}" Foreground="{StaticResource WarningBrush}" FontWeight="Bold"/>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
         <!-- ======== 历史记录表格 ======== -->
-        <DataGrid Grid.Row="0" ItemsSource="{Binding Records}" AutoGenerateColumns="False" IsReadOnly="True"
+        <DataGrid Grid.Row="1" ItemsSource="{Binding Records}" AutoGenerateColumns="False" IsReadOnly="True"
                   SelectedItem="{Binding SelectedRecord}"
                   MouseDoubleClick="DataGrid_MouseDoubleClick">
             <DataGrid.Columns>
@@ -47,12 +73,13 @@
         </DataGrid>
 
         <!-- ======== 底部分页栏 ======== -->
-        <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Margin="0,8,0,0">
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Margin="0,8,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
@@ -80,7 +107,11 @@
                         Command="{Binding ClearAllRecordsCommand}"
                         Background="{StaticResource ErrorBrush}" />
 
-                <Button Grid.Column="5" Content="删除选中"
+                <Button Grid.Column="5" Content="导出CSV" Width="80" Margin="12,0,0,0"
+                        Command="{Binding ExportCsvCommand}"
+                        Background="{StaticResource AccentHoverBrush}" />
+
+                <Button Grid.Column="6" Content="删除选中"
                         Command="{Binding DeleteRecordCommand}"
                         Background="{StaticResource ErrorBrush}"
                         Width="80" Margin="12,0,0,0" />
