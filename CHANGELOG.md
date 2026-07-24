@@ -4,6 +4,26 @@ All notable changes to NetSpeedTest will be documented in this file.
 
 ---
 
+## V1.3.1 (2026-07-24)
+
+### 🐛 修复
+- 修复外网延迟显示异常（绑定属性未同步/批内多次回调拉高均/最终 LAN 延迟 Token 已取消）
+- 修复设置页内容溢出遮挡（加滚动条 + 修正 Grid 行号越界）
+- 修复历史记录 DataGrid 列重复（补 AutoGenerateColumns=False）
+- 修复 AdaptiveThreadsEnabled 无法通过设置保存
+- 修复撤销同意删除版本记录（改删键值而非整键）
+- 修复补偿检测仅监控下载方向（补上传方向双向联合检测）
+
+### 🔧 优化
+- 新增应用图标（exe/任务栏/窗口标题栏/关于页）
+- 历史 DataGrid 设为只读
+- 错误提示文案修正
+
+### 🚀 新增
+- 关于页面显示应用图标
+
+---
+
 ## V1.3.0 (2026-07-23)
 
 ### 🐛 修复
