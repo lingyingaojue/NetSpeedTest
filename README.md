@@ -9,18 +9,18 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
-[![Release](https://img.shields.io/badge/release-v1.3.1-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+[![Release](https://img.shields.io/badge/release-v1.3.2-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 
 </div>
 
 ---
 
 <p align="center">
-  <b>CDN 多节点并发</b> &nbsp;·&nbsp;
+  <b>CDN 动态调度</b> &nbsp;·&nbsp;
   <b>自适应线程调度</b> &nbsp;·&nbsp;
   <b>掉速智能补偿</b> &nbsp;·&nbsp;
-  <b>全网卡实时监控</b> &nbsp;·&nbsp;
-  <b>SQLite 历史管理</b>
+  <b>抖动延迟监测</b> &nbsp;·&nbsp;
+  <b>系统托盘驻留</b>
 </p>
 
 ---
@@ -36,7 +36,8 @@
 <td width="50%">
 
 ### 🚀 智能测速引擎
-- **128 线程并发** HTTP GET/POST，多 URL 轮询
+- **128 线程并发** HTTP GET/POST
+- **URL 动态调度** — SelectBestUrl 按实时速度选最优节点
 - **自适应线程上限** — 根据 CPU 性能动态调整，低配不反噬
 - **掉速紧急补偿** — 检测骤降 → 自动加线程 → 结果修正
 - **10s 稳定后取均值**，排除爬坡干扰
@@ -56,15 +57,19 @@
 - **LiveCharts2 双折线图**，200ms 采样，500 点窗口
 - 下载/上传图表**可拖拽分割线**
 - 模式切换 **300ms 平滑过渡动画**
-- **测速互斥回调** — 单测时只显示当前方向数值
+- **测速互斥回调** — 单测时自动隐藏无关指标
+- **系统托盘驻留** — 右键菜单 / 状态联动 / 气泡通知
+- **键盘快捷键** — Enter 测速 / Esc 停止 / Ctrl+D/U/B 切换
+- 完成弹窗 **「复制结果」按钮**
 - **暗色主题** — GitHub Dark 风格
 
 ### 🌐 全链路延迟检测
-- **内网延迟** — ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD 四层回退
-- **外网延迟** — 12 个公网目标并发 Ping，取最低值
+- **内网延迟** — UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD 五层回退
+- **外网延迟** — 12 公网目标并发 + DNS 预解析缓存，取最低值
+- **抖动延迟** — 外网标准差实时计算
 
 ### 🗄️ 历史 & 配置管理
-- SQLite 持久化，历史记录独立页面 + 一键清除
+- SQLite 持久化，独立页面 + 一键清除 + **统计栏** + CSV 导出
 - 8 个内置 CDN 节点，支持自定义配置导入/导出（JSON 兼容 HBCS）
 
 </td>
