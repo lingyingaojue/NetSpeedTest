@@ -63,7 +63,7 @@
                       SelectedItem="{Binding SelectedProfile}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Name}" />
+                        <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
@@ -162,7 +162,9 @@
         </Grid>
 
         <!-- 全部网卡实时速率 -->
-        <ItemsControl Grid.Row="2" ItemsSource="{Binding AllAdapterRates}" Margin="0,4,0,0" MinHeight="36">
+        <ScrollViewer x:Name="AdapterScrollViewer" Grid.Row="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                      PreviewMouseWheel="OnHorizontalMouseWheel">
+        <ItemsControl ItemsSource="{Binding AllAdapterRates}" Margin="0,4,0,0" MinHeight="36">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" />
@@ -174,7 +176,7 @@
                             Padding="8,4" Margin="4,0">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding Name}" FontSize="13"
-                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                       Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="200"
                                        VerticalAlignment="Center" Margin="0,0,8,0" />
                             <TextBlock FontSize="16" FontWeight="Bold"
                                        Foreground="{StaticResource DownloadChartStroke}"
@@ -193,6 +195,7 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+            </ScrollViewer>
 
         <!-- ===== 底部：结果卡片 + 历史 ===== -->
         <Grid Grid.Row="3">
@@ -203,6 +206,8 @@
 
             <!-- 结果摘要卡片 -->
             <Border Grid.Row="0" Style="{StaticResource CardStyle}" Margin="0,0,0,8">
+                <ScrollViewer x:Name="ResultsScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                              PreviewMouseWheel="OnHorizontalMouseWheel">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                     <StackPanel Margin="10,0" HorizontalAlignment="Center">
                         <TextBlock Text="测速时长" Foreground="{StaticResource TextPrimaryBrush}" FontSize="16"
@@ -350,6 +355,7 @@
                             Command="{Binding ExportResultCommand}" FontSize="12"
                             Margin="10,0,0,0" />
                 </StackPanel>
+                </ScrollViewer>
             </Border>
 
             <!-- 网卡详细信息 -->
@@ -375,11 +381,11 @@
                                             </Ellipse.Style>
                                         </Ellipse>
                                         <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold"
-                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"
                                                    VerticalAlignment="Center" />
                                         <Border Background="{StaticResource AccentBrush}" CornerRadius="4"
                                                 Padding="6,2" Margin="8,0,0,0">
-                                            <TextBlock Text="{Binding TypeName}" FontSize="12" Foreground="White" />
+                                            <TextBlock Text="{Binding TypeName}" FontSize="12" Foreground="White" TextTrimming="CharacterEllipsis" />
                                         </Border>
                                         <Border Background="{StaticResource AccentBrush}" CornerRadius="4"
                                                 Padding="6,2" Margin="4,0,0,0">
@@ -417,13 +423,13 @@
                                             <TextBlock Text="IPv6 地址" FontSize="12"
                                                        Foreground="{StaticResource TextMutedBrush}" />
                                             <TextBlock Text="{Binding IPv6Address, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
-                                                       Foreground="{StaticResource TextPrimaryBrush}" />
+                                                       Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                         <StackPanel>
                                             <TextBlock Text="DNS 服务器" FontSize="12"
                                                        Foreground="{StaticResource TextMutedBrush}" />
                                             <TextBlock Text="{Binding DnsServers, TargetNullValue='—'}" FontSize="16" FontWeight="SemiBold"
-                                                       Foreground="{StaticResource UploadChartStroke}" />
+                                                       Foreground="{StaticResource UploadChartStroke}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <StackPanel>
                                             <TextBlock Text="DHCP 服务器" FontSize="12"
@@ -458,7 +464,7 @@
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
-                </ItemsControl>
+        </ItemsControl>
             </ScrollViewer>
         </Grid>
     </Grid>

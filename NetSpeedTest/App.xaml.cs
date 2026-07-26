@@ -53,7 +53,7 @@ namespace NetSpeedTest;
             {
                 Timeout = TimeSpan.FromSeconds(900)
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.2");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.3");
             return client;
         });
 
@@ -104,7 +104,7 @@ namespace NetSpeedTest;
                 .OpenSubKey(@"Software\NetSpeedTest");
             eulaAccepted = eulaKey?.GetValue("EulaAccepted") != null;
         }
-                catch (Exception ex) { Logger.Log($"Version registry write failed: {ex.Message}"); }
+        catch (Exception ex) { Logger.Log($"Version registry write failed: {ex.Message}"); }
 
         if (!eulaAccepted)
         {

@@ -68,6 +68,7 @@ MIT 许可证的全部条款。
         InitializeComponent();
         DataContext = this;
         _isFirstLaunch = isFirstLaunch;
+        Loaded += (_, _) => Helpers.WindowHelper.ClampToScreen(this);
 
         if (isFirstLaunch)
         {

@@ -13,13 +13,21 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        Closed += (_, _) => Application.Current.Shutdown();
         SetupTray();
 
         DataContextChanged += (_, _) =>
         {
             if (DataContext is ViewModels.MainViewModel vm)
                 vm.TestCompletedNotify += (t, m) => Helpers.TrayIcon.ShowBalloon(t, m);
+        };
+
+        Loaded += (_, _) =>
+        {
+            var area = SystemParameters.WorkArea;
+            if (Width > area.Width * 0.95) { Width = area.Width * 0.92; MinWidth = Width * 0.8; }
+            if (Height > area.Height * 0.95) { Height = area.Height * 0.92; MinHeight = Height * 0.8; }
+            Left = (area.Width - Width) / 2 + area.Left;
+            Top = (area.Height - Height) / 2 + area.Top;
         };
     }
 
@@ -88,6 +96,17 @@ public partial class MainWindow : Window
             return;
         }
         base.OnClosing(e);
+    }
+
+    public void ForceClose() { _isReallyClosing = true; Close(); }
+
+    private void OnHorizontalMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    {
+        if (sender is ScrollViewer sv)
+        {
+            sv.ScrollToHorizontalOffset(sv.HorizontalOffset - e.Delta);
+            e.Handled = true;
+        }
     }
 
     public void SetChartFocus(string? mode)

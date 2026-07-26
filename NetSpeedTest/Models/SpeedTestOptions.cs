@@ -9,6 +9,8 @@ public class SpeedTestOptions
     public int NicPollIntervalMs { get; set; } = 1000;
     public int ThreadRampUpMs { get; set; } = 500;
     public int LatencyPollIntervalMs { get; set; } = 2000;
+    public string JitterTargetHost { get; set; } = "8.8.8.8";
+    public int JitterPollIntervalMs { get; set; } = 1000;
     public bool CompensationEnabled { get; set; } = true;
     public double CompensationThreshold { get; set; } = 0.5;
     public int CompensationExtraThreads { get; set; } = 16;

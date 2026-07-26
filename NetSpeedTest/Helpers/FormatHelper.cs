@@ -14,8 +14,9 @@ public static class FormatHelper
     {
         if (double.IsNaN(mbps) || double.IsInfinity(mbps) || mbps < 0) return "--";
         if (mbps >= 999.95) return (mbps / 1000).ToString("F2", CultureInfo.InvariantCulture) + " Gbps";
+        if (mbps < 0.01) return "0 Mbps";
         if (mbps < 1) return (mbps * 1000).ToString("F0", CultureInfo.InvariantCulture) + " Kbps";
-        return mbps.ToString("F1", CultureInfo.InvariantCulture) + " Mbps";
+        return mbps.ToString("F2", CultureInfo.InvariantCulture) + " Mbps";
     }
 
     public static string FormatBytes(long bytes)
@@ -47,7 +48,8 @@ public static class FormatHelper
 
     public static string FormatLatency(double ms)
     {
-        if (double.IsNaN(ms) || double.IsInfinity(ms) || ms <= 0) return "--";
+        if (double.IsNaN(ms) || double.IsInfinity(ms) || ms < 0) return "--";
+        if (ms == 0) return "0 ms";
         return ms.ToString("F0", CultureInfo.InvariantCulture) + " ms";
     }
 }

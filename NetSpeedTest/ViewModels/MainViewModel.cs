@@ -29,12 +29,13 @@ public partial class MainViewModel : ObservableObject
     private CancellationTokenSource? _cts;
     private DispatcherTimer? _elapsedTimer;
     private EventHandler? _elapsedTickHandler;
-    private Stopwatch? _stopwatch;
+    private volatile Stopwatch? _stopwatch;
     private SpeedTestResult? _lastResult;
     private string _currentTestMode = "";
     public event Action<string, string>? TestCompletedNotify;
     private readonly List<double> _lanLatencies = new();
     private readonly List<double> _wanLatencies = new();
+    private readonly List<double> _jitterSamples = new();
 
     [ObservableProperty]
     private bool _showDownloadMetrics = true;
@@ -299,7 +300,7 @@ public partial class MainViewModel : ObservableObject
                 onUploadProgress: OnUploadProgress,
                 onAdapterRates: OnAdapterRates,
                 onActiveThreadCount: OnActiveThreadCount,
-                onLatency: OnLatency, onWanLatency: OnWanLatency,
+                onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
                 onAverageSpeed: OnAverageSpeed, onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,                onTotalBytes: OnTotalBytes,
                 ct: _cts!.Token);
 
@@ -332,7 +333,7 @@ public partial class MainViewModel : ObservableObject
                 onUploadProgress: OnUploadProgress,
                 onAdapterRates: OnAdapterRates,
                 onActiveThreadCount: OnActiveThreadCount,
-                onLatency: OnLatency, onWanLatency: OnWanLatency,
+                onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
                 onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,                onTotalBytes: OnTotalBytes,
                 ct: _cts!.Token);
             FinishTest(result);
@@ -363,7 +364,7 @@ public partial class MainViewModel : ObservableObject
                 gateway: gw,
                 onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
                 onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
-                onLatency: OnLatency, onWanLatency: OnWanLatency,
+                onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
                 onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,                onTotalBytes: OnTotalBytes,
                 ct: _cts!.Token);
             FinishTest(result);
@@ -401,7 +402,8 @@ public partial class MainViewModel : ObservableObject
         LatencyMs = null; WanLatencyMs = null; JitterMs = null;
         if (Application.Current.MainWindow is Views.MainWindow mw)
             mw.JitterText.Text = "--";
-        _lanLatencies.Clear(); _wanLatencies.Clear();
+        _lanLatencies.Clear(); _wanLatencies.Clear(); _jitterSamples.Clear();
+        Logger.Log($"[D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec={_options.AverageDelaySec}");
         AverageMbps = null; AverageDownloadMbps = null; AverageUploadMbps = null; AverageTotalMbps = null;
         TotalBytes = null;
         DownloadRatePoints.Clear();
@@ -422,22 +424,27 @@ public partial class MainViewModel : ObservableObject
             DownloadMbps = DownloadMbps,
             UploadMbps = UploadMbps,
             TotalBytes = TotalBytes ?? 0,
-            LatencyMs = LatencyMs ?? double.NaN,
+            LatencyMs = LatencyMs ?? 0,
+            WanLatencyMs = WanLatencyMs,
+            NodeName = SelectedProfile?.Name ?? "",
+            NetworkAdapterName = string.Join(", ", Adapters.Select(a => a.Name ?? "")),
+            ThreadCount = ThreadCount,
             DurationSeconds = _stopwatch?.Elapsed.TotalSeconds ?? 0,
             UrlDetails = new()
         };
-        FinishTest(result, showDialog: false);
+        FinishTest(result, showDialog: true);
+        StatusText = "已取消";
     }
 
     private void FinishTest(SpeedTestResult result, bool showDialog = true)
     {
-        if (_lanLatencies.Count > 0) { result.LatencyMs = _lanLatencies.Average(); LatencyMs = result.LatencyMs; }
-        else if (result.LatencyMs > 0) LatencyMs = result.LatencyMs;
+        Logger.Log($"[D-FIN1] VM.LatencyMs={LatencyMs:F1} VM.WanLatencyMs={WanLatencyMs:F1} VM.JitterMs={JitterMs:F1} lists: lan={_lanLatencies.Count} wan={_wanLatencies.Count} jitter={_jitterSamples.Count}");
+        if (_lanLatencies.Count > 0) { result.LatencyMs = _lanLatencies.Average(); }
         if (_wanLatencies.Count > 0) result.WanLatencyMs = _wanLatencies.Average();
         result.WanLatencyMs = (result.WanLatencyMs ?? 0) > 0 ? result.WanLatencyMs : null;
-        WanLatencyMs = result.WanLatencyMs;
-        result.JitterMs = ComputeJitter();
-        JitterMs = result.JitterMs;
+        var j = ComputeJitter();
+        result.JitterMs = double.IsNaN(j) ? null : j;
+        Logger.Log($"[D-FIN2] result.LatencyMs={result.LatencyMs:F1}(AVG) VM.LatencyMs={LatencyMs:F1}(LAST) result.WanLatencyMs={result.WanLatencyMs:F1}(AVG) VM.WanLatencyMs={WanLatencyMs:F1}(LAST) result.JitterMs={result.JitterMs:F1} VM.JitterMs={JitterMs:F1}");
         result.AverageTotalMbps = _currentTestMode switch { "下载" => AverageDownloadMbps ?? 0, "上传" => AverageUploadMbps ?? 0, _ => AverageTotalMbps ?? 0 };
         result.TotalBytes = TotalBytes ?? 0;
         result.TestType = _currentTestMode;
@@ -462,8 +469,8 @@ public partial class MainViewModel : ObservableObject
                 _currentTestMode, ElapsedSeconds ?? 0,
                 result.DownloadMbps ?? 0, result.UploadMbps,
                 TotalBytes ?? 0,
-                AverageTotalMbps ?? double.NaN, LatencyMs ?? double.NaN, WanLatencyMs ?? double.NaN,
-                result.JitterMs)
+                AverageTotalMbps ?? double.NaN, result.LatencyMs, result.WanLatencyMs ?? double.NaN,
+                result.JitterMs ?? double.NaN)
             {
                 Owner = Application.Current.MainWindow
             };
@@ -486,6 +493,7 @@ public partial class MainViewModel : ObservableObject
         _stopwatch?.Stop();
         _stopwatch = null;
         IsTesting = false;
+        Logger.Log($"[D-END] VM final: LatencyMs={LatencyMs:F1} WanLatencyMs={WanLatencyMs:F1} JitterMs={JitterMs:F1}");
         _cts?.Dispose();
         _cts = null;
         _urlDetailMap.Clear();
@@ -553,26 +561,36 @@ public partial class MainViewModel : ObservableObject
     }
 
     private void OnActiveThreadCount(int count) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => ActiveThreadCount = count); }
-    private void OnLatency(double latency) { if (!IsTesting) return; _lanLatencies.Add(latency); Application.Current.Dispatcher.InvokeAsync(() => LatencyMs = latency); }
+    private void OnLatency(double latency) { if (!IsTesting) return; var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0; var added = elapsed >= _options.AverageDelaySec; Application.Current.Dispatcher.InvokeAsync(() => LatencyMs = latency); if (added) _lanLatencies.Add(latency); Logger.Log($"[D-LAN] raw={latency:F1}ms elapsed={elapsed:F1}s added={(added?"YES":"NO")} count={_lanLatencies.Count}"); }
 
     private double ComputeJitter()
     {
-        if (_wanLatencies.Count < 2) return double.NaN;
-        var avg = _wanLatencies.Average();
-        return Math.Sqrt(_wanLatencies.Sum(x => (x - avg) * (x - avg)) / (_wanLatencies.Count - 1));
+        if (_jitterSamples.Count < 2) return double.NaN;
+        var avg = _jitterSamples.Average();
+        return Math.Sqrt(_jitterSamples.Sum(x => (x - avg) * (x - avg)) / (_jitterSamples.Count - 1));
+    }
+    private void OnJitterSample(double rtt)
+    {
+        if (!IsTesting) return;
+        _jitterSamples.Add(rtt);
+        if (_jitterSamples.Count > 50) _jitterSamples.RemoveAt(0);
+        var j = ComputeJitter();
+        JitterMs = double.IsNaN(j) ? null : j;
+        Logger.Log($"[D-JIT] rawRtt={rtt:F1}ms count={_jitterSamples.Count} jitter={j:F1}");
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            if (Application.Current.MainWindow is Views.MainWindow mw)
+                mw.JitterText.Text = Helpers.FormatHelper.FormatLatency(j);
+        });
     }
     private void OnWanLatency(double latency)
     {
         if (!IsTesting) return;
-        _wanLatencies.Add(latency);
-        var j = ComputeJitter();
-        JitterMs = j;
-        Application.Current.Dispatcher.InvokeAsync(() =>
-        {
-            WanLatencyMs = latency;
-            if (Application.Current.MainWindow is Views.MainWindow mw)
-                mw.JitterText.Text = Helpers.FormatHelper.FormatLatency(j);
-        });
+        var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0;
+        var added = elapsed >= _options.AverageDelaySec;
+        Application.Current.Dispatcher.InvokeAsync(() => WanLatencyMs = latency);
+        if (added) _wanLatencies.Add(latency);
+        Logger.Log($"[D-WAN] raw={latency:F1}ms elapsed={elapsed:F1}s added={(added?"YES":"NO")} count={_wanLatencies.Count}");
     }
     private void OnTotalBytes(long bytes) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => TotalBytes = bytes); }
     private void OnAverageSpeed(double avg) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => AverageMbps = avg); }
@@ -585,6 +603,7 @@ public partial class MainViewModel : ObservableObject
     {
         if (!IsTesting) return;
         _elapsedTimer?.Stop();
+        Application.Current.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Background);
         if (_elapsedTimer != null && _elapsedTickHandler != null)
             _elapsedTimer.Tick -= _elapsedTickHandler;
         StatusText = "已取消";
@@ -635,7 +654,10 @@ public partial class MainViewModel : ObservableObject
         };
         window.ShowDialog();
         if (window.Revoked)
-            System.Windows.Application.Current.Shutdown();
+        {
+            if (System.Windows.Application.Current.MainWindow is Views.MainWindow mw)
+                mw.ForceClose();
+        }
     }
 
     [RelayCommand]

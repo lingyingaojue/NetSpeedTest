@@ -112,6 +112,8 @@ public class ProfileService
         profile.UpdatedAt = DateTime.Now;
         using var conn = new SqliteConnection(_connectionString);
         conn.Open();
+        var createdAt = profile.CreatedAt;
+        try { using var ck = conn.CreateCommand(); ck.CommandText = "SELECT CreatedAt FROM SpeedTestProfiles WHERE Id=@id"; ck.Parameters.AddWithValue("@id", profile.Id); var existing = ck.ExecuteScalar(); if (existing != null && existing != DBNull.Value) createdAt = SafeParseDate(existing.ToString()!); } catch { }
         var cmd = conn.CreateCommand();
         cmd.CommandText = @"
             INSERT OR REPLACE INTO SpeedTestProfiles (Id, Name, DownloadUrls, UploadUrls, CreatedAt, UpdatedAt)
@@ -120,7 +122,7 @@ public class ProfileService
         cmd.Parameters.AddWithValue("@name", profile.Name);
         cmd.Parameters.AddWithValue("@downloadUrls", JsonSerializer.Serialize(profile.DownloadUrls));
         cmd.Parameters.AddWithValue("@uploadUrls", JsonSerializer.Serialize(profile.UploadUrls));
-        cmd.Parameters.AddWithValue("@createdAt", profile.CreatedAt.ToString("O"));
+        cmd.Parameters.AddWithValue("@createdAt", createdAt.ToString("O"));
         cmd.Parameters.AddWithValue("@updatedAt", profile.UpdatedAt.ToString("O"));
         cmd.ExecuteNonQuery();
     }

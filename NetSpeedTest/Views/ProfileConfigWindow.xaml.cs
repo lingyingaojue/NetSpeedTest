@@ -10,5 +10,6 @@ public partial class ProfileConfigWindow : Window
     public ProfileConfigWindow()
     {
         InitializeComponent();
+        Loaded += (_, _) => Helpers.WindowHelper.ClampToScreen(this);
     }
 }

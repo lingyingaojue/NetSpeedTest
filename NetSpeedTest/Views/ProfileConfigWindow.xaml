@@ -71,7 +71,7 @@
                             <DataTemplate>
                                 <StackPanel Margin="4,6">
                                     <TextBlock Text="{Binding Name}" FontSize="13"
-                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                               Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                     <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0} 个下载地址, {1} 个上传地址">

@@ -40,7 +40,7 @@ public class SpeedTestResult
     /// <summary>
     /// 抖动（标准差，ms）
     /// </summary>
-    public double JitterMs { get; set; }
+    public double? JitterMs { get; set; }
 
     /// <summary>
     /// 丢包率（百分比）

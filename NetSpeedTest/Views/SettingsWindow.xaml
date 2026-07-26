@@ -19,6 +19,10 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- 线程数 -->
@@ -99,8 +103,31 @@
             <Slider Minimum="500" Maximum="10000" Value="{Binding LatencyPollIntervalMs}" TickFrequency="500" IsSnapToTickEnabled="True" />
         </StackPanel>
 
+        <!-- 抖动采样间隔 -->
+        <StackPanel Grid.Row="7" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="抖动采样间隔 (毫秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                           Width="160" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding JitterPollIntervalMs, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
+                           Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right" />
+            </StackPanel>
+            <Slider Minimum="500" Maximum="5000" Value="{Binding JitterPollIntervalMs}" TickFrequency="500" IsSnapToTickEnabled="True" />
+        </StackPanel>
+
+        <!-- 抖动探测主机 -->
+        <StackPanel Grid.Row="8" Margin="0,0,0,12">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="抖动探测主机" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                           Width="160" VerticalAlignment="Center" />
+                <TextBox Text="{Binding JitterTargetHost, UpdateSourceTrigger=PropertyChanged}" Width="200"
+                         FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                         Background="{StaticResource BackgroundBrush}"
+                         BorderBrush="{StaticResource BorderBrush}" />
+            </StackPanel>
+        </StackPanel>
+
         <!-- 掉速补偿 -->
-        <Expander Grid.Row="8" Header="掉速补偿" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+        <Expander Grid.Row="9" Header="掉速补偿" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
                   IsExpanded="False" Margin="0,0,0,8">
             <StackPanel>
                 <CheckBox Content="启用补偿" IsChecked="{Binding CompensationEnabled}" Margin="0,6,0,8"
@@ -144,7 +171,7 @@
         </Expander>
 
         <!-- 按钮 -->
-        <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+        <StackPanel Grid.Row="11" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button Content="保存" Width="80" Style="{StaticResource AccentButtonStyle}"
                     Command="{Binding SaveCommand}" />
             <Button Content="取消" Width="60" Margin="8,0,0,0"

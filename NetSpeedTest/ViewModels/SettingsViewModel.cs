@@ -20,6 +20,8 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _nicPollIntervalMs;
     [ObservableProperty] private int _threadRampUpMs;
     [ObservableProperty] private int _latencyPollIntervalMs;
+    [ObservableProperty] private string _jitterTargetHost;
+    [ObservableProperty] private int _jitterPollIntervalMs;
     [ObservableProperty] private bool _compensationEnabled;
     [ObservableProperty] private double _compensationThreshold;
     [ObservableProperty] private int _compensationExtraThreads;
@@ -49,6 +51,8 @@ public partial class SettingsViewModel : ObservableObject
         NicPollIntervalMs = options.NicPollIntervalMs;
         ThreadRampUpMs = options.ThreadRampUpMs;
         LatencyPollIntervalMs = options.LatencyPollIntervalMs;
+        JitterTargetHost = options.JitterTargetHost;
+        JitterPollIntervalMs = options.JitterPollIntervalMs;
         CompensationEnabled = options.CompensationEnabled;
         CompensationThreshold = options.CompensationThreshold;
         CompensationExtraThreads = options.CompensationExtraThreads;
@@ -66,6 +70,7 @@ public partial class SettingsViewModel : ObservableObject
         NicPollIntervalMs = Math.Clamp(NicPollIntervalMs, 200, 5000);
         ThreadRampUpMs = Math.Clamp(ThreadRampUpMs, 0, 5000);
         LatencyPollIntervalMs = Math.Clamp(LatencyPollIntervalMs, 500, 10000);
+        JitterPollIntervalMs = Math.Clamp(JitterPollIntervalMs, 500, 5000);
         CompensationThreshold = Math.Clamp(CompensationThreshold, 0.3, 0.8);
         CompensationExtraThreads = Math.Clamp(CompensationExtraThreads, 0, 64);
         CompensationConfirmSec = Math.Clamp(CompensationConfirmSec, 1, 10);
@@ -88,6 +93,8 @@ public partial class SettingsViewModel : ObservableObject
                 ["NicPollIntervalMs"] = NicPollIntervalMs,
                 ["ThreadRampUpMs"] = ThreadRampUpMs,
                 ["LatencyPollIntervalMs"] = LatencyPollIntervalMs,
+                ["JitterTargetHost"] = JitterTargetHost,
+                ["JitterPollIntervalMs"] = JitterPollIntervalMs,
                 ["CompensationEnabled"] = CompensationEnabled,
                 ["CompensationThreshold"] = CompensationThreshold,
                 ["CompensationExtraThreads"] = CompensationExtraThreads,
@@ -103,6 +110,8 @@ public partial class SettingsViewModel : ObservableObject
             _options.NicPollIntervalMs = NicPollIntervalMs;
             _options.ThreadRampUpMs = ThreadRampUpMs;
             _options.LatencyPollIntervalMs = LatencyPollIntervalMs;
+            _options.JitterTargetHost = JitterTargetHost;
+            _options.JitterPollIntervalMs = JitterPollIntervalMs;
             _options.CompensationEnabled = CompensationEnabled;
             _options.CompensationThreshold = CompensationThreshold;
             _options.CompensationExtraThreads = CompensationExtraThreads;

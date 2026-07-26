@@ -114,7 +114,7 @@ public partial class HistoryViewModel : ObservableObject
         {
             _currentPage--;
             try { LoadPage(_currentPage); }
-            catch { _currentPage++; PageNumber = 1; TotalPages = 1; CanGoNext = false; CanGoPrevious = false; }
+            catch { _currentPage++; PageNumber = _currentPage; TotalPages = 1; CanGoNext = false; CanGoPrevious = false; }
         }
     }
 
@@ -186,8 +186,8 @@ public partial class HistoryViewModel : ObservableObject
             foreach (var r in records)
             {
                 sb.AppendLine($"{r.Timestamp:yyyy-MM-dd HH:mm:ss},{r.TestType},{EscapeCsv(r.NodeName)},{r.ThreadCount}," +
-                    $"{FormatCsv(r.DownloadMbps)},{FormatCsv(r.UploadMbps)},{r.LatencyMs:F0}," +
-                    $"{FormatCsv(r.WanLatencyMs)},{r.AverageTotalMbps:F1},{r.TotalBytes},{r.DurationSeconds:F1}," +
+                    $"{FormatCsv(r.DownloadMbps)},{FormatCsv(r.UploadMbps)},{FormatCsvLatency(r.LatencyMs)}," +
+                    $"{FormatCsv(r.WanLatencyMs)},{FormatCsv(r.AverageTotalMbps)},{r.TotalBytes},{r.DurationSeconds:F1}," +
                     $"{EscapeCsv(r.NetworkAdapterName)}");
             }
             File.WriteAllText(dialog.FileName, sb.ToString(), System.Text.Encoding.UTF8);
@@ -197,5 +197,6 @@ public partial class HistoryViewModel : ObservableObject
     }
 
     private static string EscapeCsv(string? s) => $"\"{(s ?? "").Replace("\"", "\"\"")}\"";
-    private static string FormatCsv(double? v) => v.HasValue ? v.Value.ToString("F1", CultureInfo.InvariantCulture) : "";
+    private static string FormatCsv(double? v) => v.HasValue && !double.IsNaN(v.Value) ? v.Value.ToString("F1", CultureInfo.InvariantCulture) : "";
+    private static string FormatCsvLatency(double v) => double.IsNaN(v) ? "" : v.ToString("F0", CultureInfo.InvariantCulture);
 }

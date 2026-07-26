@@ -85,6 +85,7 @@ public partial class ProfileViewModel : ObservableObject
         var url = NewDownloadUrl.Trim();
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
             || (uri.Scheme != "http" && uri.Scheme != "https")) return;
+        if (IsPrivateHost(uri.Host)) return;
         profile.DownloadUrls.Add(url);
         try { _profileService.SaveProfile(profile); } catch (Exception ex) { System.Windows.MessageBox.Show($"保存失败: {ex.Message}", "NetSpeedTest"); }
         NewDownloadUrl = "";
@@ -107,6 +108,7 @@ public partial class ProfileViewModel : ObservableObject
         var url = NewUploadUrl.Trim();
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)
             || (uri.Scheme != "http" && uri.Scheme != "https")) return;
+        if (IsPrivateHost(uri.Host)) return;
         profile.UploadUrls.Add(url);
         try { _profileService.SaveProfile(profile); } catch (Exception ex) { System.Windows.MessageBox.Show($"保存失败: {ex.Message}", "NetSpeedTest"); }
         NewUploadUrl = "";
@@ -175,5 +177,30 @@ public partial class ProfileViewModel : ObservableObject
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        }
+
+        private static bool IsPrivateHost(string host)
+        {
+            if (string.IsNullOrEmpty(host)) return true;
+            if (host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || host == "127.0.0.1" || host == "::1") return true;
+            if (System.Net.IPAddress.TryParse(host, out var ip))
+            {
+                byte[] b = ip.GetAddressBytes();
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                {
+                    if (ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal) return true;
+                    if (b.Length >= 2 && b[0] == 0xFE && b[1] == 0x80) return true;
+                    return false;
+                }
+                if (b.Length == 4)
+                {
+                    if (b[0] == 10) return true;
+                    if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true;
+                    if (b[0] == 192 && b[1] == 168) return true;
+                    if (b[0] == 127) return true;
+                    if (b[0] == 169 && b[1] == 254) return true;
+                }
+            }
+            return false;
+        }
     }
-}

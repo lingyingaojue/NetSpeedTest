@@ -124,7 +124,7 @@ public class DataService
         cmd.Parameters.AddWithValue("@dl", (object?)result.DownloadMbps ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@ul", (object?)result.UploadMbps ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@lat", result.LatencyMs);
-        cmd.Parameters.AddWithValue("@jit", result.JitterMs);
+        cmd.Parameters.AddWithValue("@jit", (object?)result.JitterMs ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@pl", result.PacketLoss);
         cmd.Parameters.AddWithValue("@nn", result.NodeName);
         cmd.Parameters.AddWithValue("@na", result.NetworkAdapterName);
@@ -179,7 +179,7 @@ public class DataService
                     DownloadMbps = reader.IsDBNull(2) ? null : reader.GetDouble(2),
                     UploadMbps = reader.IsDBNull(3) ? null : reader.GetDouble(3),
                     LatencyMs = reader.GetDouble(4),
-                    JitterMs = reader.GetDouble(5),
+                    JitterMs = reader.IsDBNull(5) ? null : reader.GetDouble(5),
                     PacketLoss = reader.GetDouble(6),
                     NodeName = reader.GetString(7),
                     NetworkAdapterName = reader.GetString(8),
@@ -262,6 +262,6 @@ public class DataService
 
     public List<SpeedTestResult> GetAllRecords()
     {
-        return GetRecords(1, int.MaxValue);
+        return GetRecords(1, 100000);
     }
 }
