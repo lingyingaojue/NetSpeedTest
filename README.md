@@ -30,6 +30,18 @@
 
 ---
 
+## 📋 目录
+
+- [✨ 核心亮点](#-核心亮点)
+- [⌨️ 快捷键](#️-快捷键)
+- [⚙️ 可调参数](#️-可调参数)
+- [🛠 技术架构](#-技术架构)
+- [🚀 快速开始](#-快速开始)
+- [📥 下载](#-下载)
+- [📝 更新日志](#-更新日志)
+
+---
+
 ![Screenshot](assets/screenshot.png)
 
 ---
@@ -64,7 +76,6 @@
 - 模式切换 **300ms 平滑过渡动画**
 - **测速互斥回调** — 单测时自动隐藏无关指标
 - **系统托盘驻留** — 右键菜单 / 状态联动 / 气泡通知
-- **键盘快捷键** — Enter 测速 / Esc 停止 / Ctrl+D/U/B 切换
 - 完成弹窗 **「复制结果」按钮**
 - **暗色主题** — GitHub Dark 风格
 
@@ -80,6 +91,18 @@
 </td>
 </tr>
 </table>
+
+---
+
+## ⌨️ 快捷键
+
+| 快捷键 | 功能 |
+|:------|:-----|
+| <kbd>Enter</kbd> | 开始测速 |
+| <kbd>Esc</kbd> | 停止测速 |
+| <kbd>Ctrl</kbd> + <kbd>D</kbd> | 仅下载 |
+| <kbd>Ctrl</kbd> + <kbd>U</kbd> | 仅上传 |
+| <kbd>Ctrl</kbd> + <kbd>B</kbd> | 全速双向 |
 
 ---
 
@@ -121,6 +144,7 @@ dotnet build
 dotnet run --project NetSpeedTest/NetSpeedTest.csproj
 ```
 
+> [!NOTE]
 > **环境要求**：Windows 10 / 11 · [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 
 ---
@@ -128,6 +152,12 @@ dotnet run --project NetSpeedTest/NetSpeedTest.csproj
 ## 📥 下载
 
 前往 [Releases](https://github.com/lingyingaojue/NetSpeedTest/releases) 下载已编译版本（.NET 8 单文件发布，~170 MB）。
+
+---
+
+## 📝 更新日志
+
+完整变更记录请查看 [CHANGELOG.md](CHANGELOG.md)。
 
 ---
 
