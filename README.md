@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
-[![Release](https://img.shields.io/badge/release-v1.3.2-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+[![Release](https://img.shields.io/badge/release-v1.3.3-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 
 </div>
 
