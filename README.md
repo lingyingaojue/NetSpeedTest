@@ -2,14 +2,14 @@
 
 <img src="assets/app-icon.png" width="96" />
 
-# NetSpeedTest
+# 🚀 NetSpeedTest
 
-**Windows 桌面端网络测速工具**
+**Windows 桌面端网络测速工具 · 专业级 · 开源免费**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
-[![Release](https://img.shields.io/badge/release-v1.3.3-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+[![Release](https://img.shields.io/badge/release-v1.3.4-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Stars](https://img.shields.io/github/stars/lingyingaojue/NetSpeedTest?color=yellow)](https://github.com/lingyingaojue/NetSpeedTest/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/lingyingaojue/NetSpeedTest/total?color=blue)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Last Commit](https://img.shields.io/github/last-commit/lingyingaojue/NetSpeedTest)](https://github.com/lingyingaojue/NetSpeedTest/commits)
@@ -20,10 +20,10 @@
 ---
 
 <p align="center">
-  <b>CDN 动态调度</b> &nbsp;·&nbsp;
-  <b>自适应线程调度</b> &nbsp;·&nbsp;
-  <b>掉速智能补偿</b> &nbsp;·&nbsp;
-  <b>抖动延迟监测</b> &nbsp;·&nbsp;
+  <b>CDN 智能调度</b> &nbsp;·&nbsp;
+  <b>自适应线程引擎</b> &nbsp;·&nbsp;
+  <b>掉速紧急补偿</b> &nbsp;·&nbsp;
+  <b>UDP 五层延迟探测</b> &nbsp;·&nbsp;
   <b>系统托盘驻留</b>
 </p>
 
@@ -78,14 +78,17 @@
 - 完成弹窗 **「复制结果」按钮**
 - **暗色主题** — GitHub Dark 风格
 
-### 🌐 全链路延迟检测
-- **内网延迟** — UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD 五层回退
-- **外网延迟** — 12 公网目标并发 + 异步动态 DNS 解析，取最低值
-- **平均抖动延迟** — 固定 8.8.8.8 单次 ICMP + 滑动窗口标准差，独立主机/间隔可配
+### 🌐 全链路 UDP 优先延迟探测
+- **统一五层回退**：UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD
+- **WAN / 抖动 / LAN 共用同一探测链路**，结果一致性更高
+- **外网延迟** — 8.8.8.8 单主机 UDP 轮询，避免批量阻塞
+- **抖动延迟** — 滑动窗口标准差算法，实时平滑输出
+- **延迟刷新频率 1000ms**，三指标同步更新
 
 ### 🗄️ 历史 & 配置管理
 - SQLite 持久化，独立页面 + 一键清除 + **统计栏** + CSV 导出
 - 8 个内置 CDN 节点，支持自定义配置导入/导出（JSON 兼容 HBCS）
+- 设置保存纯内存生效，不覆盖打包版默认值
 
 </td>
 </tr>

@@ -92,10 +92,10 @@
             <Slider Minimum="200" Maximum="5000" Value="{Binding NicPollIntervalMs}" TickFrequency="100" IsSnapToTickEnabled="True" />
         </StackPanel>
 
-        <!-- 延迟轮询间隔 -->
+        <!-- 延迟采样间隔 -->
         <StackPanel Grid.Row="6" Margin="0,0,0,12">
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="延迟轮询间隔 (毫秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                <TextBlock Text="延迟采样间隔 (毫秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
                            Width="160" VerticalAlignment="Center" />
                 <TextBlock Text="{Binding LatencyPollIntervalMs, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
                            Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right" />

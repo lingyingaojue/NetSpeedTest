@@ -12,6 +12,24 @@ public partial class AboutWindow : Window
         DataContext = this;
         Loaded += (_, _) => Helpers.WindowHelper.ClampToScreen(this);
 
+        Changelog.Add(new ChangelogEntry("V1.3.4", "2026-07-27", new()
+        {
+            "🐛 修复",
+            "● 修复 SaveResult JitterMs NOT NULL 约束崩溃（null→0 写、0→null 读）",
+            "● 修复外网延迟测速期间不刷新（12 主机批量 3s 超时 → 8.8.8.8 单主机 UDP 轮询）",
+            "● 修复抖动延迟不显示（ICMP Ping 满载超时 → 改为 UDP 五层回退）",
+            "● 修复测速结束后弹窗延迟过长（移除 3 处冗余 finalLatency 阻塞调用 + 后台任务并行退出）",
+            "● 修复上传/双向测速 PeakMbps 始终为 0（PeakRate 跟踪从补偿门控拆出至无条件）",
+            "● 修复 GetStatistics 静默吞 DB 异常",
+            "🔧 优化",
+            "● WAN/抖动/LAN 延迟探测统一为 UDP 优先五层回退",
+            "● 延迟刷新频率默认 2000→1000ms，三指标同步",
+            "● 后台任务取消后并行 await + UDP 探针 CancellationToken 可打断",
+            "● 设置保存改为纯内存生效，不再持久化覆盖打包版默认值",
+            "📝 修正",
+            "● 设置页 \"延迟轮询间隔\"→\"延迟采样间隔\"",
+        }));
+
         Changelog.Add(new ChangelogEntry("V1.3.3", "2026-07-26", new()
         {
             "🐛 修复",

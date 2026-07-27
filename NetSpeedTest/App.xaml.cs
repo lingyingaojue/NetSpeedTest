@@ -53,7 +53,7 @@ namespace NetSpeedTest;
             {
                 Timeout = TimeSpan.FromSeconds(900)
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.3");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.4");
             return client;
         });
 
