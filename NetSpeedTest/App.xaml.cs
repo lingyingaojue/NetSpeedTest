@@ -53,7 +53,7 @@ namespace NetSpeedTest;
             {
                 Timeout = TimeSpan.FromSeconds(900)
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.4");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.5");
             return client;
         });
 
@@ -73,6 +73,7 @@ namespace NetSpeedTest;
         services.AddTransient<HistoryViewModel>();
         services.AddTransient<ProfileViewModel>();
         services.AddTransient<SettingsViewModel>();
+        services.AddTransient<MoreViewModel>();
 
         _serviceProvider = services.BuildServiceProvider();
 
@@ -85,7 +86,7 @@ namespace NetSpeedTest;
         catch (Exception ex)
         {
             System.Windows.MessageBox.Show($"数据库初始化失败: {ex.Message}", "启动错误", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-            throw;
+            Environment.Exit(1);
         }
     }
 
@@ -104,7 +105,7 @@ namespace NetSpeedTest;
                 .OpenSubKey(@"Software\NetSpeedTest");
             eulaAccepted = eulaKey?.GetValue("EulaAccepted") != null;
         }
-        catch (Exception ex) { Logger.Log($"Version registry write failed: {ex.Message}"); }
+        catch (Exception ex) { Logger.Log($"EULA registry check failed: {ex.Message}"); }
 
         if (!eulaAccepted)
         {
@@ -146,7 +147,7 @@ namespace NetSpeedTest;
                         .CreateSubKey(@"Software\NetSpeedTest");
                     wk?.SetValue("LastVersion", currentVersion);
                 }
-        catch (Exception ex) { Logger.Log($"EULA registry check failed: {ex.Message}"); }
+        catch (Exception ex) { Logger.Log($"Version registry write failed: {ex.Message}"); }
             }
         }
         catch (Exception ex) { System.Windows.MessageBox.Show($"版本检查失败: {ex.Message}", "NetSpeedTest"); }

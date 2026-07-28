@@ -26,6 +26,9 @@ public class DataService
     {
         using var connection = new SqliteConnection(_connectionString);
         connection.Open();
+        using var pragma = connection.CreateCommand();
+        pragma.CommandText = "PRAGMA journal_mode = WAL";
+        pragma.ExecuteNonQuery();
 
         // 测速记录表
         using var cmd1 = connection.CreateCommand();
@@ -124,7 +127,7 @@ public class DataService
         cmd.Parameters.AddWithValue("@dl", (object?)result.DownloadMbps ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@ul", (object?)result.UploadMbps ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@lat", result.LatencyMs);
-        cmd.Parameters.AddWithValue("@jit", (object?)result.JitterMs ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@jit", (object?)result.JitterMs ?? 0.0);
         cmd.Parameters.AddWithValue("@pl", result.PacketLoss);
         cmd.Parameters.AddWithValue("@nn", result.NodeName);
         cmd.Parameters.AddWithValue("@na", result.NetworkAdapterName);
@@ -179,7 +182,7 @@ public class DataService
                     DownloadMbps = reader.IsDBNull(2) ? null : reader.GetDouble(2),
                     UploadMbps = reader.IsDBNull(3) ? null : reader.GetDouble(3),
                     LatencyMs = reader.GetDouble(4),
-                    JitterMs = reader.IsDBNull(5) ? null : reader.GetDouble(5),
+                    JitterMs = reader.IsDBNull(5) ? null : (reader.GetDouble(5) == 0 ? null : reader.GetDouble(5)),
                     PacketLoss = reader.GetDouble(6),
                     NodeName = reader.GetString(7),
                     NetworkAdapterName = reader.GetString(8),
@@ -256,7 +259,7 @@ public class DataService
                 };
             }
         }
-        catch { }
+        catch (Exception ex) { Logger.Log($"GetStatistics failed: {ex.Message}"); }
         return new SpeedTestStats();
     }
 

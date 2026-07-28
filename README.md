@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
-[![Release](https://img.shields.io/badge/release-v1.3.4-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+[![Release](https://img.shields.io/badge/release-v1.3.5-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Stars](https://img.shields.io/github/stars/lingyingaojue/NetSpeedTest?color=yellow)](https://github.com/lingyingaojue/NetSpeedTest/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/lingyingaojue/NetSpeedTest/total?color=blue)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Last Commit](https://img.shields.io/github/last-commit/lingyingaojue/NetSpeedTest)](https://github.com/lingyingaojue/NetSpeedTest/commits)
@@ -24,7 +24,7 @@
   <b>自适应线程引擎</b> &nbsp;·&nbsp;
   <b>掉速紧急补偿</b> &nbsp;·&nbsp;
   <b>UDP 五层延迟探测</b> &nbsp;·&nbsp;
-  <b>系统托盘驻留</b>
+  <b>18 合 1 工具箱</b>
 </p>
 
 ---
@@ -93,6 +93,33 @@
 </td>
 </tr>
 </table>
+
+---
+
+## 🛠️ 网络工具箱 (New in v1.3.5)
+
+内置 **18 种专业网络诊断工具**，一窗口搞定日常排查：
+
+<table>
+<tr>
+<td>
+
+| 工具 | 说明 |
+|:-----|:-----|
+| 🏓 **Ping** | ICMP 连通性测试，自定义包大小/次数/TTL |
+| 🌐 **DNS 查询** | A/AAAA/CNAME/MX/NS/TXT 记录查询 |
+| 📡 **HTTP 请求** | GET/POST/PUT/DELETE，显示状态码/响应头/耗时 |
+| 🗺️ **路由追踪** | Traceroute 跳点追踪，实时显示每跳 IP/延迟 |
+| 🔌 **端口测试** | TCP 端口扫描，自定义端口范围 |
+| 📏 **MTU 检测** | 路径 MTU 自动探测，发现最优 MTU 值 |
+| 🔍 **NAT 检测** | STUN NAT 类型检测（全锥/受限/对称），支持自定义 STUN 服务器 |
+| 📋 **Whois** | 域名/IP WHOIS 信息查询 |
+
+</td>
+</tr>
+</table>
+
+> 💡 测速前自动弹出**准备弹窗**：DNS 预解析 + HTTP 握手预热 + 线性进度条，准备中途关闭即停止。
 
 ---
 

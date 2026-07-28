@@ -140,8 +140,21 @@ public partial class ProfileViewModel : ObservableObject
             try
             {
                 var imported = _profileService.ImportFromFile(dialog.FileName);
+                int filtered = 0;
+                foreach (var p in imported)
+                {
+                    var dlBefore = p.DownloadUrls.Count;
+                    var ulBefore = p.UploadUrls.Count;
+                    p.DownloadUrls = p.DownloadUrls.Where(u => !IsPrivateUrl(u)).ToList();
+                    p.UploadUrls = p.UploadUrls.Where(u => !IsPrivateUrl(u)).ToList();
+                    filtered += (dlBefore - p.DownloadUrls.Count) + (ulBefore - p.UploadUrls.Count);
+                    if (dlBefore != p.DownloadUrls.Count || ulBefore != p.UploadUrls.Count)
+                        try { _profileService.SaveProfile(p); } catch { }
+                }
                 LoadProfiles();
-                MessageBox.Show($"成功导入 {imported.Count} 个测速配置", "导入成功",
+                var msg = $"成功导入 {imported.Count} 个测速配置";
+                if (filtered > 0) msg += $"，已过滤 {filtered} 个内网地址";
+                MessageBox.Show(msg, "导入成功",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -179,27 +192,41 @@ public partial class ProfileViewModel : ObservableObject
         }
         }
 
+        private static bool IsPrivateUrl(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return true;
+            return IsPrivateHost(uri.Host);
+        }
+
         private static bool IsPrivateHost(string host)
         {
             if (string.IsNullOrEmpty(host)) return true;
             if (host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || host == "127.0.0.1" || host == "::1") return true;
             if (System.Net.IPAddress.TryParse(host, out var ip))
             {
-                byte[] b = ip.GetAddressBytes();
-                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                {
-                    if (ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal) return true;
-                    if (b.Length >= 2 && b[0] == 0xFE && b[1] == 0x80) return true;
-                    return false;
-                }
-                if (b.Length == 4)
-                {
-                    if (b[0] == 10) return true;
-                    if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true;
-                    if (b[0] == 192 && b[1] == 168) return true;
-                    if (b[0] == 127) return true;
-                    if (b[0] == 169 && b[1] == 254) return true;
-                }
+                return IsPrivateIp(ip);
+            }
+            // DNS名：解析为IP后再判私有（防DNS重绑定攻击）
+            try { var addrs = System.Net.Dns.GetHostAddresses(host); foreach (var a in addrs) { if (IsPrivateIp(a)) return true; } }
+            catch { return true; }
+            return false;
+        }
+
+        private static bool IsPrivateIp(System.Net.IPAddress ip)
+        {
+            byte[] b = ip.GetAddressBytes();
+            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                if (ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal) return true;
+                return false;
+            }
+            if (b.Length == 4)
+            {
+                if (b[0] == 10) return true;
+                if (b[0] == 172 && b[1] >= 16 && b[1] <= 31) return true;
+                if (b[0] == 192 && b[1] == 168) return true;
+                if (b[0] == 127) return true;
+                if (b[0] == 169 && b[1] == 254) return true;
             }
             return false;
         }

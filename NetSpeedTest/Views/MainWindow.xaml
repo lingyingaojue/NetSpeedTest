@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
         xmlns:converters="clr-namespace:NetSpeedTest.Converters"
-        Title="NetSpeedTest" Height="700" Width="1280" MinHeight="600" MinWidth="1000"
+        Title="NetSpeedTest" Height="720" Width="1280" MinHeight="563" MinWidth="1000"
         Icon="/Resources/app.png"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BackgroundBrush}">
@@ -37,6 +37,7 @@
         <!-- ===== 顶部导航栏 ===== -->
         <Grid Grid.Row="0" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -110,10 +111,13 @@
             <Button Grid.Column="10" Content="用户协议" Width="86" Margin="6,0,0,0"
                     Command="{Binding OpenEulaCommand}" />
 
-            <Button Grid.Column="11" Content="关于" Width="60" Margin="6,0,0,0"
-                    Command="{Binding OpenAboutCommand}" />
+            <Button Grid.Column="11" Content="更多功能" Width="80" Margin="6,0,0,0"
+                     Command="{Binding OpenMoreCommand}" />
 
-            <TextBlock Grid.Column="12" Text="{Binding StatusText}" FontSize="12"
+            <Button Grid.Column="12" Content="关于" Width="60" Margin="6,0,0,0"
+                     Command="{Binding OpenAboutCommand}" />
+
+            <TextBlock Grid.Column="13" Text="{Binding StatusText}" FontSize="12"
                        Foreground="{StaticResource TextPrimaryBrush}"
                        VerticalAlignment="Center" HorizontalAlignment="Right"
                        Margin="12,0,0,0" TextTrimming="CharacterEllipsis" />

@@ -1,7 +1,7 @@
 <Window x:Class="NetSpeedTest.Views.EulaWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="用户协议与声明" Height="560" Width="700"
+        Title="用户协议与声明" Height="540" Width="960"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Icon="/Resources/app.png"
         Background="{StaticResource BackgroundBrush}">

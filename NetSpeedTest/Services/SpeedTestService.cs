@@ -95,20 +95,20 @@ public class SpeedTestService
 
         var gwTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter);
 
-        // URL 调度：按实时 AvgMbps 选最快可用节点
+        // URL 调度：先探索（每个 URL 至少被测一次），再利用（选最快）
         string SelectBestUrl()
         {
             lock (globalLock)
             {
+                var untested = urls.Where(u => !urlDetails.Any(d => d.Url == u)).ToList();
+                if (untested.Count > 0)
+                    return untested[0];
+
                 var best = urlDetails
                     .Where(d => !d.IsFailed && d.AvgMbps > 0)
                     .MaxBy(d => d.AvgMbps);
                 if (best != null) return best.Url ?? urls[0];
-                var active = urlDetails
-                    .Where(d => !d.IsFailed)
-                    .OrderByDescending(d => d.DurationSeconds)
-                    .FirstOrDefault();
-                if (active != null) return active.Url ?? urls[0];
+
                 return urls[0];
             }
         }
@@ -210,19 +210,10 @@ public class SpeedTestService
             })
             .ToList();
 
-        // 最终内网延迟
-        double finalLatency = 0;
-        if (!string.IsNullOrEmpty(gateway))
-        {
-            try { finalLatency = await TestGatewayLatencyAsync(gateway, ct); } catch (Exception ex) { Logger.Log($"Final latency failed: {ex.Message}"); }
-        }
-
         // 停止所有后台报告任务
         internalCts.Cancel();
-        if (gwTasks.gatewayTask != null) await gwTasks.gatewayTask;
-        await gwTasks.wanTask;
-        await gwTasks.jitterTask;
-        await nicMonitorTask;
+        await Task.WhenAll(gwTasks.gatewayTask ?? Task.CompletedTask, gwTasks.wanTask, gwTasks.jitterTask, nicMonitorTask);
+
         if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
 
         // 网卡级平均速率
@@ -248,7 +239,7 @@ public class SpeedTestService
             DownloadMbps = nicDlAvg,
             PeakMbps = peakAggMbps,
             UploadMbps = nicUlAvg,
-            LatencyMs = finalLatency,
+            LatencyMs = 0,
             JitterMs = 0,
             PacketLoss = 0,
             NodeName = profileName,
@@ -259,6 +250,50 @@ public class SpeedTestService
             ThreadCount = threadCount,
             UrlDetails = dedupedDetails
         };
+    }
+
+    /// <summary>
+    /// 测速准备：DNS 预解析 + HTTP 连接预热
+    /// </summary>
+    public async Task PrepareUrlsAsync(List<string> urls, CancellationToken ct, Action<int, string> report)
+    {
+        if (urls.Count == 0) { report(100, ""); return; }
+
+        report(10, "解析测速地址...");
+        var hosts = urls.Select(GetHostFromUrl).Distinct().ToList();
+        try
+        {
+            await Task.WhenAll(hosts.Select(h => Task.Run(async () =>
+            {
+                try { await Dns.GetHostAddressesAsync(h, ct); } catch { }
+            }, ct)));
+        }
+        catch { }
+        ct.ThrowIfCancellationRequested();
+        report(45, $"{hosts.Count} 个地址已解析");
+
+        report(50, "建立服务器连接...");
+        try
+        {
+            await Task.WhenAll(urls.Select(async url =>
+            {
+                try
+                {
+                    using var cts2 = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                    using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, cts2.Token);
+                    using var req = new HttpRequestMessage(HttpMethod.Head, url);
+                    using var _ = await _httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, linked.Token);
+                }
+                catch { }
+            }));
+        }
+        catch { }
+        ct.ThrowIfCancellationRequested();
+        report(85, "连接已建立");
+
+        report(95, "准备就绪");
+        try { await Task.Delay(200, ct); } catch { }
+        report(100, "");
     }
 
     // ========== 基础测速方法 ==========
@@ -304,10 +339,18 @@ public class SpeedTestService
                     {
                         var sw = Stopwatch.StartNew();
                         await udp.SendAsync(probe, probe.Length);
-                        try { await udp.ReceiveAsync(); latencies.Add(sw.Elapsed.TotalMilliseconds); }
-                        catch (SocketException se) when (se.SocketErrorCode != SocketError.TimedOut) { latencies.Add(sw.Elapsed.TotalMilliseconds); }
+                        try
+                        {
+                            var receiveTask = udp.ReceiveAsync();
+                            using var probeCts = new CancellationTokenSource(1000);
+                            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, probeCts.Token);
+                            var winner = await Task.WhenAny(receiveTask, Task.Delay(Timeout.Infinite, linkedCts.Token));
+                            if (winner == receiveTask) latencies.Add(sw.Elapsed.TotalMilliseconds);
+                        }
+                        catch (SocketException) { }
                     }
                     catch { }
+                    if (ct.IsCancellationRequested) break;
                     if (i < 4) try { await Task.Delay(50, ct); } catch { break; }
                 }
             }
@@ -498,12 +541,12 @@ public class SpeedTestService
                     if (!st.R && e >= _options.AverageDelaySec) { st.R = true; st.BR = lb.Values.Sum(x => x.R); st.BS = lb.Values.Sum(x => x.S); }
                     tb?.Invoke(Math.Max(0, st.AR + st.AS - st.FR - st.FS));
                     if (lt > 0) { var dt = e - lt; var dr = dt > 0 ? (dd * 8.0) / (dt * 1_000_000.0) : 0; var ur = dt > 0 ? (du * 8.0) / (dt * 1_000_000.0) : 0; dh.Add((e, dr)); dh.RemoveAll(x => e - x.Item1 > ws); uh.Add((e, ur)); uh.RemoveAll(x => e - x.Item1 > ws); dl?.Invoke(e, dh.Count > 0 ? dh.Average(x => x.Item2) : dr, Interlocked.Read(ref totalBytes.Value)); ul?.Invoke(e, uh.Count > 0 ? uh.Average(x => x.Item2) : ur, 0); if (st.R) { var ae = e - _options.AverageDelaySec; adl?.Invoke(ae > 0 ? (st.AR - st.BR) * 8.0 / (ae * 1_000_000.0) : 0); aul?.Invoke(ae > 0 ? (st.AS - st.BS) * 8.0 / (ae * 1_000_000.0) : 0); atl?.Invoke(ae > 0 ? (st.AR - st.BR + st.AS - st.BS) * 8.0 / (ae * 1_000_000.0) : 0); } }
+                    var sr = dh.Count > 0 ? dh.Average(x => x.Item2) : 0;
+                    var ur_ = uh.Count > 0 ? uh.Average(x => x.Item2) : 0;
+                    var combined = Math.Max(sr, ur_);
+                    if (combined > st.PeakRate) st.PeakRate = combined;
                     if (_options.CompensationEnabled && st.R)
                     {
-                        var sr = dh.Count > 0 ? dh.Average(x => x.Item2) : 0;
-                        var ur_ = uh.Count > 0 ? uh.Average(x => x.Item2) : 0;
-                        var combined = Math.Max(sr, ur_);
-                        if (combined > st.PeakRate) st.PeakRate = combined;
                         if (!st.IsCompensating && st.PeakRate > 0 && combined < st.PeakRate * _options.CompensationThreshold)
                         {
                             st.BelowThresholdSec += _options.NicPollIntervalMs / 1000.0;
@@ -562,8 +605,8 @@ public class SpeedTestService
             Logger.Log($"网关延迟测试启动: gateway={gateway}");
             gt = Task.Run(async () => { try { while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(gateway, ctLinked); if (v > 0) onLatency?.Invoke(v); } catch { break; } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } } catch { } });
         }
-        var wt = Task.Run(async () => { try { var wHosts = new[] { "www.baidu.com", "8.8.8.8", "114.114.114.114", "www.aliyun.com", "www.qq.com", "www.jd.com", "www.163.com", "www.bilibili.com", "1.1.1.1", "223.5.5.5", "119.29.29.29", "www.taobao.com" }; bool wFirst = true; while (!ctLinked.IsCancellationRequested) { try { using var c3 = new CancellationTokenSource(TimeSpan.FromSeconds(3)); using var tk = CancellationTokenSource.CreateLinkedTokenSource(ctLinked, c3.Token); double b = double.MaxValue; object l = new(); var p = wHosts.Select(async x => { var v = await TestGatewayLatencyAsync(x, tk.Token); if (v > 0) lock (l) { if (v < b) b = v; } }); await Task.WhenAny(Task.WhenAll(p), Task.Delay(3000, ctLinked)); if (b < double.MaxValue) onWanLatency?.Invoke(b); } catch { } if (!wFirst) { try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } wFirst = false; } } catch { } });
-        var jt = Task.Run(async () => { try { try { await Task.Delay(TimeSpan.FromSeconds(_options.AverageDelaySec), ctLinked); } catch { return; } var jHost = string.IsNullOrEmpty(_options.JitterTargetHost) ? "8.8.8.8" : _options.JitterTargetHost; var jInterval = Math.Max(500, _options.JitterPollIntervalMs); using var jPing = new Ping(); while (!ctLinked.IsCancellationRequested) { try { var reply = await jPing.SendPingAsync(jHost, 1000); if (reply.Status == IPStatus.Success && reply.RoundtripTime > 0) onJitter?.Invoke(reply.RoundtripTime); } catch { } try { await Task.Delay(jInterval, ctLinked); } catch { break; } } } catch { } });
+        var wt = Task.Run(async () => { try { var wHost = "8.8.8.8"; while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(wHost, ctLinked); if (v > 0) onWanLatency?.Invoke(v); } catch { } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } } catch { } });
+        var jt = Task.Run(async () => { try { try { await Task.Delay(TimeSpan.FromSeconds(_options.AverageDelaySec), ctLinked); } catch { return; } var jHost = string.IsNullOrEmpty(_options.JitterTargetHost) ? "8.8.8.8" : _options.JitterTargetHost; var jInterval = Math.Max(500, _options.JitterPollIntervalMs); while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(jHost, ctLinked); if (v > 0) onJitter?.Invoke(v); } catch { } try { await Task.Delay(jInterval, ctLinked); } catch { break; } } } catch { } });
         return (gt, wt, jt);
     }
 
@@ -609,17 +652,13 @@ public class SpeedTestService
             if (_options.ThreadRampUpMs > 0 && i + 1 < threadCount) { try { await Task.Delay(_options.ThreadRampUpMs, ctLinked); } catch { break; } }
         }
         await Task.WhenAll(tasks); overall.Stop(); internalCts.Cancel();
-        if (gwUploadTasks.gatewayTask != null) await gwUploadTasks.gatewayTask;
-        await gwUploadTasks.wanTask;
-        await gwUploadTasks.jitterTask;
-        await nicMonitorUpload;
+        await Task.WhenAll(gwUploadTasks.gatewayTask ?? Task.CompletedTask, gwUploadTasks.wanTask, gwUploadTasks.jitterTask, nicMonitorUpload);
         if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
         var ts = Math.Max(overall.Elapsed.TotalSeconds, 0.1); double dl, ul;
         if (nicState.R) { var e = Math.Max(ts - _options.AverageDelaySec, 0.1); var drop = _options.CompensationEnabled ? nicState.TotalDropDuration : 0; var adj = Math.Max(e - drop, 0.1); dl = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (adj * 1_000_000.0)); ul = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (adj * 1_000_000.0)); }
         else { dl = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts * 1_000_000.0)); ul = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts * 1_000_000.0)); }
-        double fl = 0; if (!string.IsNullOrEmpty(gateway)) try { fl = await TestGatewayLatencyAsync(gateway, ct); } catch { }
         var ulBytes = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
-        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl, UploadMbps = ul, PeakMbps = 0, LatencyMs = fl, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = 0, BytesUploaded = ulBytes, DurationSeconds = ts, ThreadCount = threadCount, UrlDetails = new() };
+        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl, UploadMbps = ul, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = 0, BytesUploaded = ulBytes, DurationSeconds = ts, ThreadCount = threadCount, UrlDetails = new() };
     }
 
     // ====== 双向测速（下载+上传同时跑） ======
@@ -689,16 +728,12 @@ public class SpeedTestService
         }
 
         await Task.WhenAll(tasks); overall.Stop(); internalCts.Cancel();
-        if (gwFullTasks.gatewayTask != null) await gwFullTasks.gatewayTask;
-        await gwFullTasks.wanTask;
-        await gwFullTasks.jitterTask;
-        await nicMonitorFull;
+        await Task.WhenAll(gwFullTasks.gatewayTask ?? Task.CompletedTask, gwFullTasks.wanTask, gwFullTasks.jitterTask, nicMonitorFull);
         if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
         var ts_ = Math.Max(overall.Elapsed.TotalSeconds, 0.1); double dl_, ul_;
         if (nicState.R) { var e = Math.Max(ts_ - _options.AverageDelaySec, 0.1); var drop = _options.CompensationEnabled ? nicState.TotalDropDuration : 0; var adj = Math.Max(e - drop, 0.1); dl_ = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (adj * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (adj * 1_000_000.0)); }
         else { dl_ = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts_ * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts_ * 1_000_000.0)); }
-        double fl_ = 0; if (!string.IsNullOrEmpty(gateway)) try { fl_ = await TestGatewayLatencyAsync(gateway, ct); } catch { }
         long dlBytes_ = bytesDl.Value, ulBytes_ = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
-        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = 0, LatencyMs = fl_, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = threadCount, UrlDetails = new() };
+        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = threadCount, UrlDetails = new() };
     }
 }

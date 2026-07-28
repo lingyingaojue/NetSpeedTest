@@ -32,6 +32,7 @@ public partial class MainViewModel : ObservableObject
     private volatile Stopwatch? _stopwatch;
     private SpeedTestResult? _lastResult;
     private string _currentTestMode = "";
+    private int _startUrlCount;
     public event Action<string, string>? TestCompletedNotify;
     private readonly List<double> _lanLatencies = new();
     private readonly List<double> _wanLatencies = new();
@@ -284,6 +285,8 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
+        _startUrlCount = selectedUrls.Count;
+        if (!await ShowPreparingDialogAsync(selectedUrls)) return;
         StartTestCommon(selectedUrls.Count, "下载");
         try
         {
@@ -320,6 +323,7 @@ public partial class MainViewModel : ObservableObject
         if (selectedUrls.Count == 0) { StatusText = "无上传地址，请在配置管理中添加上传 URL"; return; }
         if (Adapters.Count == 0) { StatusText = "未检测到可用网卡"; return; }
 
+        if (!await ShowPreparingDialogAsync(selectedUrls)) return;
         StartTestCommon(selectedUrls.Count, "上传");
         try
         {
@@ -352,7 +356,8 @@ public partial class MainViewModel : ObservableObject
         if (dlUrls.Count == 0 && ulUrls.Count == 0) { StatusText = "无可用测速地址"; return; }
         if (Adapters.Count == 0) { StatusText = "未检测到可用网卡"; return; }
 
-        StartTestCommon(Math.Max(dlUrls.Count, ulUrls.Count), "双向");
+        if (!await ShowPreparingDialogAsync(dlUrls.Concat(ulUrls).Distinct().ToList())) return;
+        StartTestCommon(dlUrls.Count + ulUrls.Count, "双向");
         try
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
@@ -375,6 +380,40 @@ public partial class MainViewModel : ObservableObject
     }
 
     // ==================== 共用辅助 ====================
+
+    private async Task<bool> ShowPreparingDialogAsync(List<string> urls)
+    {
+        var dlg = new Views.PreparingWindow { Owner = Application.Current.MainWindow };
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var disp = Application.Current.Dispatcher;
+        bool completed = false;
+
+        var prepTask = Task.Run(async () =>
+        {
+            var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
+            try
+            {
+                await svc.PrepareUrlsAsync(urls, cts.Token, (p, s) =>
+                    { _ = disp.InvokeAsync(() => dlg.UpdateProgress(p, s)); });
+                completed = true;
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex) { Logger.Log($"Prepare failed: {ex.Message}"); }
+        });
+
+        dlg.Show();
+        while (dlg.IsVisible && !prepTask.IsCompleted)
+            await Task.Delay(50);
+
+        if (prepTask.IsCompleted)
+            await Task.Delay(300);
+        try { dlg.Close(); } catch { }
+
+        bool userClosed = !prepTask.IsCompleted;
+        try { cts.Cancel(); } catch { }
+        await prepTask;
+        return completed && !userClosed;
+    }
 
     private void StartTestCommon(int urlCount, string mode)
     {
@@ -461,7 +500,13 @@ public partial class MainViewModel : ObservableObject
         }
         var ok = result.UrlDetails.Count(d => !d.IsFailed);
         var fail = result.UrlDetails.Count(d => d.IsFailed);
-        StatusText = $"测速完成 · {ok} 成功{(fail > 0 ? $" · {fail} 失败/超时" : "")}";
+        StatusText = _currentTestMode switch
+        {
+            "下载" => $"测速完成 · {ok}/{_startUrlCount} 成功{(fail > 0 ? $" · {fail} 失败/超时" : "")}",
+            "上传" => "测速完成",
+            "双向" => "测速完成",
+            _ => $"测速完成 · {ok} 成功"
+        };
 
         if (showDialog)
         {
@@ -494,6 +539,7 @@ public partial class MainViewModel : ObservableObject
         _stopwatch = null;
         IsTesting = false;
         Logger.Log($"[D-END] VM final: LatencyMs={LatencyMs:F1} WanLatencyMs={WanLatencyMs:F1} JitterMs={JitterMs:F1}");
+        _cts?.Cancel();
         _cts?.Dispose();
         _cts = null;
         _urlDetailMap.Clear();
@@ -640,6 +686,18 @@ public partial class MainViewModel : ObservableObject
     {
         var window = new Views.AboutWindow
         {
+            Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Views.MainWindow)
+        };
+        window.ShowDialog();
+    }
+
+    [RelayCommand]
+    private void OpenMore()
+    {
+        var vm = _serviceProvider.GetRequiredService<MoreViewModel>();
+        var window = new Views.MoreWindow
+        {
+            DataContext = vm,
             Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Views.MainWindow)
         };
         window.ShowDialog();

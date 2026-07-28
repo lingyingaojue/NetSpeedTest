@@ -1,10 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using NetSpeedTest.Models;
-using NetSpeedTest.Services;
-using System.IO;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Windows;
 
 namespace NetSpeedTest.ViewModels;
@@ -27,6 +23,10 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _compensationExtraThreads;
     [ObservableProperty] private int _compensationConfirmSec;
     [ObservableProperty] private bool _adaptiveThreadsEnabled;
+
+    [ObservableProperty] private int _selectedCategoryIndex;
+
+    public List<string> Categories { get; } = ["测速参数", "网络监控", "掉速补偿"];
 
     public int[] ThreadOptions { get; } = { 2, 4, 8, 16, 32, 64, 128, 256, 512 };
 
@@ -75,56 +75,23 @@ public partial class SettingsViewModel : ObservableObject
         CompensationExtraThreads = Math.Clamp(CompensationExtraThreads, 0, 64);
         CompensationConfirmSec = Math.Clamp(CompensationConfirmSec, 1, 10);
 
-        try
-        {
-            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NetSpeedTest");
-            Directory.CreateDirectory(dir);
-            var path = Path.Combine(dir, "appsettings.json");
-            Logger.Log($"设置保存路径: {path}");
+        _options.ThreadCount = ThreadCount;
+        _options.TestTimeoutSec = TestTimeoutSec;
+        _options.AverageDelaySec = AverageDelaySec;
+        _options.RateWindowSec = RateWindowSec;
+        _options.NicPollIntervalMs = NicPollIntervalMs;
+        _options.ThreadRampUpMs = ThreadRampUpMs;
+        _options.LatencyPollIntervalMs = LatencyPollIntervalMs;
+        _options.JitterTargetHost = JitterTargetHost;
+        _options.JitterPollIntervalMs = JitterPollIntervalMs;
+        _options.CompensationEnabled = CompensationEnabled;
+        _options.CompensationThreshold = CompensationThreshold;
+        _options.CompensationExtraThreads = CompensationExtraThreads;
+        _options.CompensationConfirmSec = CompensationConfirmSec;
+        _options.AdaptiveThreadsEnabled = AdaptiveThreadsEnabled;
 
-            var json = File.Exists(path) ? File.ReadAllText(path) : "{}";
-            var root = JsonNode.Parse(json) ?? new JsonObject();
-            root["SpeedTest"] = new JsonObject
-            {
-                ["ThreadCount"] = ThreadCount,
-                ["TestTimeoutSec"] = TestTimeoutSec,
-                ["AverageDelaySec"] = AverageDelaySec,
-                ["RateWindowSec"] = RateWindowSec,
-                ["NicPollIntervalMs"] = NicPollIntervalMs,
-                ["ThreadRampUpMs"] = ThreadRampUpMs,
-                ["LatencyPollIntervalMs"] = LatencyPollIntervalMs,
-                ["JitterTargetHost"] = JitterTargetHost,
-                ["JitterPollIntervalMs"] = JitterPollIntervalMs,
-                ["CompensationEnabled"] = CompensationEnabled,
-                ["CompensationThreshold"] = CompensationThreshold,
-                ["CompensationExtraThreads"] = CompensationExtraThreads,
-                ["CompensationConfirmSec"] = CompensationConfirmSec,
-                ["AdaptiveThreadsEnabled"] = AdaptiveThreadsEnabled
-            };
-            File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
-
-            _options.ThreadCount = ThreadCount;
-            _options.TestTimeoutSec = TestTimeoutSec;
-            _options.AverageDelaySec = AverageDelaySec;
-            _options.RateWindowSec = RateWindowSec;
-            _options.NicPollIntervalMs = NicPollIntervalMs;
-            _options.ThreadRampUpMs = ThreadRampUpMs;
-            _options.LatencyPollIntervalMs = LatencyPollIntervalMs;
-            _options.JitterTargetHost = JitterTargetHost;
-            _options.JitterPollIntervalMs = JitterPollIntervalMs;
-            _options.CompensationEnabled = CompensationEnabled;
-            _options.CompensationThreshold = CompensationThreshold;
-            _options.CompensationExtraThreads = CompensationExtraThreads;
-            _options.CompensationConfirmSec = CompensationConfirmSec;
-            _options.AdaptiveThreadsEnabled = AdaptiveThreadsEnabled;
-
-            MessageBox.Show("设置已保存", "NetSpeedTest", MessageBoxButton.OK, MessageBoxImage.Information);
-            CloseWindow();
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"保存失败: {ex.Message}", "NetSpeedTest", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
+        MessageBox.Show("设置已保存", "NetSpeedTest", MessageBoxButton.OK, MessageBoxImage.Information);
+        CloseWindow();
     }
 
     [RelayCommand]

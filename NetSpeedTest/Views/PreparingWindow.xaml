@@ -1,0 +1,42 @@
+<Window x:Class="NetSpeedTest.Views.PreparingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="" Width="420" Height="200"
+        WindowStyle="ToolWindow" WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Icon="/Resources/app.png"
+        Background="{StaticResource BackgroundBrush}">
+    <StackPanel Margin="24">
+        <TextBlock Text="正在准备测速..." FontSize="15" FontWeight="SemiBold"
+                   Foreground="{StaticResource TextPrimaryBrush}"
+                   HorizontalAlignment="Center"/>
+        <ProgressBar x:Name="ProgBar" Value="0" Minimum="0" Maximum="100"
+                     Height="6" Margin="0,16,0,8">
+            <ProgressBar.Style>
+                <Style TargetType="ProgressBar">
+                    <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                    <Setter Property="BorderBrush" Value="Transparent"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ProgressBar">
+                                <Border x:Name="TemplateRoot" CornerRadius="3"
+                                        Background="{TemplateBinding Background}">
+                                    <Grid x:Name="PART_Track">
+                                        <Border x:Name="PART_Indicator"
+                                                Background="{TemplateBinding Foreground}"
+                                                CornerRadius="3"
+                                                HorizontalAlignment="Left"/>
+                                    </Grid>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ProgressBar.Style>
+        </ProgressBar>
+        <TextBlock x:Name="StatusText" Text="初始化..." FontSize="12"
+                   Foreground="{StaticResource TextSecondaryBrush}"
+                   HorizontalAlignment="Center"/>
+    </StackPanel>
+</Window>

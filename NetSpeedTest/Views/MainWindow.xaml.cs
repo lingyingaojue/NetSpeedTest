@@ -24,8 +24,10 @@ public partial class MainWindow : Window
         Loaded += (_, _) =>
         {
             var area = SystemParameters.WorkArea;
-            if (Width > area.Width * 0.95) { Width = area.Width * 0.92; MinWidth = Width * 0.8; }
-            if (Height > area.Height * 0.95) { Height = area.Height * 0.92; MinHeight = Height * 0.8; }
+            if (Width > area.Width * 0.95) { Width = area.Width * 0.92; }
+            if (Height > area.Height * 0.95) { Height = area.Height * 0.92; }
+            Height = Width * 9.0 / 16.0;
+            if (Width != 1280) { MinWidth = Width * 0.8; MinHeight = Height * 0.8; }
             Left = (area.Width - Width) / 2 + area.Left;
             Top = (area.Height - Height) / 2 + area.Top;
         };
@@ -89,7 +91,7 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
     {
-        if (!_isReallyClosing)
+        if (!_isReallyClosing && !Environment.HasShutdownStarted)
         {
             e.Cancel = true;
             Hide();

@@ -5,24 +5,21 @@ namespace NetSpeedTest.Services;
 
 public static class Logger
 {
-    private static volatile bool _enabled;
+    private static volatile bool _enabled = true;
     private static volatile string? _path;
     private static readonly object _lock = new();
 
     public static bool Enabled
     {
         get => _enabled;
-        set
-        {
-            _enabled = value;
-            if (_enabled && _path == null)
-                _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "debug.log");
-        }
+        set => _enabled = value;
     }
 
     public static void Log(string msg)
     {
-        if (!_enabled || _path == null) return;
+        if (!_enabled) return;
+        if (_path == null)
+            _path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "debug.log");
         lock (_lock)
         {
             try { File.AppendAllText(_path, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n"); }

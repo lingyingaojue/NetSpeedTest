@@ -4,6 +4,31 @@ All notable changes to NetSpeedTest will be documented in this file.
 
 ---
 
+## V1.3.5 (2026-07-28)
+
+### 🐛 修复
+- 修复 DNS 重绑定 SSRF（导入路径绕过内网地址检测，现已解析 IP 后判私有）
+- 修复日志系统死代码（Logger._path 字段初始化绕过 setter → 改延迟初始化）
+- 修复数据库初始化失败后双重崩溃（throw → Environment.Exit(1)）
+- 修复 UDP 探测定时被算作有效延迟值（ct.IsCancellationRequested → winner==receiveTask）
+- 修复 SQLite 并发写入冲突（PRAGMA busy_timeout → journal_mode=WAL，数据库级持久化）
+- 修复窗口关闭阻止 Windows 关机（增加 HasShutdownStarted 检查）
+- 修复 NAT 检测中 STUN DNS 重复解析（每服务器仅解析一次，后续复用 cached IP）
+- 修复 _cts.Dispose() 后 Cancel() 抛 ObjectDisposedException（先 Cancel 再 Dispose）
+- 修复注册表日志消息反错（EULA ↔ Version 文案互换）
+
+### 🔧 优化
+- 多 URL 下载调度器改为探索-利用两阶段（每个 URL 至少被测一次后改用最快节点）
+- 完成状态消息区分测速模式（下载保留 X/Y 成功计数，上传/双向显示「测速完成」）
+- 双向测速 URL 计数改为实际值（dl+ul 而非 Max）
+
+### 🚀 新增
+- 更多功能窗口（Ping / DNS / HTTP / 路由追踪 / 端口测试 / MTU / NAT 检测等 18 个网络工具）
+- 测速准备弹窗（DNS 预解析 + HTTP 握手预热 + 线性进度条动画，准备中关窗停止）
+- NAT 检测支持自定义 STUN 服务器
+
+---
+
 ## V1.3.4 (2026-07-27)
 
 ### 🐛 修复

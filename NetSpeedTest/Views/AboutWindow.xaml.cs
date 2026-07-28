@@ -12,12 +12,34 @@ public partial class AboutWindow : Window
         DataContext = this;
         Loaded += (_, _) => Helpers.WindowHelper.ClampToScreen(this);
 
+        Changelog.Add(new ChangelogEntry("V1.3.5", "2026-07-28", new()
+        {
+            "🐛 修复",
+            "● 修复 DNS 重绑定 SSRF（导入路径绕过内网地址检测，现已解析 IP 后判私有）",
+            "● 修复日志系统死代码（Logger._path 字段初始化绕过 setter → 改延迟初始化）",
+            "● 修复数据库初始化失败后双重崩溃（throw → Environment.Exit(1)）",
+            "● 修复 UDP 探测定时被算作有效延迟值（ct.IsCancellationRequested → winner==receiveTask）",
+            "● 修复 SQLite 并发写入冲突（PRAGMA busy_timeout → journal_mode=WAL，数据库级持久化）",
+            "● 修复窗口关闭阻止 Windows 关机（增加 HasShutdownStarted 检查）",
+            "● 修复 NAT 检测中 STUN DNS 重复解析（每服务器仅解析一次，后续复用 cached IP）",
+            "● 修复 _cts.Dispose() 后 Cancel() 抛 ObjectDisposedException（先 Cancel 再 Dispose）",
+            "● 修复注册表日志消息反错（EULA ↔ Version 文案互换）",
+            "🔧 优化",
+            "● 多 URL 下载调度器改为探索-利用两阶段（每个 URL 至少被测一次后改用最快节点）",
+            "● 完成状态消息区分测速模式（下载保留 X/Y 成功计数，上传/双向显示\"测速完成\"）",
+            "● 双向测速 URL 计数改为实际值（dl+ul 而非 Max）",
+            "🚀 新增",
+            "● 更多功能窗口（Ping/DNS/HTTP/路由追踪/端口测试/MTU/NAT 检测等 18 个网络工具）",
+            "● 测速准备弹窗（DNS 预解析 + HTTP 握手预热 + 线性进度条动画，准备中关窗停止）",
+            "● NAT 检测支持自定义 STUN 服务器",
+        }));
+
         Changelog.Add(new ChangelogEntry("V1.3.4", "2026-07-27", new()
         {
             "🐛 修复",
             "● 修复 SaveResult JitterMs NOT NULL 约束崩溃（null→0 写、0→null 读）",
             "● 修复外网延迟测速期间不刷新（12 主机批量 3s 超时 → 8.8.8.8 单主机 UDP 轮询）",
-            "● 修复抖动延迟不显示（ICMP Ping 满载超时 → 改为 UDP 五层回退）",
+            "● 修复抖动延迟不显示（ICMP Ping 满载超时 → 改为 TestGatewayLatencyAsync UDP 五层回退）",
             "● 修复测速结束后弹窗延迟过长（移除 3 处冗余 finalLatency 阻塞调用 + 后台任务并行退出）",
             "● 修复上传/双向测速 PeakMbps 始终为 0（PeakRate 跟踪从补偿门控拆出至无条件）",
             "● 修复 GetStatistics 静默吞 DB 异常",
@@ -65,51 +87,7 @@ public partial class AboutWindow : Window
             "● 设置页 \"延迟轮询间隔\"→\"延迟采样间隔\"",
         }));
 
-        Changelog.Add(new ChangelogEntry("V1.3.2", "2026-07-24", new()
-        {
-            "🐛 修复",
-            "● 修复抖动延迟显示异常（竞态 + 赋值顺序 + 取消路径跳过计算）",
-            "● 修复弹窗假零值（未测量时显示\"0 ms\"→\"--\"）",
-            "● 修复 ThreadCount 恶意 JSON 注入绕过上限",
-            "● 修复全速测试下载/上传线程分配不均（改为成对同时启动）",
-            "● 修复外网延迟显示异常（绑定属性未同步 / 批内多次回调拉高均 / 最终 LAN 延迟 Token 已取消）",
-            "● 修复设置页内容溢出遮挡（加滚动条 + 修正 Grid 行号越界）",
-            "● 修复历史记录 DataGrid 列重复（补 AutoGenerateColumns=False）",
-            "● 修复 AdaptiveThreadsEnabled 无法通过设置保存",
-            "● 修复撤销同意删除版本记录（改删键值而非整键）",
-            "● 修复补偿检测仅监控下载方向（补上传方向双向联合检测）",
-            "🔧 优化",
-            "● 延迟测试新增 UDP 优先层（五层回退：UDP→ICMP→TCP→HTTPS→HTTP）",
-            "● DNS 缓存优化（12 主机预解析一次，每批省 12 次 DNS 查询）",
-            "● HttpClient 超时兜底（900s 防卡死）",
-            "● 单方向测速底部卡自动隐藏无关指标（Visibility 联动）",
-            "● URL 动态调度（SelectBestUrl 按实时速度选最优节点）",
-            "● 异常处理链路加固（9 处加日志 + IsDBNull 守卫 + SafeParseDate）",
-            "● 抖动延迟实时更新（每样本重算 + 代码直写 UI）",
-            "● 新增应用图标（exe / 任务栏 / 窗口标题栏 / 关于页）",
-            "● 历史 DataGrid 设为只读",
-            "🚀 新增",
-            "● 系统托盘（右键菜单 / 状态联动 / 气泡通知）",
-            "● 键盘快捷键（Enter/Esc/Ctrl+D/U/B）",
-            "● 完成弹窗「复制结果」按钮",
-            "● 历史记录统计栏 + CSV 导出",
-            "● 抖动延迟指标（外网标准差，底部卡 + 弹窗）",
-        }));
 
-        Changelog.Add(new ChangelogEntry("V1.3.1", "2026-07-24", new()
-        {
-            "🐛 修复",
-            "● 修复外网延迟显示异常（绑定属性未同步 / 批内多次回调拉高均 / 最终 LAN 延迟 Token 已取消）",
-            "● 修复设置页内容溢出遮挡（加滚动条 + 修正 Grid 行号越界）",
-            "● 修复历史记录 DataGrid 列重复（补 AutoGenerateColumns=False）",
-            "● 修复 AdaptiveThreadsEnabled 无法通过设置保存",
-            "● 修复撤销同意删除版本记录（改删键值而非整键）",
-            "● 修复补偿检测仅监控下载方向（补上传方向双向联合检测）",
-            "🔧 优化",
-            "● 新增应用图标（exe / 任务栏 / 窗口标题栏 / 关于页）",
-            "● 历史 DataGrid 设为只读",
-            "● 错误提示文案修正",
-        }));
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)
