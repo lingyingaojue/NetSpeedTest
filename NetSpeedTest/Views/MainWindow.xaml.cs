@@ -43,7 +43,7 @@ public partial class MainWindow : Window
             ("开始双向测速", () => InvokeCommand("双向测速")),
             ("取消测速", () => InvokeCommand("取消")),
             ("-", () => { }),
-            ("退出", () => { _isReallyClosing = true; Close(); })
+            ("退出", () => ForceClose())
         };
 
         TrayIcon.Init(this,
@@ -100,7 +100,7 @@ public partial class MainWindow : Window
         base.OnClosing(e);
     }
 
-    public void ForceClose() { _isReallyClosing = true; Close(); }
+    public void ForceClose() { _isReallyClosing = true; Application.Current.Shutdown(); }
 
     private void OnHorizontalMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
     {

@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
-[![Release](https://img.shields.io/badge/release-v1.3.5-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+[![Release](https://img.shields.io/badge/release-v1.3.6-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Stars](https://img.shields.io/github/stars/lingyingaojue/NetSpeedTest?color=yellow)](https://github.com/lingyingaojue/NetSpeedTest/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/lingyingaojue/NetSpeedTest/total?color=blue)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Last Commit](https://img.shields.io/github/last-commit/lingyingaojue/NetSpeedTest)](https://github.com/lingyingaojue/NetSpeedTest/commits)
@@ -102,18 +102,34 @@
 
 <table>
 <tr>
-<td>
+<td width="50%">
 
 | 工具 | 说明 |
 |:-----|:-----|
 | 🏓 **Ping** | ICMP 连通性测试，自定义包大小/次数/TTL |
 | 🌐 **DNS 查询** | A/AAAA/CNAME/MX/NS/TXT 记录查询 |
-| 📡 **HTTP 请求** | GET/POST/PUT/DELETE，显示状态码/响应头/耗时 |
-| 🗺️ **路由追踪** | Traceroute 跳点追踪，实时显示每跳 IP/延迟 |
+| 📡 **HTTP 请求** | GET/POST/PUT/DELETE，状态码/响应头/耗时 |
+| 🗺️ **路由追踪** | Traceroute 跳点追踪，实时 IP/延迟 |
 | 🔌 **端口测试** | TCP 端口扫描，自定义端口范围 |
-| 📏 **MTU 检测** | 路径 MTU 自动探测，发现最优 MTU 值 |
-| 🔍 **NAT 检测** | STUN NAT 类型检测（全锥/受限/对称），支持自定义 STUN 服务器 |
-| 📋 **Whois** | 域名/IP WHOIS 信息查询 |
+| 📏 **MTU 探测** | 路径 MTU 自动探测，发现最优值 |
+| 🔄 **DNS 对比** | 多 DNS 服务器结果并行对比 |
+| 🌍 **IP 归属** | IP 地址地理信息/运营商查询 |
+| 🌐 **公网 IP** | 多源探测当前公网出口 IP |
+
+</td>
+<td width="50%">
+
+| 工具 | 说明 |
+|:-----|:-----|
+| 🔒 **SSL 证书** | HTTPS 证书链/过期时间/签名算法 |
+| 📨 **HTTP Header** | 任意 URL 响应头完整查看 |
+| 🧮 **子网计算** | CIDR 子网划分 / 可用地址计算 |
+| 📊 **带宽换算** | Mbps/MBps/Kbps/GBps 实时换算 |
+| 🕐 **时间戳** | Unix 时间戳 ↔ 日期 互转 |
+| #️⃣ **文本哈希** | MD5/SHA1/SHA256/SHA512 在线计算 |
+| 🔤 **Base64** | Base64 编解码 |
+| 🆔 **UUID 生成** | UUID v4/v7 批量生成 |
+| 🔍 **NAT 检测** | STUN NAT 类型（全锥/受限/对称），自定义服务器 |
 
 </td>
 </tr>

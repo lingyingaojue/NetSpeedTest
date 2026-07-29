@@ -670,7 +670,7 @@ public partial class MoreViewModel : ObservableObject
         uint mc = StunMagicCookie;
         req[4] = (byte)(mc >> 24); req[5] = (byte)(mc >> 16);
         req[6] = (byte)(mc >> 8); req[7] = (byte)mc;
-        var rng = Random.Shared.GetItems<byte>(new byte[256], 12);
+        var rng = new byte[12]; System.Security.Cryptography.RandomNumberGenerator.Fill(rng);
         Array.Copy(rng, 0, req, 8, 12);
         return req;
     }

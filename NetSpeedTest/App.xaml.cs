@@ -53,7 +53,7 @@ namespace NetSpeedTest;
             {
                 Timeout = TimeSpan.FromSeconds(900)
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.5");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.6");
             return client;
         });
 
@@ -128,6 +128,7 @@ namespace NetSpeedTest;
         };
 
         mainWindow.Show();
+        Application.Current.MainWindow = mainWindow;
 
         // 首次运行当前版本时显示更新日志
         try

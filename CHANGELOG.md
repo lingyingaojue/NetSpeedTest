@@ -4,6 +4,19 @@ All notable changes to NetSpeedTest will be documented in this file.
 
 ---
 
+## V1.3.6 (2026-07-29)
+
+### 🐛 修复
+- 修复首次启动同意 EULA 后主窗口不显示（EulaWindow 误为主窗口 → 显式指定 MainWindow）
+- 修复托盘「退出」后进程变僵尸（OnExplicitShutdown → OnMainWindowClose + ForceClose 统一路径）
+- 修复 STUN 事务 ID 永为 0（GetItems\<byte\> 从全零数组选元素 → RandomNumberGenerator.Fill）
+
+### 🔧 优化
+- ShutdownMode 改为 OnMainWindowClose，配合 ForceClose 统一退出路径
+- About 窗口内置更新日志精简（移除 V1.3.3 以控制行数）
+
+---
+
 ## V1.3.5 (2026-07-28)
 
 ### 🐛 修复
