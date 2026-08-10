@@ -21,9 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="appsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Resource Include="appsettings.json" />
     <Resource Include="Resources\app.png" />
     <Resource Include="Resources\ad.jpg" />
   </ItemGroup>

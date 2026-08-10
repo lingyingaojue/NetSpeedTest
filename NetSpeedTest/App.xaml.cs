@@ -26,13 +26,29 @@ namespace NetSpeedTest;
 
         var services = new ServiceCollection();
 
-        // 加载配置文件（出厂默认 + 用户自定义层层覆盖）
+        // 加载配置：内嵌默认配置（exe 自带）+ 用户自定义覆盖层
         var localSettingsDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NetSpeedTest");
         Directory.CreateDirectory(localSettingsDir);
-        _configuration = new ConfigurationBuilder()
-            .AddJsonFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json"), optional: true, reloadOnChange: false)
-            .AddJsonFile(Path.Combine(localSettingsDir, "appsettings.json"), optional: true, reloadOnChange: false)
-            .Build();
+        var configBuilder = new ConfigurationBuilder();
+        MemoryStream? embeddedMs = null;
+        try
+        {
+            // 内嵌默认配置（WPF Resource → g.resources，经 pack:// 读取）
+            var resUri = new Uri("pack://application:,,,/appsettings.json", UriKind.Absolute);
+            var stream = System.Windows.Application.GetResourceStream(resUri)?.Stream;
+            if (stream != null)
+            {
+                embeddedMs = new MemoryStream();
+                stream.CopyTo(embeddedMs);
+                embeddedMs.Position = 0;
+                configBuilder.AddJsonStream(embeddedMs);
+                stream.Dispose();
+            }
+        }
+        catch (Exception ex) { Logger.Log($"Embedded config load failed: {ex.Message}"); }
+        configBuilder.AddJsonFile(Path.Combine(localSettingsDir, "appsettings.json"), optional: true, reloadOnChange: false);
+        _configuration = configBuilder.Build();
+        embeddedMs?.Dispose();
         var configuration = _configuration;
         services.AddSingleton<IConfiguration>(configuration);
 
