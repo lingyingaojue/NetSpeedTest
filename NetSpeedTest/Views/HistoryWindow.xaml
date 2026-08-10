@@ -1,17 +1,13 @@
-<Window x:Class="NetSpeedTest.Views.HistoryWindow"
+<UserControl x:Class="NetSpeedTest.Views.HistoryPage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:converters="clr-namespace:NetSpeedTest.Converters"
-        Title="历史记录" Height="540" Width="960"
-        WindowStartupLocation="CenterOwner"
-        Icon="/Resources/app.png"
-        Background="{StaticResource BackgroundBrush}">
-    <Window.Resources>
+        xmlns:converters="clr-namespace:NetSpeedTest.Converters">
+    <UserControl.Resources>
         <converters:RateDisplayConverter x:Key="RateDisplayConverter" />
         <converters:BytesDisplayConverter x:Key="BytesDisplayConverter" />
         <converters:DurationDisplayConverter x:Key="DurationDisplayConverter" />
         <converters:LatencyDisplayConverter x:Key="LatencyDisplayConverter" />
-    </Window.Resources>
+    </UserControl.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -115,19 +111,22 @@
                         IsEnabled="{Binding CanGoNext}"
                         Width="70" />
 
-                <Button Grid.Column="4" Content="清除全部" Width="80" Margin="12,0,0,0"
+                <Button Grid.Column="4" Content="清除全部" Width="90" Margin="12,0,0,0"
                         Command="{Binding ClearAllRecordsCommand}"
-                        Background="{StaticResource ErrorBrush}" />
+                        Background="{StaticResource ErrorBrush}"
+                        Foreground="{StaticResource BackgroundBrush}" />
 
-                <Button Grid.Column="5" Content="导出CSV" Width="80" Margin="12,0,0,0"
+                <Button Grid.Column="5" Content="导出CSV" Width="90" Margin="12,0,0,0"
                         Command="{Binding ExportCsvCommand}"
-                        Background="{StaticResource AccentHoverBrush}" />
+                        Background="{StaticResource AccentHoverBrush}"
+                        Foreground="{StaticResource BackgroundBrush}" />
 
                 <Button Grid.Column="6" Content="删除选中"
                         Command="{Binding DeleteRecordCommand}"
                         Background="{StaticResource ErrorBrush}"
-                        Width="80" Margin="12,0,0,0" />
+                        Foreground="{StaticResource BackgroundBrush}"
+                        Width="90" Margin="12,0,0,0" />
             </Grid>
         </Border>
     </Grid>
-</Window>
+</UserControl>

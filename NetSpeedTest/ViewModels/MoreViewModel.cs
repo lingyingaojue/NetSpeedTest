@@ -44,7 +44,8 @@ public partial class MoreViewModel : ObservableObject
             sb.AppendLine($"Ping {PingHost} ({PingCount} 次)");
             sb.AppendLine(new string('-', 40));
             var times = new List<long>(); int sent = 0, received = 0;
-            for (int i = 0; i < PingCount; i++)
+            var count = Math.Clamp(PingCount, 1, 100);
+            for (int i = 0; i < count; i++)
             {
                 try
                 {
@@ -55,7 +56,7 @@ public partial class MoreViewModel : ObservableObject
                 }
                 catch (Exception ex) { sb.AppendLine($"发送失败: {ex.Message}"); }
                 PingResult = sb.ToString();
-                if (i < PingCount - 1) await Task.Delay(500);
+                if (i < count - 1) await Task.Delay(500);
             }
             sb.AppendLine(new string('-', 40));
             if (received > 0)
@@ -256,7 +257,8 @@ public partial class MoreViewModel : ObservableObject
         try
         {
             var url = $"http://ip-api.com/json/{GeoIp}?lang=zh-CN&fields=country,regionName,city,isp,org,as,timezone";
-            var json = await _httpClient.GetStringAsync(url);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var json = await _httpClient.GetStringAsync(url, cts.Token);
             using var doc = JsonDocument.Parse(json);
             var r = doc.RootElement;
             var sb = new StringBuilder(); sb.AppendLine($"IP 归属查询: {GeoIp}"); sb.AppendLine(new string('-', 40));

@@ -92,9 +92,11 @@ public class DataService
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "PRAGMA table_info(SpeedTestRecords)";
         var existing = new HashSet<string>();
-        using var reader = cmd.ExecuteReader();
-        while (reader.Read())
-            existing.Add(reader.GetString(1));
+        using (var reader = cmd.ExecuteReader())
+        {
+            while (reader.Read())
+                existing.Add(reader.GetString(1));
+        }
 
         foreach (var (name, sql) in columns)
         {

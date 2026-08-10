@@ -26,7 +26,10 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty] private int _selectedCategoryIndex;
 
-    public List<string> Categories { get; } = ["测速参数", "网络监控", "掉速补偿"];
+    public List<string> Categories { get; } = ["测速参数", "网络监控", "掉速补偿", "广告"];
+
+    [ObservableProperty] private string _adStatusText = "";
+    [ObservableProperty] private string _adSponsorName = "";
 
     public int[] ThreadOptions { get; } = { 2, 4, 8, 16, 32, 64, 128, 256, 512 };
 
@@ -41,9 +44,10 @@ public partial class SettingsViewModel : ObservableObject
         OnPropertyChanged(nameof(ThreadIndex));
     }
 
-    public SettingsViewModel(SpeedTestOptions options)
+    public SettingsViewModel(SpeedTestOptions options, Microsoft.Extensions.Configuration.IConfiguration config)
     {
         _options = options;
+        AdSponsorName = config.GetSection("Advertising")["SponsorName"] ?? "暂无";
         ThreadCount = ThreadOptions.Contains(options.ThreadCount) ? options.ThreadCount : 128;
         TestTimeoutSec = options.TestTimeoutSec;
         AverageDelaySec = options.AverageDelaySec;
@@ -58,6 +62,20 @@ public partial class SettingsViewModel : ObservableObject
         CompensationExtraThreads = options.CompensationExtraThreads;
         CompensationConfirmSec = options.CompensationConfirmSec;
         AdaptiveThreadsEnabled = options.AdaptiveThreadsEnabled;
+        RefreshAdStatus();
+    }
+
+    private void RefreshAdStatus()
+    {
+        var days = Helpers.AdManager.RemainingDays();
+        AdStatusText = days.HasValue ? $"广告已关闭，剩余 {days.Value} 天" : "广告当前展示中";
+    }
+
+    [RelayCommand]
+    private void CloseAd()
+    {
+        Helpers.AdManager.CloseAdFor7Days();
+        RefreshAdStatus();
     }
 
     [RelayCommand]
@@ -100,15 +118,10 @@ public partial class SettingsViewModel : ObservableObject
         CloseWindow();
     }
 
+    public event Action? CloseRequested;
+
     private void CloseWindow()
     {
-        foreach (Window w in Application.Current.Windows)
-        {
-            if (w is Views.SettingsWindow)
-            {
-                w.Close();
-                break;
-            }
-        }
+        CloseRequested?.Invoke();
     }
 }

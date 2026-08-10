@@ -1,12 +1,12 @@
 using System.Windows;
+using System.Windows.Controls;
 
 namespace NetSpeedTest.Views;
 
-public partial class SettingsWindow : Window
+public partial class SettingsPage : UserControl
 {
-    public SettingsWindow()
+    public SettingsPage()
     {
         InitializeComponent();
-        Loaded += (_, _) => Helpers.WindowHelper.ClampToScreen(this);
     }
 }

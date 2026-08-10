@@ -139,22 +139,9 @@ public partial class ProfileViewModel : ObservableObject
         {
             try
             {
-                var imported = _profileService.ImportFromFile(dialog.FileName);
-                int filtered = 0;
-                foreach (var p in imported)
-                {
-                    var dlBefore = p.DownloadUrls.Count;
-                    var ulBefore = p.UploadUrls.Count;
-                    p.DownloadUrls = p.DownloadUrls.Where(u => !IsPrivateUrl(u)).ToList();
-                    p.UploadUrls = p.UploadUrls.Where(u => !IsPrivateUrl(u)).ToList();
-                    filtered += (dlBefore - p.DownloadUrls.Count) + (ulBefore - p.UploadUrls.Count);
-                    if (dlBefore != p.DownloadUrls.Count || ulBefore != p.UploadUrls.Count)
-                        try { _profileService.SaveProfile(p); } catch { }
-                }
+                var imported = _profileService.ImportFromFile(dialog.FileName, IsPrivateUrl);
                 LoadProfiles();
-                var msg = $"成功导入 {imported.Count} 个测速配置";
-                if (filtered > 0) msg += $"，已过滤 {filtered} 个内网地址";
-                MessageBox.Show(msg, "导入成功",
+                MessageBox.Show($"成功导入 {imported.Count} 个测速配置", "导入成功",
                     MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -208,16 +195,21 @@ public partial class ProfileViewModel : ObservableObject
             }
             // DNS名：解析为IP后再判私有（防DNS重绑定攻击）
             try { var addrs = System.Net.Dns.GetHostAddresses(host); foreach (var a in addrs) { if (IsPrivateIp(a)) return true; } }
-            catch { return true; }
+            catch (Exception ex) { Logger.Log($"DNS resolve failed for {host}: {ex.Message}"); return false; }
             return false;
         }
 
         private static bool IsPrivateIp(System.Net.IPAddress ip)
         {
+            // IPv4-mapped IPv6（::ffff:x.x.x.x）先映射回 IPv4 再判定
+            if (ip.IsIPv4MappedToIPv6)
+                ip = ip.MapToIPv4();
             byte[] b = ip.GetAddressBytes();
             if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
             {
                 if (ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal) return true;
+                // IPv6 ULA（fc00::/7）为内网专用
+                if (b.Length >= 2 && b[0] == 0xFC) return true;
                 return false;
             }
             if (b.Length == 4)

@@ -1,8 +1,11 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using NetSpeedTest.Helpers;
+using NetSpeedTest.ViewModels;
 
 namespace NetSpeedTest.Views;
 
@@ -17,8 +20,8 @@ public partial class MainWindow : Window
 
         DataContextChanged += (_, _) =>
         {
-            if (DataContext is ViewModels.MainViewModel vm)
-                vm.TestCompletedNotify += (t, m) => Helpers.TrayIcon.ShowBalloon(t, m);
+            if (DataContext is MainViewModel vm)
+                vm.TestCompletedNotify += (t, m) => TrayIcon.ShowBalloon(t, m);
         };
 
         Loaded += (_, _) =>
@@ -31,6 +34,18 @@ public partial class MainWindow : Window
             Left = (area.Width - Width) / 2 + area.Left;
             Top = (area.Height - Height) / 2 + area.Top;
         };
+
+        StateChanged += OnStateChanged;
+    }
+
+    private void OnStateChanged(object? sender, EventArgs e)
+    {
+        if (WindowState == WindowState.Maximized)
+        {
+            var area = SystemParameters.WorkArea;
+            MaxHeight = area.Height + 8;
+            MaxWidth = area.Width + 8;
+        }
     }
 
     private void SetupTray()
@@ -49,7 +64,7 @@ public partial class MainWindow : Window
         TrayIcon.Init(this,
             onShow: () => { Show(); WindowState = WindowState.Normal; Activate(); },
             menuItems,
-            isTesting: () => (DataContext as ViewModels.MainViewModel)?.IsTesting ?? false);
+            isTesting: () => (DataContext as MainViewModel)?.IsTesting ?? false);
     }
 
     private void InvokeCommand(string content)
@@ -60,36 +75,20 @@ public partial class MainWindow : Window
             WindowState = WindowState.Normal;
             Activate();
 
-            var btn = FindButton(content);
-            if (btn?.Command?.CanExecute(null) == true)
-                btn.Command.Execute(null);
+            if (DataContext is not MainViewModel vm) return;
+            var cmd = content switch
+            {
+                "下载测速" => vm.StartDownloadTestCommand,
+                "上传测速" => vm.StartUploadTestCommand,
+                "双向测速" => vm.StartFullTestCommand,
+                "取消" => vm.CancelTestCommand,
+                _ => null
+            };
+            if (cmd?.CanExecute(null) == true) cmd.Execute(null);
         });
     }
 
-    private static Button? FindButton(string content)
-    {
-        foreach (var window in Application.Current.Windows)
-        {
-            if (window is MainWindow mw)
-            {
-                foreach (var btn in FindVisualChildren<Button>(mw))
-                    if (btn.Content?.ToString() == content) return btn;
-            }
-        }
-        return null;
-    }
-
-    private static IEnumerable<T> FindVisualChildren<T>(DependencyObject depObj) where T : DependencyObject
-    {
-        for (int i = 0; i < VisualTreeHelper.GetChildrenCount(depObj); i++)
-        {
-            var child = VisualTreeHelper.GetChild(depObj, i);
-            if (child is T t) yield return t;
-            foreach (var c in FindVisualChildren<T>(child)) yield return c;
-        }
-    }
-
-    protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+    protected override void OnClosing(CancelEventArgs e)
     {
         if (!_isReallyClosing && !Environment.HasShutdownStarted)
         {
@@ -102,7 +101,13 @@ public partial class MainWindow : Window
 
     public void ForceClose() { _isReallyClosing = true; Application.Current.Shutdown(); }
 
-    private void OnHorizontalMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+    public void ClosePage()
+    {
+        if (DataContext is MainViewModel vm && vm.ClosePageCommand.CanExecute(null))
+            vm.ClosePageCommand.Execute(null);
+    }
+
+    private void OnHorizontalMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (sender is ScrollViewer sv)
         {
@@ -135,4 +140,13 @@ public partial class MainWindow : Window
             UlCol.BeginAnimation(ColumnDefinition.WidthProperty, anim);
         });
     }
+
+    // ===== 标题栏按钮 =====
+
+    private void MinimizeBtn_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void MaximizeBtn_Click(object sender, RoutedEventArgs e) =>
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+
+    private void CloseBtn_Click(object sender, RoutedEventArgs e) => Close();
 }

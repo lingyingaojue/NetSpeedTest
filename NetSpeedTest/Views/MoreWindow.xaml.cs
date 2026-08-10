@@ -1,12 +1,12 @@
 using System.Windows;
+using System.Windows.Controls;
 
 namespace NetSpeedTest.Views;
 
-public partial class MoreWindow : Window
+public partial class MorePage : UserControl
 {
-    public MoreWindow()
+    public MorePage()
     {
         InitializeComponent();
-        Loaded += (_, _) => Helpers.WindowHelper.ClampToScreen(this);
     }
 }

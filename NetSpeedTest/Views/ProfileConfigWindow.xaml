@@ -1,15 +1,11 @@
-<Window x:Class="NetSpeedTest.Views.ProfileConfigWindow"
+<UserControl x:Class="NetSpeedTest.Views.ProfileConfigPage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:converters="clr-namespace:NetSpeedTest.Converters"
-        Title="测速配置管理" Height="540" Width="960"
-        WindowStartupLocation="CenterOwner"
-        Icon="/Resources/app.png"
-        Background="{StaticResource BackgroundBrush}">
+        xmlns:converters="clr-namespace:NetSpeedTest.Converters">
 
-    <Window.Resources>
+    <UserControl.Resources>
         <converters:NotNullConverter x:Key="NotNullConverter" />
-    </Window.Resources>
+    </UserControl.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -123,7 +119,7 @@
                                                      Width="40" Padding="2,1" FontSize="11"
                                                      Background="{StaticResource ErrorBrush}"
                                                     Command="{Binding DataContext.RemoveDownloadUrlCommand,
-                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" />
                                         </Grid>
                                     </Border>
@@ -166,7 +162,7 @@
                                                      Width="40" Padding="2,1" FontSize="11"
                                                      Background="{StaticResource ErrorBrush}"
                                                     Command="{Binding DataContext.RemoveUploadUrlCommand,
-                                                              RelativeSource={RelativeSource AncestorType=Window}}"
+                                                              RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" />
                                         </Grid>
                                     </Border>
@@ -198,4 +194,4 @@
             </Border>
         </Grid>
     </Grid>
-</Window>
+</UserControl>

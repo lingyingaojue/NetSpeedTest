@@ -143,9 +143,9 @@ public class ProfileService
     // ========== 导入导出 ==========
 
     /// <summary>
-    /// 从 .bin/.json 文件导入配置（HBCS 格式）
+    /// 从 .bin/.json 文件导入配置（HBCS 格式）。urlFilter 非空时在入库前过滤（返回 true 的 URL 被剔除）。
     /// </summary>
-    public List<SpeedTestProfile> ImportFromFile(string filePath)
+    public List<SpeedTestProfile> ImportFromFile(string filePath, Func<string, bool>? urlFilter = null)
     {
         if (string.IsNullOrWhiteSpace(filePath))
             throw new ArgumentException("文件路径不能为空", nameof(filePath));
@@ -163,8 +163,8 @@ public class ProfileService
             {
                 Id = Guid.NewGuid().ToString("N"),
                 Name = entry.Name,
-                DownloadUrls = entry.DownloadUrls,
-                UploadUrls = entry.UploadUrls,
+                DownloadUrls = urlFilter == null ? entry.DownloadUrls : entry.DownloadUrls.Where(u => !urlFilter(u)).ToList(),
+                UploadUrls = urlFilter == null ? entry.UploadUrls : entry.UploadUrls.Where(u => !urlFilter(u)).ToList(),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };

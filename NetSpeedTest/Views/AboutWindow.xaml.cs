@@ -1,16 +1,57 @@
+using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
+using Microsoft.Extensions.Configuration;
+using NetSpeedTest.Services;
 
 namespace NetSpeedTest.Views;
 
-public partial class AboutWindow : Window
+public partial class AboutPage : UserControl
 {
     public List<ChangelogEntry> Changelog { get; } = new();
 
-    public AboutWindow()
+    public AboutPage()
     {
         InitializeComponent();
         DataContext = this;
-        Loaded += (_, _) => Helpers.WindowHelper.ClampToScreen(this);
+
+        var config = ((App)Application.Current).GetService<IConfiguration>();
+        var ad = config.GetSection("Advertising");
+        SponsorNameText.Text = ad["SponsorName"] ?? "暂无";
+        SponsorDetailText.Text = ad["SponsorDetail"] ?? "";
+
+        Changelog.Add(new ChangelogEntry("V1.3.7", "2026-08-10", new()
+        {
+            "🚀 重大更新",
+            "● 界面全面重构：历史/配置/设置/更多功能/用户协议/关于 改为右侧内嵌页面（不再弹窗）",
+            "● 自绘标题栏（Windows 风格：最小化/最大化/关闭按钮）",
+            "● 侧边栏导航（测速/历史/配置/设置/更多/协议/关于），点击\"测速\"返回主视图",
+            "● 测速中侧边栏页面按钮自动禁用",
+            "● 新增启动广告弹窗（赞助商广告，横板布局，图片自适应）",
+            "● 设置页新增「广告」分类：关闭广告 7 天 + 剩余天数显示",
+            "● 新增 GitHub OTA 在线升级（启动自动检查 + 关于页手动检查，发现新版本弹窗引导下载）",
+            "● 关于页全新改版（Hero 区/信息卡/GitHub·邮箱可点击/更新日志分类着色/广告位）",
+            "● 用户协议升级 4.0（隐私条款完善、未成年人条款、跨境单独同意、赞助商广告声明）",
+            "🐛 修复",
+            "● 修复空闲/测试双状态切换失效（BoolInverter 无法转换 Visibility → DataTrigger 修复）",
+            "● 修复导入配置内网 URL 误过滤（DNS 解析失败不再拦截）",
+            "● 修复历史记录按钮文字截断与对比度（深色文字 + 加宽按钮）",
+            "● 修复快捷键在文本框内误触发测速",
+            "● 修复 SQLite 迁移失败（reader 未关闭执行 ALTER）",
+            "● 修复全测速下载 404 页面按成功计字节",
+            "● 修复 IPv4-mapped IPv6 绕过私网拦截",
+            "● 修复上传进度字节恒为 0",
+            "● 修复检查更新版本号误报\"已是最新\"",
+            "● 修复设置保存异常导致测速状态卡死",
+            "🔧 优化",
+            "● 文字高对比度配色（正文/次要/弱化全部达标 WCAG AA）",
+            "● 选中项对比度修复（亮蓝底 + 深色文字）",
+            "● 上传测速线程启动间隔 500ms→50ms（避免超时前线程未就绪）",
+            "● 广告图片加载失败记录日志",
+            "● 启动自动检查更新延迟 3 秒避免与广告窗冲突",
+        }));
 
         Changelog.Add(new ChangelogEntry("V1.3.6", "2026-07-29", new()
         {
@@ -43,30 +84,71 @@ public partial class AboutWindow : Window
             "● 设置页改为左导航三分类布局",
         }));
 
-        Changelog.Add(new ChangelogEntry("V1.3.4", "2026-07-27", new()
-        {
-            "🐛 修复",
-            "● 修复 SaveResult JitterMs NOT NULL 约束崩溃（null→0 写、0→null 读）",
-            "● 修复外网延迟测速期间不刷新（12 主机批量 3s 超时 → 8.8.8.8 单主机 UDP 轮询）",
-            "● 修复抖动延迟不显示（ICMP Ping 满载超时 → 改为 TestGatewayLatencyAsync UDP 五层回退）",
-            "● 修复测速结束后弹窗延迟过长（移除 3 处冗余 finalLatency 阻塞调用 + 后台任务并行退出）",
-            "● 修复上传/双向测速 PeakMbps 始终为 0（PeakRate 跟踪从补偿门控拆出至无条件）",
-            "● 修复 GetStatistics 静默吞 DB 异常",
-            "🔧 优化",
-            "● WAN/抖动/LAN 延迟探测统一为 UDP 优先五层回退",
-            "● 延迟刷新频率默认 2000→1000ms，三指标同步",
-            "● 后台任务取消后并行 await + UDP 探针 CancellationToken 可打断",
-            "● 设置保存改为纯内存生效，不再持久化覆盖打包版默认值",
-            "📝 修正",
-            "● 设置页 \"延迟轮询间隔\"→\"延迟采样间隔\"",
-        }));
-
 
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)
     {
-        Close();
+        if (Application.Current.MainWindow is MainWindow mw)
+            mw.ClosePage();
+    }
+
+    private void GitHub_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("https://github.com/lingyingaojue/NetSpeedTest") { UseShellExecute = true }); }
+        catch (Exception ex) { Logger.Log($"Open GitHub failed: {ex.Message}"); }
+    }
+
+    private void Email_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("mailto:mashuo2010az@163.com") { UseShellExecute = true }); }
+        catch (Exception ex) { Logger.Log($"Open email failed: {ex.Message}"); }
+    }
+
+    private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
+    {
+        if (Helpers.UpdateChecker.IsChecking)
+        {
+            UpdateResultText.Text = "检查中...";
+            return;
+        }
+        try
+        {
+            UpdateResultText.Text = "检查中...";
+            var config = ((App)Application.Current).GetService<IConfiguration>();
+            var (status, info) = await Helpers.UpdateChecker.CheckAsync(config);
+            switch (status)
+            {
+                case Helpers.CheckStatus.NoUpdate:
+                    UpdateResultText.Text = "已是最新版本";
+                    break;
+                case Helpers.CheckStatus.HasUpdate when info != null:
+                    UpdateResultText.Text = $"发现新版本 {info.Version}";
+                    ShowUpdateWindow(info);
+                    break;
+                case Helpers.CheckStatus.NotConfigured:
+                    UpdateResultText.Text = "未配置更新源";
+                    break;
+                default:
+                    UpdateResultText.Text = "检查更新失败";
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            UpdateResultText.Text = "检查更新失败";
+            Logger.Log($"Check update error: {ex.Message}");
+        }
+    }
+
+    private static void ShowUpdateWindow(NetSpeedTest.Helpers.UpdateInfo info)
+    {
+        if (Application.Current.Windows.OfType<Views.UpdateWindow>().Any()) return;
+        var win = new Views.UpdateWindow(info.Version, info.Body, info.DownloadUrl)
+        {
+            Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is MainWindow)
+        };
+        win.Show();
     }
 }
 

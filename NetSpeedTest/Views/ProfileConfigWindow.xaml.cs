@@ -1,15 +1,15 @@
 using System.Windows;
+using System.Windows.Controls;
 
 namespace NetSpeedTest.Views;
 
 /// <summary>
-/// 测速配置管理窗口
+/// 测速配置管理页面
 /// </summary>
-public partial class ProfileConfigWindow : Window
+public partial class ProfileConfigPage : UserControl
 {
-    public ProfileConfigWindow()
+    public ProfileConfigPage()
     {
         InitializeComponent();
-        Loaded += (_, _) => Helpers.WindowHelper.ClampToScreen(this);
     }
 }

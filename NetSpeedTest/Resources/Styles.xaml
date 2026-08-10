@@ -10,14 +10,21 @@
     <SolidColorBrush x:Key="BorderLightBrush" Color="#21262D" />
     <SolidColorBrush x:Key="AccentBrush" Color="#58A6FF" />
     <SolidColorBrush x:Key="AccentHoverBrush" Color="#79BEFF" />
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#C9D1D9" />
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#8B949E" />
-    <SolidColorBrush x:Key="TextMutedBrush" Color="#484F58" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#E6EDF3" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#B3BDC6" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#7D8590" />
     <SolidColorBrush x:Key="SuccessBrush" Color="#3FB950" />
     <SolidColorBrush x:Key="WarningBrush" Color="#D29922" />
     <SolidColorBrush x:Key="ErrorBrush" Color="#F85149" />
     <SolidColorBrush x:Key="DownloadChartStroke" Color="#58A6FF" />
     <SolidColorBrush x:Key="UploadChartStroke" Color="#F778BA" />
+
+    <!-- 液态玻璃动态键（默认=现深色，ApplyLiquidGlass 成功后在运行时覆盖为半透明） -->
+    <SolidColorBrush x:Key="GlassFillBrush" Color="#21262D" />
+    <SolidColorBrush x:Key="GlassBorderBrush" Color="#30363D" />
+    <SolidColorBrush x:Key="GlassHighlightBrush" Color="#21262D" />
+    <SolidColorBrush x:Key="GlassSidebarBrush" Color="#161B22" />
+    <SolidColorBrush x:Key="GlassChartBrush" Color="#161B22" />
 
     <!-- 窗口 -->
     <Style TargetType="Window">
@@ -156,6 +163,7 @@
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -240,6 +248,57 @@
 
     <Style x:Key="CardBorderStyle" TargetType="Border" BasedOn="{StaticResource CardStyle}" />
 
+    <!-- 液态玻璃卡片 -->
+    <Style x:Key="GlassCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource GlassFillBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource GlassBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="14" />
+    </Style>
+
+    <!-- 图表卡片（近实底，保证折线图对比度） -->
+    <Style x:Key="GlassChartCardStyle" TargetType="Border" BasedOn="{StaticResource GlassCardStyle}">
+        <Setter Property="Background" Value="{DynamicResource GlassChartBrush}" />
+    </Style>
+
+    <!-- 侧边栏导航项（纯文字） -->
+    <Style x:Key="SidebarItemStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Padding" Value="20,12" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#18FFFFFF" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 大号测速按钮 -->
+    <Style x:Key="HeroButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+        <Setter Property="Width" Value="150" />
+        <Setter Property="Height" Value="64" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
     <!-- 数据卡片 -->
     <Style x:Key="DataRowStyle" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
@@ -285,6 +344,7 @@
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                            <Setter Property="Foreground" Value="{StaticResource BackgroundBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

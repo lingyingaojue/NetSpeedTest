@@ -45,6 +45,12 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _showTotalMetrics = true;
 
+    [ObservableProperty]
+    private object? _currentPage;
+
+    [RelayCommand]
+    private void ClosePage() => CurrentPage = null;
+
     // ==================== 可绑定属性 ====================
 
     [ObservableProperty]
@@ -271,6 +277,7 @@ public partial class MainViewModel : ObservableObject
     private async Task StartDownloadTestAsync()
     {
         if (IsTesting) return;
+        if (System.Windows.Input.Keyboard.FocusedElement is System.Windows.Controls.Primitives.TextBoxBase) return;
 
         var selectedUrls = UrlSelectionItems.Where(i => i.IsSelected).Select(i => i.Url).ToList();
         if (selectedUrls.Count == 0)
@@ -318,6 +325,7 @@ public partial class MainViewModel : ObservableObject
     private async Task StartUploadTestAsync()
     {
         if (IsTesting) return;
+        if (System.Windows.Input.Keyboard.FocusedElement is System.Windows.Controls.Primitives.TextBoxBase) return;
 
         var selectedUrls = SelectedProfile?.UploadUrls ?? new();
         if (selectedUrls.Count == 0) { StatusText = "无上传地址，请在配置管理中添加上传 URL"; return; }
@@ -351,6 +359,7 @@ public partial class MainViewModel : ObservableObject
     private async Task StartFullTestAsync()
     {
         if (IsTesting) return;
+        if (System.Windows.Input.Keyboard.FocusedElement is System.Windows.Controls.Primitives.TextBoxBase) return;
         var dlUrls = UrlSelectionItems.Where(i => i.IsSelected).Select(i => i.Url).ToList();
         var ulUrls = SelectedProfile?.UploadUrls ?? new();
         if (dlUrls.Count == 0 && ulUrls.Count == 0) { StatusText = "无可用测速地址"; return; }
@@ -417,7 +426,9 @@ public partial class MainViewModel : ObservableObject
 
     private void StartTestCommon(int urlCount, string mode)
     {
-        IsTesting = true;
+        try
+        {
+            IsTesting = true;
         _currentTestMode = mode;
         ShowDownloadMetrics = mode is "下载" or "双向";
         ShowUploadMetrics = mode is "上传" or "双向";
@@ -453,6 +464,14 @@ public partial class MainViewModel : ObservableObject
         AllAdapterRates.Clear();
         foreach (var a in Adapters)
             AllAdapterRates.Add(new AdapterRateItem { Name = a.Name });
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"StartTestCommon failed: {ex.Message}");
+            IsTesting = false;
+            try { _cts?.Cancel(); } catch { }
+            StatusText = "启动测速失败";
+        }
     }
 
     private void FinishTestCancelled()
@@ -660,62 +679,34 @@ public partial class MainViewModel : ObservableObject
     private void OpenHistory()
     {
         var vm = _serviceProvider.GetRequiredService<HistoryViewModel>();
-        var window = new Views.HistoryWindow
-        {
-            DataContext = vm,
-            Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Views.MainWindow)
-        };
-        window.ShowDialog();
-        RefreshHistory();
+        CurrentPage = new Views.HistoryPage { DataContext = vm };
     }
 
     [RelayCommand]
     private void OpenSettings()
     {
         var vm = _serviceProvider.GetRequiredService<SettingsViewModel>();
-        var window = new Views.SettingsWindow
-        {
-            DataContext = vm,
-            Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Views.MainWindow)
-        };
-        window.ShowDialog();
+        vm.CloseRequested += ClosePage;
+        CurrentPage = new Views.SettingsPage { DataContext = vm };
     }
 
     [RelayCommand]
     private void OpenAbout()
     {
-        var window = new Views.AboutWindow
-        {
-            Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Views.MainWindow)
-        };
-        window.ShowDialog();
+        CurrentPage = new Views.AboutPage();
     }
 
     [RelayCommand]
     private void OpenMore()
     {
         var vm = _serviceProvider.GetRequiredService<MoreViewModel>();
-        var window = new Views.MoreWindow
-        {
-            DataContext = vm,
-            Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Views.MainWindow)
-        };
-        window.ShowDialog();
+        CurrentPage = new Views.MorePage { DataContext = vm };
     }
 
     [RelayCommand]
     private void OpenEula()
     {
-        var window = new Views.EulaWindow(isFirstLaunch: false)
-        {
-            Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Views.MainWindow)
-        };
-        window.ShowDialog();
-        if (window.Revoked)
-        {
-            if (System.Windows.Application.Current.MainWindow is Views.MainWindow mw)
-                mw.ForceClose();
-        }
+        CurrentPage = new Views.EulaPage();
     }
 
     [RelayCommand]
@@ -752,12 +743,7 @@ public partial class MainViewModel : ObservableObject
     private void OpenProfileConfig()
     {
         var vm = _serviceProvider.GetRequiredService<ProfileViewModel>();
-        var window = new Views.ProfileConfigWindow
-        {
-            DataContext = vm,
-            Owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(w => w is Views.MainWindow)
-        };
-        window.ShowDialog();
+        CurrentPage = new Views.ProfileConfigPage { DataContext = vm };
         RefreshProfiles();
     }
 

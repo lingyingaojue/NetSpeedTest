@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
-[![Release](https://img.shields.io/badge/release-v1.3.6-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+[![Release](https://img.shields.io/badge/release-v1.3.7-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Stars](https://img.shields.io/github/stars/lingyingaojue/NetSpeedTest?color=yellow)](https://github.com/lingyingaojue/NetSpeedTest/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/lingyingaojue/NetSpeedTest/total?color=blue)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Last Commit](https://img.shields.io/github/last-commit/lingyingaojue/NetSpeedTest)](https://github.com/lingyingaojue/NetSpeedTest/commits)
@@ -24,7 +24,8 @@
   <b>自适应线程引擎</b> &nbsp;·&nbsp;
   <b>掉速紧急补偿</b> &nbsp;·&nbsp;
   <b>UDP 五层延迟探测</b> &nbsp;·&nbsp;
-  <b>18 合 1 工具箱</b>
+  <b>18 合 1 工具箱</b> &nbsp;·&nbsp;
+  <b>OTA 在线升级</b>
 </p>
 
 ---
@@ -42,6 +43,8 @@
 ---
 
 ![Screenshot](assets/screenshot.png)
+
+> 🖥️ v1.3.7 主界面：暗色主题 · 侧边栏导航 · 自绘标题栏（截图由用户实机提供）
 
 ---
 
@@ -77,6 +80,9 @@
 - **系统托盘驻留** — 右键菜单 / 状态联动 / 气泡通知
 - 完成弹窗 **「复制结果」按钮**
 - **暗色主题** — GitHub Dark 风格
+- **内嵌页面架构** — 历史 / 配置 / 设置 / 更多 / 协议 / 关于 全部改为右侧内嵌页，告别弹窗
+- **自绘标题栏 + 侧边栏导航** — Windows 风格窗口按钮，测速中自动禁用页面切换
+- **GitHub OTA 在线升级** — 启动自动检查 + 关于页手动检查，发现新版本弹窗引导下载
 
 ### 🌐 全链路 UDP 优先延迟探测
 - **统一五层回退**：UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD

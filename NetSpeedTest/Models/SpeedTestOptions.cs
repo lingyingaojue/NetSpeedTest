@@ -7,7 +7,7 @@ public class SpeedTestOptions
     public int AverageDelaySec { get; set; } = 10;
     public double RateWindowSec { get; set; } = 3.0;
     public int NicPollIntervalMs { get; set; } = 1000;
-    public int ThreadRampUpMs { get; set; } = 500;
+    public int ThreadRampUpMs { get; set; } = 50;
     public int LatencyPollIntervalMs { get; set; } = 2000;
     public string JitterTargetHost { get; set; } = "8.8.8.8";
     public int JitterPollIntervalMs { get; set; } = 1000;
