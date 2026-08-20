@@ -194,28 +194,60 @@
                             <Button Content="双向测速" Style="{StaticResource HeroButtonStyle}" Margin="16,0,0,0"
                                     Command="{Binding StartFullTestCommand}"
                                     IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
+
                         </StackPanel>
+                        <Border Background="{DynamicResource GlassFillBrush}" CornerRadius="6"
+                                BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
+                                Padding="10,8" Margin="0,16,0,0">
+                            <StackPanel>
+                                <TextBlock Text="选择要同时测速的网卡" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6" />
+                                <ItemsControl ItemsSource="{Binding AdapterSelectionItems}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <CheckBox IsChecked="{Binding IsSelected}" Margin="0,2,16,2"
+                                                      Foreground="{StaticResource TextPrimaryBrush}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Name}" FontSize="13" />
+                                                    <TextBlock Text="{Binding IPAddress, TargetNullValue='无IP'}" FontSize="12"
+                                                               Foreground="{StaticResource TextMutedBrush}" Margin="6,0,0,0" />
+                                                </StackPanel>
+                                            </CheckBox>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
                     <!-- 最近结果 -->
                     <Border Grid.Row="1" Style="{StaticResource GlassCardStyle}" Margin="0,16,0,0"
-                            Visibility="{Binding DownloadMbps, Converter={StaticResource NotNullConverter}, FallbackValue=Collapsed}">
+                            Visibility="{Binding HasRecentResult, Converter={StaticResource BoolToVisibility}, FallbackValue=Collapsed}">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                             <TextBlock Text="最近结果：" FontSize="13"
                                        Foreground="{StaticResource TextSecondaryBrush}"
                                        VerticalAlignment="Center" />
                             <TextBlock FontSize="16" FontWeight="Bold" VerticalAlignment="Center"
-                                       Foreground="{StaticResource DownloadChartStroke}">
-                                <Run Text="▼ " /><Run Text="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}" />
+                                       Foreground="{StaticResource DownloadChartStroke}"
+                                       Visibility="{Binding RecentDownloadMbps, Converter={StaticResource NotNullConverter}, FallbackValue=Collapsed}">
+                                <Run Text="▼ " /><Run Text="{Binding RecentDownloadMbps, Mode=OneWay, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
                             <TextBlock FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="16,0,0,0"
-                                       Foreground="{StaticResource UploadChartStroke}">
-                                <Run Text="▲ " /><Run Text="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}" />
+                                       Foreground="{StaticResource UploadChartStroke}"
+                                       Visibility="{Binding RecentUploadMbps, Converter={StaticResource NotNullConverter}, FallbackValue=Collapsed}">
+                                <Run Text="▲ " /><Run Text="{Binding RecentUploadMbps, Mode=OneWay, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
                             <TextBlock FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="16,0,0,0"
                                        Foreground="{StaticResource SuccessBrush}">
-                                <Run Text="{Binding LatencyMs, Converter={StaticResource LatencyDisplayConverter}}" />
+                                <Run Text="{Binding RecentLatencyMs, Mode=OneWay, Converter={StaticResource LatencyDisplayConverter}}" />
                             </TextBlock>
+                            <Button Content="导出" Width="70" Margin="16,0,0,0" VerticalAlignment="Center"
+                                    Command="{Binding ExportResultCommand}" />
                         </StackPanel>
                     </Border>
                 </Grid>
@@ -232,7 +264,8 @@
 
                     <!-- 大号实时指标 -->
                     <UniformGrid Grid.Row="0" Rows="1" Margin="0,0,0,12">
-                        <StackPanel HorizontalAlignment="Center">
+                        <StackPanel HorizontalAlignment="Center"
+                                    Visibility="{Binding ShowDownloadMetrics, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="下载速率" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock FontSize="20" FontWeight="Bold"
@@ -240,13 +273,30 @@
                                 <Run Text="▼ " /><Run Text="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
                         </StackPanel>
-                        <StackPanel HorizontalAlignment="Center">
+                        <StackPanel HorizontalAlignment="Center"
+                                    Visibility="{Binding ShowUploadMetrics, Converter={StaticResource BoolToVisibility}}">
                             <TextBlock Text="上传速率" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock FontSize="20" FontWeight="Bold"
                                        Foreground="{StaticResource UploadChartStroke}" HorizontalAlignment="Center">
                                 <Run Text="▲ " /><Run Text="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center"
+                                    Visibility="{Binding ShowTotalMetrics, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="总速度" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock FontSize="20" FontWeight="Bold"
+                                       Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center">
+                                <Run Text="⇅ " /><Run Text="{Binding TotalRateMbps, Mode=OneWay, Converter={StaticResource RateDisplayConverter}}" />
+                            </TextBlock>
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="测速时长" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding ElapsedSeconds, Converter={StaticResource DurationDisplayConverter}}"
+                                       FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
+                                       HorizontalAlignment="Center" />
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock Text="内网延迟" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
@@ -291,8 +341,12 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="下载速率" FontSize="15" FontWeight="SemiBold"
-                                           Foreground="{StaticResource DownloadChartStroke}" Margin="0,0,0,8" />
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="下载速率" FontSize="15" FontWeight="SemiBold"
+                                               Foreground="{StaticResource DownloadChartStroke}" />
+                                    <ComboBox Width="120" Margin="8,0,0,0" ItemsSource="{Binding ChartAdapterOptions}"
+                                              SelectedItem="{Binding SelectedChartAdapter}" />
+                                </StackPanel>
                                 <lvc:CartesianChart Grid.Row="1" Series="{Binding DownloadChartSeries}"
                                                     XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
                                                     TooltipPosition="Top" />
@@ -308,8 +362,12 @@
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
-                                <TextBlock Grid.Row="0" Text="上传速率" FontSize="15" FontWeight="SemiBold"
-                                           Foreground="{StaticResource UploadChartStroke}" Margin="0,0,0,8" />
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+                                    <TextBlock Text="上传速率" FontSize="15" FontWeight="SemiBold"
+                                               Foreground="{StaticResource UploadChartStroke}" />
+                                    <ComboBox Width="120" Margin="8,0,0,0" ItemsSource="{Binding ChartAdapterOptions}"
+                                              SelectedItem="{Binding SelectedChartAdapter}" />
+                                </StackPanel>
                                 <lvc:CartesianChart Grid.Row="1" Series="{Binding UploadChartSeries}"
                                                     XAxes="{Binding XAxes}" YAxes="{Binding YAxes}"
                                                     TooltipPosition="Top" />
@@ -331,23 +389,36 @@
                                 <DataTemplate>
                                     <Border Background="{DynamicResource GlassFillBrush}" CornerRadius="4"
                                             BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
-                                            Padding="8,4" Margin="4,0">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Name}" FontSize="13"
-                                                       Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="200"
-                                                       VerticalAlignment="Center" Margin="0,0,8,0" />
-                                            <TextBlock FontSize="16" FontWeight="Bold"
-                                                       Foreground="{StaticResource DownloadChartStroke}"
-                                                       VerticalAlignment="Center">
-                                                <Run Text="▼ " />
-                                                <Run Text="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}" />
-                                            </TextBlock>
-                                            <TextBlock FontSize="16" FontWeight="Bold"
-                                                       Foreground="{StaticResource UploadChartStroke}"
-                                                       VerticalAlignment="Center" Margin="8,0,0,0">
-                                                <Run Text="▲ " />
-                                                <Run Text="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}" />
-                                            </TextBlock>
+                                            Padding="8,6" Margin="4,0">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Name}" FontSize="13"
+                                                           Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="140"
+                                                           VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding IpAddress, TargetNullValue='—'}" FontSize="11"
+                                                           Foreground="{StaticResource TextMutedBrush}" Margin="6,0,0,0"
+                                                           VerticalAlignment="Center" />
+                                                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="3"
+                                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                                        Padding="4,1" Margin="8,0,0,0">
+                                                    <TextBlock Text="{Binding StatusText}" FontSize="11"
+                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                                </Border>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                <TextBlock FontSize="15" FontWeight="Bold"
+                                                           Foreground="{StaticResource DownloadChartStroke}"
+                                                           VerticalAlignment="Center">
+                                                    <Run Text="▼ " />
+                                                    <Run Text="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}" />
+                                                </TextBlock>
+                                                <TextBlock FontSize="15" FontWeight="Bold"
+                                                           Foreground="{StaticResource UploadChartStroke}"
+                                                           VerticalAlignment="Center" Margin="8,0,0,0">
+                                                    <Run Text="▲ " />
+                                                    <Run Text="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}" />
+                                                </TextBlock>
+                                            </StackPanel>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
@@ -364,13 +435,12 @@
                         </Border>
                         <Button Content="取消" Width="80" Margin="16,0,0,0" Style="{StaticResource DangerButtonStyle}"
                                 Command="{Binding CancelTestCommand}" />
-                        <Button Content="导出" Width="70" Margin="8,0,0,0"
-                                Command="{Binding ExportResultCommand}" />
                     </StackPanel>
 
                     <!-- 网卡详细信息（折叠） -->
                     <Expander Grid.Row="4" Header="网卡详细信息" FontSize="13"
                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0">
+                        <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <ItemsControl ItemsSource="{Binding Adapters}" Margin="0,8,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
@@ -466,6 +536,7 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                    </ScrollViewer>
                     </Expander>
                 </Grid>
                 </Grid>

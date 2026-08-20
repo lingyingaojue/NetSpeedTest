@@ -180,18 +180,26 @@ public partial class HistoryViewModel : ObservableObject
             };
             if (dialog.ShowDialog() != true) return;
 
-            var records = _dataService.GetAllRecords();
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine("Time,Type,Profile,Threads,DownloadAvg(Mbps),UploadAvg(Mbps),LANLatency(ms),WANLatency(ms),TotalAvg(Mbps),TotalBytes,Duration(s),Adapter");
-            foreach (var r in records)
+            sb.AppendLine("Time,Type,Profile,Threads,DownloadAvg(Mbps),UploadAvg(Mbps),LANLatency(ms),WANLatency(ms),TotalAvg(Mbps),TotalBytes,Duration(s),Adapter,BatchId");
+            int totalExported = 0;
+            const int batchSize = 500;
+            for (int page = 1; ; page++)
             {
-                sb.AppendLine($"{r.Timestamp:yyyy-MM-dd HH:mm:ss},{r.TestType},{EscapeCsv(r.NodeName)},{r.ThreadCount}," +
-                    $"{FormatCsv(r.DownloadMbps)},{FormatCsv(r.UploadMbps)},{FormatCsvLatency(r.LatencyMs)}," +
-                    $"{FormatCsv(r.WanLatencyMs)},{FormatCsv(r.AverageTotalMbps)},{r.TotalBytes},{r.DurationSeconds:F1}," +
-                    $"{EscapeCsv(r.NetworkAdapterName)}");
+                var records = _dataService.GetRecords(page, batchSize);
+                if (records.Count == 0) break;
+                foreach (var r in records)
+                {
+                    sb.AppendLine($"{r.Timestamp:yyyy-MM-dd HH:mm:ss},{r.TestType},{EscapeCsv(r.NodeName)},{r.ThreadCount}," +
+                        $"{FormatCsv(r.DownloadMbps)},{FormatCsv(r.UploadMbps)},{FormatCsvLatency(r.LatencyMs)}," +
+                        $"{FormatCsv(r.WanLatencyMs)},{FormatCsv(r.AverageTotalMbps)},{r.TotalBytes},{r.DurationSeconds:F1}," +
+                        $"{EscapeCsv(r.NetworkAdapterName)},{EscapeCsv(r.BatchId)}");
+                    totalExported++;
+                }
+                if (records.Count < batchSize) break;
             }
             File.WriteAllText(dialog.FileName, sb.ToString(), System.Text.Encoding.UTF8);
-            MessageBox.Show($"已导出 {records.Count} 条记录", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show($"已导出 {totalExported} 条记录", "导出成功", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex) { MessageBox.Show($"导出失败: {ex.Message}", "NetSpeedTest"); }
     }

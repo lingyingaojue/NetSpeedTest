@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -18,6 +19,7 @@ public class SpeedTestService
     private readonly HttpClient _httpClient;
     private readonly NetworkInfoService _networkInfo;
     private readonly SpeedTestOptions _options;
+    private readonly ConcurrentDictionary<string, IPAddress[]> _dnsCache = new();
 
     public SpeedTestService(HttpClient httpClient, NetworkInfoService networkInfo, SpeedTestOptions options)
     {
@@ -62,7 +64,8 @@ public class SpeedTestService
         Action<double>? onAverageUpload = null,
         Action<double>? onAverageTotal = null,
         Action<long>? onTotalBytes = null,
-        CancellationToken ct = default)
+        CancellationToken ct = default,
+        HttpClient? client = null)
     {
         if (urls == null || urls.Count == 0)
             throw new ArgumentException("URL 列表不能为空");
@@ -147,7 +150,7 @@ public class SpeedTestService
                                     detail.DurationSeconds = elapsed;
                                     onUrlProgress?.Invoke(url, detail.Host, elapsed, rate, bytes);
                                 },
-                                ctLinked);
+                                ctLinked, client);
                             detail.AvgMbps = result.avgMbps;
                             detail.PeakMbps = result.peakMbps;
                             detail.BytesDownloaded = result.totalBytes;
@@ -440,7 +443,8 @@ public class SpeedTestService
         TestDownloadAsync(
             string url,
             Action<double, double, long>? onProgress = null,
-            CancellationToken ct = default)
+            CancellationToken ct = default,
+            HttpClient? client = null)
     {
         const int bufferSize = 64 * 1024;
 
@@ -449,7 +453,7 @@ public class SpeedTestService
         var rateSamples = new List<double>();
         var history = new List<RateDataPoint>();
 
-        using var response = await _httpClient.GetAsync(url,
+        using var response = await (client ?? _httpClient).GetAsync(url,
             HttpCompletionOption.ResponseHeadersRead, ct);
         response.EnsureSuccessStatusCode();
 
@@ -619,13 +623,14 @@ public class SpeedTestService
         Action<string, double, double>? onAdapterRates = null, Action<int>? onActiveThreadCount = null,
         Action<double>? onLatency = null, Action<double>? onWanLatency = null, Action<double>? onJitter = null,
         Action<double>? onAverageDownload = null, Action<double>? onAverageUpload = null, Action<double>? onAverageTotal = null,
-        Action<long>? onTotalBytes = null, CancellationToken ct = default)
+        Action<long>? onTotalBytes = null, CancellationToken ct = default, HttpClient? client = null)
     {
         if (urls.Count == 0) throw new ArgumentException("URL 列表不能为空");
         if (adapters == null || adapters.Count == 0) throw new ArgumentException("至少需要一个活跃网卡");
         threadCount = Math.Clamp(threadCount, 1, 512);
         var overall = Stopwatch.StartNew(); int activeThreads = 0; var dummy = new LongRef();
         var nicState = new NicState();
+        var http = client ?? _httpClient;
 
         using var internalCts = new CancellationTokenSource();
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, _options.TestTimeoutSec)));
@@ -646,7 +651,7 @@ public class SpeedTestService
             {
                 try { await semaphore.WaitAsync(ctLinked); } catch { return; }
                 var c = Interlocked.Increment(ref activeThreads);
-                try { onActiveThreadCount?.Invoke(c); while (!ctLinked.IsCancellationRequested) { try { using var co = new ByteArrayContent(buf); co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co }; using var _ = await _httpClient.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, ctLinked); } catch (OperationCanceledException) { break; } catch { try { await Task.Delay(500, ctLinked); } catch { break; } } } }
+                try { onActiveThreadCount?.Invoke(c); while (!ctLinked.IsCancellationRequested) { try { using var co = new ByteArrayContent(buf); co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co }; using var _ = await http.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, ctLinked); } catch (OperationCanceledException) { break; } catch { try { await Task.Delay(500, ctLinked); } catch { break; } } } }
                 finally { try { semaphore.Release(); } catch (SemaphoreFullException) { } catch (ObjectDisposedException) { } onActiveThreadCount?.Invoke(Interlocked.Decrement(ref activeThreads)); }
             }));
             if (_options.ThreadRampUpMs > 0 && i + 1 < threadCount) { try { await Task.Delay(_options.ThreadRampUpMs, ctLinked); } catch { break; } }
@@ -670,16 +675,17 @@ public class SpeedTestService
         Action<string, double, double>? onAdapterRates = null, Action<int>? onActiveThreadCount = null,
         Action<double>? onLatency = null, Action<double>? onWanLatency = null, Action<double>? onJitter = null,
         Action<double>? onAverageDownload = null, Action<double>? onAverageUpload = null, Action<double>? onAverageTotal = null,
-        Action<long>? onTotalBytes = null, CancellationToken ct = default)
+        Action<long>? onTotalBytes = null, CancellationToken ct = default, HttpClient? client = null)
     {
         bool hasDl = dlUrls.Count > 0, hasUl = ulUrls.Count > 0;
         if (!hasDl && !hasUl) throw new ArgumentException("无可用测速地址");
-        if (!hasDl) return await RunUploadTestAsync(ulUrls, threadCount, adapters, profileName, gateway, onDownloadProgress, onUploadProgress, onAdapterRates, onActiveThreadCount, onLatency, onWanLatency, onJitter, onAverageDownload, onAverageUpload, onAverageTotal, onTotalBytes, ct);
-        if (!hasUl) return await RunMultiUrlTestAsync(dlUrls, threadCount, adapters, profileName, gateway, null, onDownloadProgress, onUploadProgress, onAdapterRates, onActiveThreadCount, onLatency, onWanLatency, onJitter, onAverageDownload: onAverageDownload, onAverageUpload: onAverageUpload, onAverageTotal: onAverageTotal, onTotalBytes: onTotalBytes, ct: ct);
+        if (!hasDl) return await RunUploadTestAsync(ulUrls, threadCount, adapters, profileName, gateway, onDownloadProgress, onUploadProgress, onAdapterRates, onActiveThreadCount, onLatency, onWanLatency, onJitter, onAverageDownload, onAverageUpload, onAverageTotal, onTotalBytes, ct, client);
+        if (!hasUl) return await RunMultiUrlTestAsync(dlUrls, threadCount, adapters, profileName, gateway, null, onDownloadProgress, onUploadProgress, onAdapterRates, onActiveThreadCount, onLatency, onWanLatency, onJitter, onAverageDownload: onAverageDownload, onAverageUpload: onAverageUpload, onAverageTotal: onAverageTotal, onTotalBytes: onTotalBytes, ct: ct, client: client);
 
         threadCount = Math.Clamp(threadCount, 1, 512);
         var overall = Stopwatch.StartNew(); int activeThreads = 0;
         var nicState = new NicState(); var bytesDl = new LongRef();
+        var http = client ?? _httpClient;
 
         using var internalCts = new CancellationTokenSource();
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, _options.TestTimeoutSec)));
@@ -714,8 +720,8 @@ public class SpeedTestService
                         {
                             try
                             {
-                                if (isDl) { using var resp = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ctLinked); resp.EnsureSuccessStatusCode(); await using var s = await resp.Content.ReadAsStreamAsync(ctLinked); var b = ArrayPool<byte>.Shared.Rent(64 * 1024); try { while (!ctLinked.IsCancellationRequested) { var r = await s.ReadAsync(b.AsMemory(0, 64 * 1024), ctLinked); if (r == 0) break; Interlocked.Add(ref bytesDl.Value, r); } } finally { ArrayPool<byte>.Shared.Return(b); } }
-                                else { using var co = new ByteArrayContent(buf); co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co }; using var _ = await _httpClient.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, ctLinked); }
+                                if (isDl) { using var resp = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, ctLinked); resp.EnsureSuccessStatusCode(); await using var s = await resp.Content.ReadAsStreamAsync(ctLinked); var b = ArrayPool<byte>.Shared.Rent(64 * 1024); try { while (!ctLinked.IsCancellationRequested) { var r = await s.ReadAsync(b.AsMemory(0, 64 * 1024), ctLinked); if (r == 0) break; Interlocked.Add(ref bytesDl.Value, r); } } finally { ArrayPool<byte>.Shared.Return(b); } }
+                                else { using var co = new ByteArrayContent(buf); co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream"); using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co }; using var _ = await http.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, ctLinked); }
                             }
                             catch (OperationCanceledException) { break; } catch { try { await Task.Delay(500, ctLinked); } catch { break; } }
                         }
@@ -736,4 +742,220 @@ public class SpeedTestService
         long dlBytes_ = bytesDl.Value, ulBytes_ = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
         return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = threadCount, UrlDetails = new() };
     }
+
+
+    /// <summary>
+    /// 为指定网卡创建绑定源 IP 的 HttpClient（ConnectCallback 内 Socket.Bind 绑定源 IP）
+    /// 创建失败返回 null（该网卡将被跳过）
+    /// </summary>
+    private HttpClient? CreateNicBoundClient(NetworkAdapterInfo adapter)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(adapter.IPAddress)) return null;
+            if (!IPAddress.TryParse(adapter.IPAddress, out var localIp)) return null;
+            if (localIp.AddressFamily != AddressFamily.InterNetwork) return null;
+            var handler = new SocketsHttpHandler
+            {
+                SslOptions = new System.Net.Security.SslClientAuthenticationOptions
+                {
+                    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13
+                },
+                ConnectCallback = async (ctx, ct) =>
+                {
+                    var port = ctx.DnsEndPoint.Port;
+                    // 绑定的是 IPv4 socket，只取 IPv4 候选；同一 Host 做简单缓存，避免重复 DNS 解析
+                    var host = ctx.DnsEndPoint.Host;
+                    if (!_dnsCache.TryGetValue(host, out var addrs))
+                    {
+                        addrs = await Dns.GetHostAddressesAsync(host, ct);
+                        _dnsCache[host] = addrs;
+                    }
+                    var candidates = addrs.Where(a => a.AddressFamily == AddressFamily.InterNetwork).ToList();
+                    if (candidates.Count == 0) throw new SocketException((int)SocketError.HostNotFound);
+
+                    Exception? last = null;
+                    foreach (var ip in candidates)
+                    {
+                        var socket = new Socket(SocketType.Stream, ProtocolType.Tcp);
+                        try
+                        {
+                            socket.Bind(new IPEndPoint(localIp, 0));
+                            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                            cts.CancelAfter(TimeSpan.FromSeconds(5));
+                            await socket.ConnectAsync(new IPEndPoint(ip, port), cts.Token);
+                            return new NetworkStream(socket, ownsSocket: true);
+                        }
+                        catch (Exception ex)
+                        {
+                            last = ex;
+                            socket.Dispose();
+                        }
+                    }
+                    throw last ?? new SocketException((int)SocketError.HostNotFound);
+                }
+            };
+            var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(900) };
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.4.0");
+            return client;
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"NIC 绑定失败 ({adapter.Name}): {ex.Message}");
+            return null;
+        }
+    }
+
+
+    /// <summary>
+    /// 多网卡同时测速：每张网卡独立绑定 HttpClient 并行测速，返回每张网卡各自结果。
+    /// </summary>
+    public async Task<List<SpeedTestResult>> RunMultiNicTestsAsync(
+        List<string> dlUrls, List<string> ulUrls, int threadCount,
+        List<NetworkAdapterInfo> adapters, string profileName, string? gateway = null,
+        Action<NetworkAdapterInfo, double, double, long>? onNicDownloadProgress = null,
+        Action<NetworkAdapterInfo, double, double, long>? onNicUploadProgress = null,
+        Action<NetworkAdapterInfo, double, double>? onNicAdapterRates = null,
+        Action<double, double, long>? onDownloadProgress = null,
+        Action<double, double, long>? onUploadProgress = null,
+        Action<string, double, double>? onAdapterRates = null,
+        Action<int>? onActiveThreadCount = null,
+        Action<double>? onLatency = null, Action<double>? onWanLatency = null, Action<double>? onJitter = null,
+        Action<double>? onAverageSpeed = null, Action<double>? onAverageDownload = null,
+        Action<double>? onAverageUpload = null, Action<double>? onAverageTotal = null,
+        Action<long>? onTotalBytes = null,
+        CancellationToken ct = default)
+    {
+        bool hasDl = dlUrls.Count > 0, hasUl = ulUrls.Count > 0;
+        if (!hasDl && !hasUl) throw new ArgumentException("无可用测速地址");
+        if (adapters == null || adapters.Count == 0) throw new ArgumentException("至少需要一个活跃网卡");
+
+        _dnsCache.Clear();
+
+        var nicClients = new List<(NetworkAdapterInfo adapter, HttpClient? client)>();
+        var failedAdapters = new List<NetworkAdapterInfo>();
+        foreach (var a in adapters)
+        {
+            if (string.IsNullOrEmpty(a.IPAddress))
+            {
+                failedAdapters.Add(a);
+                continue;
+            }
+            var c = CreateNicBoundClient(a);
+            if (c != null) nicClients.Add((a, c));
+            else failedAdapters.Add(a);
+        }
+
+        try
+        {
+            if (nicClients.Count == 0)
+            {
+                return failedAdapters.Select(a => new SpeedTestResult
+                {
+                    Timestamp = DateTime.Now,
+                    NodeName = profileName,
+                    NetworkAdapterName = a.Name,
+                    ErrorMessage = "无法创建绑定连接",
+                    TestType = hasDl && hasUl ? "双向" : hasDl ? "下载" : "上传"
+                }).ToList();
+            }
+
+            int n = nicClients.Count;
+            int perNicThreads = Math.Max(1, threadCount / n);
+            using var gate = new SemaphoreSlim(Math.Min(n, threadCount), Math.Min(n, threadCount));
+            var aggLock = new object();
+            var dlRate = new double[n]; var ulRate = new double[n]; var bytesVals = new long[n];
+            var avgDl = new double[n]; var avgUl = new double[n]; var avgTot = new double[n]; var avgSpd = new double[n];
+            var actCount = new int[n];
+
+            Action<double, double, long> WrapDl(int i, NetworkAdapterInfo adapter) => (e, r, b) =>
+            {
+                lock (aggLock) { dlRate[i] = r; }
+                onNicDownloadProgress?.Invoke(adapter, e, r, b);
+                onDownloadProgress?.Invoke(e, dlRate.Sum(), bytesVals.Sum());
+            };
+            Action<double, double, long> WrapUl(int i, NetworkAdapterInfo adapter) => (e, r, b) =>
+            {
+                lock (aggLock) { ulRate[i] = r; }
+                onNicUploadProgress?.Invoke(adapter, e, r, b);
+                onUploadProgress?.Invoke(e, ulRate.Sum(), bytesVals.Sum());
+            };
+            Action<string, double, double> WrapAdapterRates(NetworkAdapterInfo adapter) => (name, dl, ul) =>
+            {
+                onNicAdapterRates?.Invoke(adapter, dl, ul);
+                onAdapterRates?.Invoke(name, dl, ul);
+            };
+            Action<long> WrapBytes(int i) => b => { lock (aggLock) { bytesVals[i] = b; } onTotalBytes?.Invoke(bytesVals.Sum()); };
+            Action<int> WrapAct(int i) => c => { lock (aggLock) { actCount[i] = c; } onActiveThreadCount?.Invoke(actCount.Sum()); };
+            Action<double> WrapAvgDl(int i) => v => { lock (aggLock) { avgDl[i] = v; } onAverageDownload?.Invoke(avgDl.Sum()); };
+            Action<double> WrapAvgUl(int i) => v => { lock (aggLock) { avgUl[i] = v; } onAverageUpload?.Invoke(avgUl.Sum()); };
+            Action<double> WrapAvgTot(int i) => v => { lock (aggLock) { avgTot[i] = v; } onAverageTotal?.Invoke(avgTot.Sum()); };
+            Action<double> WrapAvgSpd(int i) => v => { lock (aggLock) { avgSpd[i] = v; } onAverageSpeed?.Invoke(avgSpd.Sum()); };
+
+            var tasks = new List<Task<SpeedTestResult>>();
+            for (int i = 0; i < n; i++)
+            {
+                var idx = i;
+                var adapter = nicClients[i].adapter;
+                var client = nicClients[i].client;
+                var nicOnly = new List<NetworkAdapterInfo> { adapter };
+                var nicGw = !string.IsNullOrEmpty(adapter.Gateway) ? adapter.Gateway : gateway;
+
+                Task<SpeedTestResult> t;
+                if (hasDl && hasUl)
+                    t = RunFullTestAsync(dlUrls, ulUrls, perNicThreads, nicOnly, profileName, nicGw,
+                        WrapDl(idx, adapter), WrapUl(idx, adapter), WrapAdapterRates(adapter), WrapAct(idx),
+                        onLatency, onWanLatency, onJitter, WrapAvgDl(idx), WrapAvgUl(idx), WrapAvgTot(idx), WrapBytes(idx), ct, client);
+                else if (hasDl)
+                    t = RunMultiUrlTestAsync(dlUrls, perNicThreads, nicOnly, profileName, nicGw,
+                        null, WrapDl(idx, adapter), WrapUl(idx, adapter), WrapAdapterRates(adapter), WrapAct(idx),
+                        onLatency, onWanLatency, onJitter, WrapAvgSpd(idx), WrapAvgDl(idx), WrapAvgUl(idx), WrapAvgTot(idx), WrapBytes(idx), ct, client);
+                else
+                    t = RunUploadTestAsync(ulUrls, perNicThreads, nicOnly, profileName, nicGw,
+                        WrapDl(idx, adapter), WrapUl(idx, adapter), WrapAdapterRates(adapter), WrapAct(idx),
+                        onLatency, onWanLatency, onJitter, WrapAvgDl(idx), WrapAvgUl(idx), WrapAvgTot(idx), WrapBytes(idx), ct, client);
+                var task = t;
+                tasks.Add(Task.Run(async () =>
+                {
+                    await gate.WaitAsync(ct);
+                    try { return await task; }
+                    catch (OperationCanceledException) { throw; }
+                    catch (Exception ex)
+                    {
+                        Logger.Log($"网卡 {adapter.Name} 测速失败: {ex.Message}");
+                        return new SpeedTestResult
+                        {
+                            Timestamp = DateTime.Now,
+                            NodeName = profileName,
+                            NetworkAdapterName = adapter.Name,
+                            ErrorMessage = ex.Message,
+                            TestType = hasDl && hasUl ? "双向" : hasDl ? "下载" : "上传"
+                        };
+                    }
+                    finally { gate.Release(); }
+                }));
+            }
+
+            var results = (await Task.WhenAll(tasks)).ToList();
+            foreach (var a in failedAdapters)
+            {
+                results.Add(new SpeedTestResult
+                {
+                    Timestamp = DateTime.Now,
+                    NodeName = profileName,
+                    NetworkAdapterName = a.Name,
+                    ErrorMessage = "无法创建绑定连接",
+                    TestType = hasDl && hasUl ? "双向" : hasDl ? "下载" : "上传"
+                });
+            }
+            return results;
+        }
+        finally
+        {
+            foreach (var x in nicClients)
+                if (x.client != null && !ReferenceEquals(x.client, _httpClient))
+                    x.client.Dispose();
+        }
+    }
+
 }

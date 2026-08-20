@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NetSpeedTest.Models;
 using NetSpeedTest.Services;
@@ -71,7 +71,7 @@ namespace NetSpeedTest;
             {
                 Timeout = TimeSpan.FromSeconds(900)
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.3.7");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.4.0");
             return client;
         });
 

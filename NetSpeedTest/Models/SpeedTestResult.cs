@@ -11,6 +11,16 @@ public class SpeedTestResult
     public int Id { get; set; }
 
     /// <summary>
+    /// 批次 ID（多网卡同时测速时同一次任务共享一个 BatchId）
+    /// </summary>
+    public string? BatchId { get; set; }
+
+    /// <summary>
+    /// 单网卡测速失败时的错误信息
+    /// </summary>
+    public string? ErrorMessage { get; set; }
+
+    /// <summary>
     /// 测速时间
     /// </summary>
     public DateTime Timestamp { get; set; } = DateTime.Now;

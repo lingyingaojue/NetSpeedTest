@@ -51,7 +51,9 @@ public class DataService
                 WanLatencyMs REAL,
                 AverageTotalMbps REAL NOT NULL DEFAULT 0,
                 TotalBytes INTEGER NOT NULL DEFAULT 0,
-                TestType TEXT NOT NULL DEFAULT ''
+                TestType TEXT NOT NULL DEFAULT '',
+                BatchId TEXT,
+                ErrorMessage TEXT
             )
             """;
         cmd1.ExecuteNonQuery();
@@ -86,6 +88,8 @@ public class DataService
             ["WanLatencyMs"] = "ALTER TABLE SpeedTestRecords ADD COLUMN WanLatencyMs REAL",
             ["AverageTotalMbps"] = "ALTER TABLE SpeedTestRecords ADD COLUMN AverageTotalMbps REAL NOT NULL DEFAULT 0",
             ["TotalBytes"] = "ALTER TABLE SpeedTestRecords ADD COLUMN TotalBytes INTEGER NOT NULL DEFAULT 0",
+            ["BatchId"] = "ALTER TABLE SpeedTestRecords ADD COLUMN BatchId TEXT",
+            ["ErrorMessage"] = "ALTER TABLE SpeedTestRecords ADD COLUMN ErrorMessage TEXT",
             ["TestType"] = "ALTER TABLE SpeedTestRecords ADD COLUMN TestType TEXT NOT NULL DEFAULT ''",
         };
 
@@ -121,8 +125,8 @@ public class DataService
         cmd.CommandText = """
             INSERT INTO SpeedTestRecords (Timestamp, DownloadMbps, UploadMbps, LatencyMs, JitterMs,
                 PacketLoss, NodeName, NetworkAdapterName, BytesDownloaded, BytesUploaded, DurationSeconds, ThreadCount, PeakMbps,
-                WanLatencyMs, AverageTotalMbps, TotalBytes, TestType)
-            VALUES (@ts, @dl, @ul, @lat, @jit, @pl, @nn, @na, @bd, @bu, @dur, @tc, @pk, @wl, @at, @tb, @tt)
+                WanLatencyMs, AverageTotalMbps, TotalBytes, TestType, BatchId, ErrorMessage)
+            VALUES (@ts, @dl, @ul, @lat, @jit, @pl, @nn, @na, @bd, @bu, @dur, @tc, @pk, @wl, @at, @tb, @tt, @bid, @err)
             """;
 
         cmd.Parameters.AddWithValue("@ts", result.Timestamp.ToString("o"));
@@ -142,6 +146,8 @@ public class DataService
         cmd.Parameters.AddWithValue("@at", result.AverageTotalMbps);
         cmd.Parameters.AddWithValue("@tb", result.TotalBytes);
         cmd.Parameters.AddWithValue("@tt", result.TestType);
+        cmd.Parameters.AddWithValue("@bid", (object?)result.BatchId ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@err", (object?)result.ErrorMessage ?? DBNull.Value);
 
         cmd.ExecuteNonQuery();
     }
@@ -160,7 +166,7 @@ public class DataService
         cmd.CommandText = """
             SELECT Id, Timestamp, DownloadMbps, UploadMbps, LatencyMs, JitterMs, PacketLoss,
                    NodeName, NetworkAdapterName, BytesDownloaded, BytesUploaded, DurationSeconds, ThreadCount, PeakMbps,
-                   WanLatencyMs, AverageTotalMbps, TotalBytes, TestType
+                   WanLatencyMs, AverageTotalMbps, TotalBytes, TestType, BatchId, ErrorMessage
             FROM SpeedTestRecords
             ORDER BY Timestamp DESC
             LIMIT @limit OFFSET @offset
@@ -196,7 +202,9 @@ public class DataService
                     WanLatencyMs = reader.IsDBNull(14) ? null : reader.GetDouble(14),
                     AverageTotalMbps = reader.GetDouble(15),
                     TotalBytes = reader.GetInt64(16),
-                    TestType = testType
+                    TestType = testType,
+                    BatchId = reader.IsDBNull(18) ? null : reader.GetString(18),
+                    ErrorMessage = reader.IsDBNull(19) ? null : reader.GetString(19),
                 });
             }
             catch (Exception ex) { Logger.Log($"Record read failed: {ex.Message}"); }

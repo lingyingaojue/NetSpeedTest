@@ -31,12 +31,15 @@ public partial class MainViewModel : ObservableObject
     private EventHandler? _elapsedTickHandler;
     private volatile Stopwatch? _stopwatch;
     private SpeedTestResult? _lastResult;
+    private List<SpeedTestResult>? _lastMultiNicResults;
     private string _currentTestMode = "";
     private int _startUrlCount;
     public event Action<string, string>? TestCompletedNotify;
     private readonly List<double> _lanLatencies = new();
     private readonly List<double> _wanLatencies = new();
     private readonly List<double> _jitterSamples = new();
+    private readonly Dictionary<string, ObservableCollection<ObservablePoint>> _downloadPointsByNic = new();
+    private readonly Dictionary<string, ObservableCollection<ObservablePoint>> _uploadPointsByNic = new();
 
     [ObservableProperty]
     private bool _showDownloadMetrics = true;
@@ -57,13 +60,28 @@ public partial class MainViewModel : ObservableObject
     private ObservableCollection<NetworkAdapterInfo> _adapters = new();
 
     /// <summary>
+    /// 网卡勾选列表（多网卡同时测速用）
+    /// </summary>
+    [ObservableProperty]
+    private ObservableCollection<AdapterSelectionItem> _adapterSelectionItems = new();
+
+    /// <summary>
+    /// 图表可切换的网卡选项（“合计” + 各网卡名）
+    /// </summary>
+    public ObservableCollection<string> ChartAdapterOptions { get; } = new();
+
+    /// <summary>
+    /// 当前图表显示的网卡曲线
+    /// </summary>
+    [ObservableProperty]
+    private string _selectedChartAdapter = "合计";
+
+    /// <summary>
     /// 全部网卡实时速率
     /// </summary>
     [ObservableProperty]
     private ObservableCollection<AdapterRateItem> _allAdapterRates = new();
 
-    [ObservableProperty]
-    private NetworkAdapterInfo? _selectedAdapter;
 
     [ObservableProperty]
     private ObservableCollection<SpeedTestProfile> _profiles = new();
@@ -112,6 +130,17 @@ public partial class MainViewModel : ObservableObject
     /// 总速率（下载+上传）
     /// </summary>
     public double? TotalRateMbps => DownloadMbps.HasValue || UploadMbps.HasValue ? (DownloadMbps ?? 0) + (UploadMbps ?? 0) : null;
+
+    /// <summary>
+    /// 是否存在最近一次测速结果
+    /// </summary>
+    public bool HasRecentResult => _lastResult != null;
+
+    public double? RecentDownloadMbps => _lastResult?.DownloadMbps;
+
+    public double? RecentUploadMbps => _lastResult?.UploadMbps;
+
+    public double RecentLatencyMs => _lastResult?.LatencyMs ?? 0;
 
     /// <summary>
     /// 总流量（字节）
@@ -211,6 +240,18 @@ public partial class MainViewModel : ObservableObject
             item.IsSelected = true;
     }
 
+    partial void OnSelectedChartAdapterChanged(string value)
+    {
+        if (DownloadChartSeries.Count == 0 || UploadChartSeries.Count == 0) return;
+
+        var dlPoints = value == "合计" ? DownloadRatePoints : (_downloadPointsByNic.TryGetValue(value, out var p) ? p : DownloadRatePoints);
+        var ulPoints = value == "合计" ? UploadRatePoints : (_uploadPointsByNic.TryGetValue(value, out var up) ? up : UploadRatePoints);
+
+        DownloadChartSeries[0].Values = dlPoints;
+        UploadChartSeries[0].Values = ulPoints;
+    }
+
+
     // ==================== 构造函数 ====================
 
     public MainViewModel(ProfileService profileService, DataService dataService,
@@ -258,7 +299,9 @@ public partial class MainViewModel : ObservableObject
         {
             var adapters = _networkInfoService.GetPhysicalAdapters();
             Adapters = new ObservableCollection<NetworkAdapterInfo>(adapters);
-            SelectedAdapter = Adapters.FirstOrDefault();
+            var primaryAdapter = adapters.FirstOrDefault(a => !string.IsNullOrEmpty(a.Gateway)) ?? adapters.FirstOrDefault();
+            AdapterSelectionItems = new ObservableCollection<AdapterSelectionItem>(
+                adapters.Select(a => new AdapterSelectionItem { Adapter = a, IsSelected = a.Id == primaryAdapter?.Id }));
 
             RefreshProfiles();
             RefreshHistory();
@@ -286,9 +329,10 @@ public partial class MainViewModel : ObservableObject
             return;
         }
 
-        if (Adapters.Count == 0)
+        var selectedAdapters = GetSelectedAdapters();
+        if (selectedAdapters.Count == 0)
         {
-            StatusText = "未检测到可用网卡";
+            StatusText = "请至少选择一张网卡";
             return;
         }
 
@@ -299,22 +343,24 @@ public partial class MainViewModel : ObservableObject
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
             var gw = _networkInfoService.FindPingableGateway();
-            Logger.Log($"测速启动: gateway={gw ?? "null"}, adapters={Adapters.Count}");
+            Logger.Log($"测速启动: gateway={gw ?? "null"}, adapters={selectedAdapters.Count}");
             var pn = SelectedProfile?.Name ?? "未知配置";
-            var adapters = Adapters.ToList();
 
-            var result = await svc.RunMultiUrlTestAsync(
-                selectedUrls, ThreadCount, adapters, pn, gateway: gw,
-                onUrlProgress: OnUrlProgress,
+            var results = await svc.RunMultiNicTestsAsync(
+                selectedUrls, new List<string>(), ThreadCount, selectedAdapters, pn, gateway: gw,
+                onNicDownloadProgress: OnNicDownloadProgress,
+                onNicUploadProgress: OnNicUploadProgress,
+                onNicAdapterRates: OnNicAdapterRates,
                 onDownloadProgress: OnDownloadProgress,
                 onUploadProgress: OnUploadProgress,
                 onAdapterRates: OnAdapterRates,
                 onActiveThreadCount: OnActiveThreadCount,
                 onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
-                onAverageSpeed: OnAverageSpeed, onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,                onTotalBytes: OnTotalBytes,
+                onAverageSpeed: OnAverageSpeed, onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                onTotalBytes: OnTotalBytes,
                 ct: _cts!.Token);
 
-            FinishTest(result);
+            FinishMultiNicTest(results);
         }
         catch (OperationCanceledException) { StatusText = "已取消"; FinishTestCancelled(); }
         catch (Exception ex) { Logger.Log($"测速失败: {ex}"); StatusText = $"测速失败: {ex.Message}"; }
@@ -329,7 +375,8 @@ public partial class MainViewModel : ObservableObject
 
         var selectedUrls = SelectedProfile?.UploadUrls ?? new();
         if (selectedUrls.Count == 0) { StatusText = "无上传地址，请在配置管理中添加上传 URL"; return; }
-        if (Adapters.Count == 0) { StatusText = "未检测到可用网卡"; return; }
+        var selectedAdapters = GetSelectedAdapters();
+        if (selectedAdapters.Count == 0) { StatusText = "请至少选择一张网卡"; return; }
 
         if (!await ShowPreparingDialogAsync(selectedUrls)) return;
         StartTestCommon(selectedUrls.Count, "上传");
@@ -337,18 +384,21 @@ public partial class MainViewModel : ObservableObject
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
             var gw = _networkInfoService.FindPingableGateway();
-            var adapters = Adapters.ToList();
-            var result = await svc.RunUploadTestAsync(
-                selectedUrls, ThreadCount, adapters, SelectedProfile?.Name ?? "未知配置",
+            var results = await svc.RunMultiNicTestsAsync(
+                new List<string>(), selectedUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
                 gateway: gw,
+                onNicDownloadProgress: OnNicDownloadProgress,
+                onNicUploadProgress: OnNicUploadProgress,
+                onNicAdapterRates: OnNicAdapterRates,
                 onDownloadProgress: OnDownloadProgress,
                 onUploadProgress: OnUploadProgress,
                 onAdapterRates: OnAdapterRates,
                 onActiveThreadCount: OnActiveThreadCount,
                 onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
-                onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,                onTotalBytes: OnTotalBytes,
+                onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                onTotalBytes: OnTotalBytes,
                 ct: _cts!.Token);
-            FinishTest(result);
+            FinishMultiNicTest(results);
         }
         catch (OperationCanceledException) { StatusText = "已取消"; FinishTestCancelled(); }
         catch (Exception ex) { Logger.Log($"测速失败: {ex}"); StatusText = $"测速失败: {ex.Message}"; }
@@ -363,7 +413,8 @@ public partial class MainViewModel : ObservableObject
         var dlUrls = UrlSelectionItems.Where(i => i.IsSelected).Select(i => i.Url).ToList();
         var ulUrls = SelectedProfile?.UploadUrls ?? new();
         if (dlUrls.Count == 0 && ulUrls.Count == 0) { StatusText = "无可用测速地址"; return; }
-        if (Adapters.Count == 0) { StatusText = "未检测到可用网卡"; return; }
+        var selectedAdapters = GetSelectedAdapters();
+        if (selectedAdapters.Count == 0) { StatusText = "请至少选择一张网卡"; return; }
 
         if (!await ShowPreparingDialogAsync(dlUrls.Concat(ulUrls).Distinct().ToList())) return;
         StartTestCommon(dlUrls.Count + ulUrls.Count, "双向");
@@ -371,17 +422,20 @@ public partial class MainViewModel : ObservableObject
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
             var gw = _networkInfoService.FindPingableGateway();
-            var adapters = Adapters.ToList();
             (Application.Current.MainWindow as Views.MainWindow)?.SetChartFocus(null);
-            var result = await svc.RunFullTestAsync(
-                dlUrls, ulUrls, ThreadCount, adapters, SelectedProfile?.Name ?? "未知配置",
+            var results = await svc.RunMultiNicTestsAsync(
+                dlUrls, ulUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
                 gateway: gw,
+                onNicDownloadProgress: OnNicDownloadProgress,
+                onNicUploadProgress: OnNicUploadProgress,
+                onNicAdapterRates: OnNicAdapterRates,
                 onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
                 onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
                 onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
-                onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,                onTotalBytes: OnTotalBytes,
+                onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                onTotalBytes: OnTotalBytes,
                 ct: _cts!.Token);
-            FinishTest(result);
+            FinishMultiNicTest(results);
         }
         catch (OperationCanceledException) { StatusText = "已取消"; FinishTestCancelled(); }
         catch (Exception ex) { Logger.Log($"测速失败: {ex}"); StatusText = $"测速失败: {ex.Message}"; }
@@ -441,7 +495,24 @@ public partial class MainViewModel : ObservableObject
         _elapsedTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.2) };
         var sw = Stopwatch.StartNew();
         _stopwatch = sw;
-        _elapsedTickHandler = (_, _) => { if (IsTesting) ElapsedSeconds = Math.Min(sw.Elapsed.TotalSeconds, _options.TestTimeoutSec); };
+        _elapsedTickHandler = (_, _) =>
+        {
+            if (!IsTesting) return;
+            var t = Math.Min(sw.Elapsed.TotalSeconds, _options.TestTimeoutSec);
+            ElapsedSeconds = t;
+            if (DownloadMbps.HasValue)
+            {
+                DownloadRatePoints.Add(new ObservablePoint(t, DownloadMbps.Value));
+                var exDl = DownloadRatePoints.Count - 500;
+                if (exDl > 0) DownloadRatePoints.RemoveAt(0);
+            }
+            if (UploadMbps.HasValue)
+            {
+                UploadRatePoints.Add(new ObservablePoint(t, UploadMbps.Value));
+                var exUl = UploadRatePoints.Count - 500;
+                if (exUl > 0) UploadRatePoints.RemoveAt(0);
+            }
+        };
         _elapsedTimer.Tick += _elapsedTickHandler;
         _elapsedTimer.Start();
 
@@ -459,11 +530,21 @@ public partial class MainViewModel : ObservableObject
         DownloadRatePoints.Clear();
         UploadRatePoints.Clear();
         UrlTestDetails.Clear();
-        _urlDetailMap.Clear();
+        _downloadPointsByNic.Clear();
+        _uploadPointsByNic.Clear();
+        ChartAdapterOptions.Clear();
+        ChartAdapterOptions.Add("合计");
 
         AllAdapterRates.Clear();
-        foreach (var a in Adapters)
-            AllAdapterRates.Add(new AdapterRateItem { Name = a.Name });
+        foreach (var item in AdapterSelectionItems.Where(x => x.IsSelected))
+        {
+            var a = item.Adapter;
+            ChartAdapterOptions.Add(a.Name);
+            _downloadPointsByNic[a.Name] = new ObservableCollection<ObservablePoint>();
+            _uploadPointsByNic[a.Name] = new ObservableCollection<ObservablePoint>();
+            AllAdapterRates.Add(new AdapterRateItem { Name = a.Name, IpAddress = a.IPAddress, StatusText = "测速中..." });
+        }
+        SelectedChartAdapter = "合计";
         }
         catch (Exception ex)
         {
@@ -485,7 +566,7 @@ public partial class MainViewModel : ObservableObject
             LatencyMs = LatencyMs ?? 0,
             WanLatencyMs = WanLatencyMs,
             NodeName = SelectedProfile?.Name ?? "",
-            NetworkAdapterName = string.Join(", ", Adapters.Select(a => a.Name ?? "")),
+            NetworkAdapterName = string.Join(", ", GetSelectedAdapters().Select(a => a.Name ?? "")),
             ThreadCount = ThreadCount,
             DurationSeconds = _stopwatch?.Elapsed.TotalSeconds ?? 0,
             UrlDetails = new()
@@ -512,7 +593,12 @@ public partial class MainViewModel : ObservableObject
         if (showDialog)
         {
             _ = Task.Run(() => { try { _dataService.SaveResult(result); } catch (Exception ex) { Logger.Log($"SaveResult failed: {ex.Message}"); } });
+            _lastMultiNicResults = null;
             _lastResult = result;
+            OnPropertyChanged(nameof(HasRecentResult));
+            OnPropertyChanged(nameof(RecentDownloadMbps));
+            OnPropertyChanged(nameof(RecentUploadMbps));
+            OnPropertyChanged(nameof(RecentLatencyMs));
             RecentRecords.Insert(0, result);
             while (RecentRecords.Count > 20)
                 RecentRecords.RemoveAt(RecentRecords.Count - 1);
@@ -534,7 +620,8 @@ public partial class MainViewModel : ObservableObject
                 result.DownloadMbps ?? 0, result.UploadMbps,
                 TotalBytes ?? 0,
                 AverageTotalMbps ?? double.NaN, result.LatencyMs, result.WanLatencyMs ?? double.NaN,
-                result.JitterMs ?? double.NaN)
+                result.JitterMs ?? double.NaN,
+                ExportResult)
             {
                 Owner = Application.Current.MainWindow
             };
@@ -546,6 +633,81 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    private void FinishMultiNicTest(List<SpeedTestResult> results)
+    {
+        if (results == null || results.Count == 0) { StatusText = "多网卡测速无结果"; return; }
+
+        var batchId = Guid.NewGuid().ToString("N");
+        var aggregate = new SpeedTestResult
+        {
+            Timestamp = DateTime.Now,
+            DownloadMbps = results.Sum(r => r.DownloadMbps ?? 0),
+            UploadMbps = results.Sum(r => r.UploadMbps ?? 0),
+            PeakMbps = results.Sum(r => r.PeakMbps),
+            LatencyMs = results.Max(r => r.LatencyMs),
+            JitterMs = results.Max(r => r.JitterMs),
+            WanLatencyMs = results.Max(r => r.WanLatencyMs),
+            NodeName = SelectedProfile?.Name ?? "",
+            NetworkAdapterName = string.Join(", ", results.Select(r => r.NetworkAdapterName)),
+            BytesDownloaded = results.Sum(r => r.BytesDownloaded),
+            BytesUploaded = results.Sum(r => r.BytesUploaded),
+            DurationSeconds = results.Max(r => r.DurationSeconds),
+            ThreadCount = ThreadCount,
+            TestType = _currentTestMode,
+            TotalBytes = TotalBytes ?? 0,
+            AverageTotalMbps = _currentTestMode switch { "下载" => AverageDownloadMbps ?? 0, "上传" => AverageUploadMbps ?? 0, _ => AverageTotalMbps ?? 0 },
+            BatchId = batchId
+        };
+        if (_lanLatencies.Count > 0) { aggregate.LatencyMs = _lanLatencies.Average(); }
+        if (_wanLatencies.Count > 0) aggregate.WanLatencyMs = _wanLatencies.Average();
+        var j = ComputeJitter();
+        aggregate.JitterMs = double.IsNaN(j) ? null : j;
+        if (_currentTestMode == "上传") aggregate.DownloadMbps = null;
+        if (_currentTestMode == "下载") aggregate.UploadMbps = null;
+
+        foreach (var r in results)
+        {
+            r.Timestamp = aggregate.Timestamp;
+            r.BatchId = batchId;
+            r.TestType = _currentTestMode;
+            r.AverageTotalMbps = aggregate.AverageTotalMbps;
+            r.TotalBytes = r.BytesDownloaded + r.BytesUploaded;
+            if (_lanLatencies.Count > 0) r.LatencyMs = _lanLatencies.Average();
+            if (_wanLatencies.Count > 0) r.WanLatencyMs = _wanLatencies.Average();
+            r.JitterMs = aggregate.JitterMs;
+            if (_currentTestMode == "上传") r.DownloadMbps = null;
+            if (_currentTestMode == "下载") r.UploadMbps = null;
+            _ = Task.Run(() => { try { _dataService.SaveResult(r); } catch (Exception ex) { Logger.Log($"SaveResult failed: {ex.Message}"); } });
+            RecentRecords.Insert(0, r);
+        }
+        while (RecentRecords.Count > 20) RecentRecords.RemoveAt(RecentRecords.Count - 1);
+
+        _lastMultiNicResults = results.ToList();
+        _lastResult = aggregate;
+        OnPropertyChanged(nameof(HasRecentResult));
+        OnPropertyChanged(nameof(RecentDownloadMbps));
+        OnPropertyChanged(nameof(RecentUploadMbps));
+        OnPropertyChanged(nameof(RecentLatencyMs));
+        var successCount = results.Count(r => string.IsNullOrEmpty(r.ErrorMessage));
+        var failCount = results.Count - successCount;
+        StatusText = failCount > 0
+            ? $"多网卡测速完成 · {successCount} 成功 / {failCount} 失败"
+            : $"多网卡测速完成 · {successCount} 张网卡";
+
+        var dlg = new Views.TestResultWindow(
+            _currentTestMode, ElapsedSeconds ?? 0,
+            aggregate.DownloadMbps ?? 0, aggregate.UploadMbps,
+            TotalBytes ?? 0,
+            aggregate.AverageTotalMbps, aggregate.LatencyMs, aggregate.WanLatencyMs ?? double.NaN,
+            aggregate.JitterMs ?? double.NaN,
+            ExportResult,
+            results)
+        { Owner = Application.Current.MainWindow };
+        dlg.ShowDialog();
+
+        TestCompletedNotify?.Invoke("NetSpeedTest",
+            $"下载 {FormatHelper.FormatRate(aggregate.DownloadMbps)} | 上传 {FormatHelper.FormatRate(aggregate.UploadMbps)} | 总均速 {FormatHelper.FormatRate(aggregate.AverageTotalMbps)}");
+    }
     private void CleanupTest()
     {
         (Application.Current.MainWindow as Views.MainWindow)?.SetChartFocus(null);
@@ -561,7 +723,6 @@ public partial class MainViewModel : ObservableObject
         _cts?.Cancel();
         _cts?.Dispose();
         _cts = null;
-        _urlDetailMap.Clear();
         ShowDownloadMetrics = true;
         ShowUploadMetrics = true;
         ShowTotalMetrics = true;
@@ -569,22 +730,7 @@ public partial class MainViewModel : ObservableObject
 
     // ==================== 回调（避免 lambda 重复分配） ====================
 
-    private readonly Dictionary<string, UrlTestDetail> _urlDetailMap = new();
 
-    private void OnUrlProgress(string url, string host, double elapsed, double rate, long total)
-    {
-        if (!IsTesting) return;
-        Application.Current.Dispatcher.InvokeAsync(() =>
-        {
-            if (!_urlDetailMap.TryGetValue(url, out var detail))
-            {
-                detail = new UrlTestDetail { Url = url, Host = host };
-                UrlTestDetails.Add(detail);
-                _urlDetailMap[url] = detail;
-            }
-            detail.AvgMbps = rate; detail.BytesDownloaded = total; detail.DurationSeconds = elapsed;
-        });
-    }
 
     private void OnDownloadProgress(double elapsed, double totalRate, long totalBytes)
     {
@@ -594,9 +740,6 @@ public partial class MainViewModel : ObservableObject
         {
             DownloadMbps = totalRate;
             OnPropertyChanged(nameof(TotalRateMbps));
-            DownloadRatePoints.Add(new ObservablePoint(elapsed, totalRate));
-            var excess = DownloadRatePoints.Count - 500;
-            if (excess > 0) DownloadRatePoints.RemoveAt(0);
         });
     }
 
@@ -609,9 +752,6 @@ public partial class MainViewModel : ObservableObject
             UploadMbps = totalRate;
             OnPropertyChanged(nameof(UploadMbpsDisplay));
             OnPropertyChanged(nameof(TotalRateMbps));
-            UploadRatePoints.Add(new ObservablePoint(elapsed, totalRate));
-            var excess = UploadRatePoints.Count - 500;
-            if (excess > 0) UploadRatePoints.RemoveAt(0);
         });
     }
 
@@ -625,6 +765,46 @@ public partial class MainViewModel : ObservableObject
         });
     }
 
+    private void OnNicDownloadProgress(NetworkAdapterInfo adapter, double elapsed, double rate, long totalBytes)
+    {
+        if (!IsTesting || _currentTestMode == "上传") return;
+        var name = adapter.Name;
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            if (_downloadPointsByNic.TryGetValue(name, out var pts))
+            {
+                pts.Add(new ObservablePoint(_stopwatch?.Elapsed.TotalSeconds ?? elapsed, rate));
+                var excess = pts.Count - 500;
+                if (excess > 0) pts.RemoveAt(0);
+            }
+        });
+    }
+
+    private void OnNicUploadProgress(NetworkAdapterInfo adapter, double elapsed, double rate, long totalBytes)
+    {
+        if (!IsTesting || _currentTestMode == "下载") return;
+        var name = adapter.Name;
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            if (_uploadPointsByNic.TryGetValue(name, out var pts))
+            {
+                pts.Add(new ObservablePoint(_stopwatch?.Elapsed.TotalSeconds ?? elapsed, rate));
+                var excess = pts.Count - 500;
+                if (excess > 0) pts.RemoveAt(0);
+            }
+        });
+    }
+
+    private void OnNicAdapterRates(NetworkAdapterInfo adapter, double dl, double ul)
+    {
+        if (!IsTesting) return;
+        var name = adapter.Name;
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var item = AllAdapterRates.FirstOrDefault(r => r.Name == name);
+            if (item != null) { item.DownloadMbps = dl; item.UploadMbps = ul; }
+        });
+    }
     private void OnActiveThreadCount(int count) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => ActiveThreadCount = count); }
     private void OnLatency(double latency) { if (!IsTesting) return; var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0; var added = elapsed >= _options.AverageDelaySec; Application.Current.Dispatcher.InvokeAsync(() => LatencyMs = latency); if (added) _lanLatencies.Add(latency); Logger.Log($"[D-LAN] raw={latency:F1}ms elapsed={elapsed:F1}s added={(added?"YES":"NO")} count={_lanLatencies.Count}"); }
 
@@ -728,7 +908,21 @@ public partial class MainViewModel : ObservableObject
         {
             try
             {
-                var json = JsonSerializer.Serialize(_lastResult, new JsonSerializerOptions { WriteIndented = true });
+                object payload;
+                if (_lastMultiNicResults != null && _lastMultiNicResults.Count > 0)
+                {
+                    payload = new
+                    {
+                        Aggregate = _lastResult,
+                        BatchId = _lastResult?.BatchId,
+                        NicResults = _lastMultiNicResults
+                    };
+                }
+                else
+                {
+                    payload = _lastResult!;
+                }
+                var json = JsonSerializer.Serialize(payload, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(dlg.FileName, json);
                 StatusText = $"已导出: {dlg.FileName}";
             }
@@ -747,6 +941,8 @@ public partial class MainViewModel : ObservableObject
         RefreshProfiles();
     }
 
+    private List<NetworkAdapterInfo> GetSelectedAdapters() =>
+        AdapterSelectionItems.Where(x => x.IsSelected).Select(x => x.Adapter).ToList();
     // ==================== 辅助方法 ====================
 
     private void UpdateUrlSelectionItems()
@@ -802,11 +998,30 @@ public partial class UrlSelectionItem : ObservableObject
 }
 
 /// <summary>
+/// 网卡勾选项（多网卡同时测速用）
+/// </summary>
+public partial class AdapterSelectionItem : ObservableObject
+{
+    public NetworkAdapterInfo Adapter { get; set; } = new();
+
+    public string Name => Adapter.Name;
+
+    public string? IPAddress => Adapter.IPAddress;
+
+    [ObservableProperty]
+    private bool _isSelected = true;
+}
+/// <summary>
 /// 网卡实时速率条目
 /// </summary>
 public partial class AdapterRateItem : ObservableObject
 {
     public string Name { get; set; } = "";
+
+    public string? IpAddress { get; set; }
+
+    [ObservableProperty]
+    private string _statusText = "待测";
 
     [ObservableProperty]
     private double _downloadMbps;
