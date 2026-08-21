@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetSpeedTest — Windows 专业级网络测速工具</title>
+  <meta name="description" content="NetSpeedTest 是一款开源免费的 Windows 桌面网络测速工具：128 线程智能测速引擎、多网卡并行测速、UDP 优先五层延迟探测、18 合 1 网络工具箱。" />
+  <meta name="theme-color" content="#0d1117" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="NetSpeedTest — Windows 专业级网络测速工具" />
+  <meta property="og:description" content="128 线程智能测速引擎、多网卡并行测速、UDP 优先五层延迟探测、18 合 1 网络工具箱，开源免费。" />
+  <meta property="og:image" content="https://raw.githubusercontent.com/lingyingaojue/NetSpeedTest/main/assets/screenshot.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/png" href="NetSpeedTest/Resources/app.png" />
+  <link rel="stylesheet" href="assets/site.css" />
+</head>
+<body>
+  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="NetSpeedTest 首页">
+        <img src="NetSpeedTest/Resources/app.png" alt="" width="42" height="42" />
+        <span class="brand-text">
+          <strong>NetSpeedTest</strong>
+          <small>Windows 网络测速</small>
+        </span>
+        <span class="version-chip">v1.4.0</span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="siteNav">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="site-nav" id="siteNav" aria-label="主导航">
+        <span class="nav-indicator" id="navIndicator" aria-hidden="true"></span>
+        <a href="#features">核心特性</a>
+        <a href="#screenshot">界面预览</a>
+        <a href="#toolbox">工具箱</a>
+        <a href="#architecture">技术架构</a>
+        <a href="#changelog">更新日志</a>
+        <a href="#download">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/><path d="M5 17v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 1 0-2 0v1H7v-1a1 1 0 1 0-2 0Z"/></svg>
+          免费下载
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" id="top">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="hero-badge">
+            <span class="pulse-dot"></span>
+            v1.4.0 已发布 · 多网卡并行测速
+          </div>
+          <h1>把 Windows 网络测速<br />做到<span class="gradient-text">专业级</span></h1>
+          <p class="hero-subtitle">
+            CDN 智能调度 · 自适应线程引擎 · 多网卡并行测速 · 掉速紧急补偿 · UDP 五层延迟探测 ·
+            18 合 1 工具箱，一款工具全部搞定。
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest/releases/latest">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/><path d="M5 17v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 1 0-2 0v1H7v-1a1 1 0 1 0-2 0Z"/></svg>
+              下载 Windows 版
+            </a>
+            <a class="btn btn-ghost btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11.1 11.1 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.83 1.18 3.09 0 4.42-2.7 5.39-5.27 5.68.42.36.79 1.06.79 2.14v3.17c0 .31.21.68.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
+              GitHub 仓库
+            </a>
+          </div>
+          <p class="hero-meta">Windows 10 / 11 · .NET 8 单文件发布 · MIT 开源免费</p>
+        </div>
+
+        <div class="hero-visual reveal">
+          <div class="demo-card">
+            <div class="demo-card-head">
+              <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+              <span>实时测速演示</span>
+              <span class="live-tag"><i></i> LIVE</span>
+            </div>
+            <div class="demo-values">
+              <div class="demo-value">
+                <span class="demo-label download-label">下载</span>
+                <strong id="demoDownload">0.00</strong>
+                <small>Mbps</small>
+              </div>
+              <div class="demo-value">
+                <span class="demo-label upload-label">上传</span>
+                <strong id="demoUpload">0.00</strong>
+                <small>Mbps</small>
+              </div>
+              <div class="demo-value">
+                <span class="demo-label total-label">总速率</span>
+                <strong id="demoTotal">0.00</strong>
+                <small>Mbps</small>
+              </div>
+            </div>
+            <canvas id="speedChart" aria-label="模拟测速波形图" role="img"></canvas>
+            <div class="demo-foot">
+              <div class="legend"><i class="legend-download"></i> 下载</div>
+              <div class="legend"><i class="legend-upload"></i> 上传</div>
+              <div class="legend"><i class="legend-avg"></i> 均值参考线</div>
+              <span id="demoElapsed">00:00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container hero-stats">
+        <div class="stat-item">
+          <strong><span class="counter" data-target="128">0</span><em> 线程</em></strong>
+          <span>并发下载 / 上传</span>
+        </div>
+        <div class="stat-item">
+          <strong><span class="counter" data-target="5">0</span><em> 层</em></strong>
+          <span>UDP 优先延迟回退</span>
+        </div>
+        <div class="stat-item">
+          <strong><span class="counter" data-target="18">0</span><em> 种</em></strong>
+          <span>网络诊断工具</span>
+        </div>
+        <div class="stat-item">
+          <strong><span class="counter" data-target="8">0</span><em> 个</em></strong>
+          <span>内置 CDN 节点</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">核心特性</span>
+          <h2>为重度网络用户设计的引擎</h2>
+          <p>不只是跑个数字——从线程调度到结果计量，每一层都按专业标准实现。</p>
+        </div>
+
+        <div class="features-grid">
+          <article class="feature-card reveal">
+            <div class="feature-icon blue">🚀</div>
+            <h3>智能测速引擎</h3>
+            <ul class="check-list">
+              <li>128 线程并发 HTTP GET / POST</li>
+              <li>URL 动态调度，实时选择最优节点</li>
+              <li>CPU 自适应线程上限，低配不反噬</li>
+              <li>掉速紧急补偿：自动加线程 + 结果修正</li>
+              <li>10s 稳定后取均值，3s 滑动窗口去毛刺</li>
+              <li>200ms 渐变启动，避免瞬间占满带宽</li>
+            </ul>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon green">🌐</div>
+            <h3>多网卡并行测速 <span class="new-badge">v1.4.0</span></h3>
+            <ul class="check-list">
+              <li>勾选多张网卡同时测速，独立绑定源 IP</li>
+              <li>下载 / 上传曲线支持「合计 / 单网卡」切换</li>
+              <li>双向测速显示下载 + 上传总速度</li>
+              <li>完成弹窗展示每网卡独立速率与错误</li>
+              <li>默认优先选中默认网关网卡</li>
+            </ul>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon orange">📊</div>
+            <h3>NIC 级精准计量</h3>
+            <ul class="check-list">
+              <li>基于 <code>IPv4Statistics</code> 差分计算</li>
+              <li>不受 HTTP 协议开销干扰</li>
+              <li>Kbps / Mbps / Gbps 自动切换</li>
+              <li>每网卡 9 项详情信息卡</li>
+              <li>独立速率条 + 活跃线程计数</li>
+            </ul>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon purple">🎨</div>
+            <h3>专业交互体验</h3>
+            <ul class="check-list">
+              <li>LiveCharts2 双折线图，200ms 采样、500 点窗口</li>
+              <li>下载 / 上传图表可拖拽分割线</li>
+              <li>模式切换 300ms 平滑过渡动画</li>
+              <li>系统托盘驻留 + 气泡通知</li>
+              <li>GitHub Dark 暗色主题、自绘标题栏</li>
+              <li>内嵌页面架构，告别弹窗</li>
+            </ul>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon red">📡</div>
+            <h3>全链路 UDP 优先延迟探测</h3>
+            <ul class="check-list">
+              <li>五层回退：UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD</li>
+              <li>WAN / 抖动 / LAN 共用同一探测链路</li>
+              <li>8.8.8.8 单主机 UDP 轮询，避免批量阻塞</li>
+              <li>滑动窗口标准差算法，抖动实时平滑输出</li>
+              <li>1000ms 刷新，三指标同步更新</li>
+            </ul>
+          </article>
+
+          <article class="feature-card reveal">
+            <div class="feature-icon cyan">🗄️</div>
+            <h3>历史 &amp; 配置管理</h3>
+            <ul class="check-list">
+              <li>SQLite 持久化，独立页面 + 统计栏</li>
+              <li>历史记录 CSV 导出、一键清除</li>
+              <li>8 个内置 CDN 节点</li>
+              <li>自定义配置导入 / 导出（JSON 兼容 HBCS）</li>
+              <li>设置纯内存生效，不污染打包版默认值</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Screenshot -->
+    <section class="section section-alt" id="screenshot">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">界面预览</span>
+          <h2>暗色主题 · 侧边栏导航 · 自绘标题栏</h2>
+          <p>v1.4.0 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。</p>
+        </div>
+        <div class="screenshot-frame reveal">
+          <img src="assets/screenshot.png" alt="NetSpeedTest v1.4.0 主界面截图" width="1280" height="720" loading="lazy" />
+          <div class="screenshot-caption">
+            <span>🖥️ v1.4.0 主界面</span>
+            <span>截图由用户实机提供</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Toolbox -->
+    <section class="section" id="toolbox">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">网络工具箱</span>
+          <h2>18 合 1，一窗口搞定日常排查</h2>
+          <p>从连通性测试到 NAT 类型检测，测速之外的网络诊断需求也全部内置。</p>
+        </div>
+        <div class="tool-grid">
+          <div class="tool-item reveal">🏓 <strong>Ping</strong><small>ICMP 连通性测试</small></div>
+          <div class="tool-item reveal">🌐 <strong>DNS 查询</strong><small>A / AAAA / CNAME / MX 记录</small></div>
+          <div class="tool-item reveal">📡 <strong>HTTP 请求</strong><small>GET / POST / PUT / DELETE</small></div>
+          <div class="tool-item reveal">🗺️ <strong>路由追踪</strong><small>Traceroute 跳点追踪</small></div>
+          <div class="tool-item reveal">🔌 <strong>端口测试</strong><small>TCP 端口范围扫描</small></div>
+          <div class="tool-item reveal">📏 <strong>MTU 探测</strong><small>自动发现路径最优值</small></div>
+          <div class="tool-item reveal">🔄 <strong>DNS 对比</strong><small>多 DNS 服务器并行对比</small></div>
+          <div class="tool-item reveal">🌍 <strong>IP 归属</strong><small>IP 地理 / 运营商查询</small></div>
+          <div class="tool-item reveal">🌐 <strong>公网 IP</strong><small>多源探测公网出口 IP</small></div>
+          <div class="tool-item reveal">🔒 <strong>SSL 证书</strong><small>证书链 / 过期时间 / 签名算法</small></div>
+          <div class="tool-item reveal">📨 <strong>HTTP Header</strong><small>任意 URL 响应头查看</small></div>
+          <div class="tool-item reveal">🧮 <strong>子网计算</strong><small>CIDR 划分 / 可用地址</small></div>
+          <div class="tool-item reveal">📊 <strong>带宽换算</strong><small>Mbps / MBps / Gbps 换算</small></div>
+          <div class="tool-item reveal">🕐 <strong>时间戳</strong><small>Unix 时间戳 ↔ 日期</small></div>
+          <div class="tool-item reveal">#️⃣ <strong>文本哈希</strong><small>MD5 / SHA1 / SHA256 / SHA512</small></div>
+          <div class="tool-item reveal">🔤 <strong>Base64</strong><small>在线编解码</small></div>
+          <div class="tool-item reveal">🆔 <strong>UUID 生成</strong><small>UUID v4 / v7 批量生成</small></div>
+          <div class="tool-item reveal">🔍 <strong>NAT 检测</strong><small>STUN 类型 / 自定义服务器</small></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shortcuts & parameters -->
+    <section class="section section-alt" id="shortcuts">
+      <div class="container split-grid">
+        <div>
+          <div class="section-head align-left">
+            <span class="section-kicker">效率</span>
+            <h2>快捷键</h2>
+            <p>一只手开始测速，另一只手继续喝咖啡。</p>
+          </div>
+          <div class="key-list">
+            <div class="key-row"><kbd>Enter</kbd><span>开始测速</span></div>
+            <div class="key-row"><kbd>Esc</kbd><span>停止测速</span></div>
+            <div class="key-row"><kbd>Ctrl</kbd> + <kbd>D</kbd><span>仅下载</span></div>
+            <div class="key-row"><kbd>Ctrl</kbd> + <kbd>U</kbd><span>仅上传</span></div>
+            <div class="key-row"><kbd>Ctrl</kbd> + <kbd>B</kbd><span>全速双向</span></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="section-head align-left">
+            <span class="section-kicker">可控</span>
+            <h2>可调参数</h2>
+            <p>默认值已经够快，细粒度交给喜欢折腾的人。</p>
+          </div>
+          <div class="table-wrap">
+            <table class="param-table">
+              <thead>
+                <tr><th>参数</th><th>范围</th><th>默认</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>并发线程数</td><td>1 – 512</td><td><strong>128</strong></td></tr>
+                <tr><td>整体超时</td><td>10 – 600 s</td><td><strong>60 s</strong></td></tr>
+                <tr><td>线程启动间隔</td><td>0 – 2000 ms</td><td><strong>500 ms</strong></td></tr>
+                <tr><td>平均计量延迟</td><td>1 – 30 s</td><td><strong>10 s</strong></td></tr>
+                <tr><td>速率平滑窗口</td><td>0.5 – 10 s</td><td><strong>3.0 s</strong></td></tr>
+                <tr><td>网卡轮询间隔</td><td>200 – 5000 ms</td><td><strong>1000 ms</strong></td></tr>
+                <tr><td>抖动探测主机</td><td>—</td><td><strong>8.8.8.8</strong></td></tr>
+                <tr><td>抖动采样间隔</td><td>1 – 60 s</td><td><strong>5 s</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section" id="architecture">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">技术架构</span>
+          <h2>干净、现代、可扩展</h2>
+          <p>基于 .NET 8 与 WPF 的 MVVM 架构，依赖项克制而清晰。</p>
+        </div>
+        <div class="stack-grid">
+          <div class="stack-item reveal">
+            <span class="stack-badge">运行时</span>
+            <strong>.NET 8.0-windows</strong>
+            <small>单文件发布</small>
+          </div>
+          <div class="stack-item reveal">
+            <span class="stack-badge">UI 框架</span>
+            <strong>WPF</strong>
+            <small>Windows 原生体验</small>
+          </div>
+          <div class="stack-item reveal">
+            <span class="stack-badge">架构模式</span>
+            <strong>MVVM</strong>
+            <small>CommunityToolkit.Mvvm</small>
+          </div>
+          <div class="stack-item reveal">
+            <span class="stack-badge">实时图表</span>
+            <strong>LiveCharts2</strong>
+            <small>SkiaSharp 硬件渲染</small>
+          </div>
+          <div class="stack-item reveal">
+            <span class="stack-badge">数据持久化</span>
+            <strong>SQLite</strong>
+            <small>Microsoft.Data.Sqlite</small>
+          </div>
+          <div class="stack-item reveal">
+            <span class="stack-badge">DI &amp; 配置</span>
+            <strong>Microsoft.Extensions</strong>
+            <small>标准配置管线</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Changelog -->
+    <section class="section section-alt" id="changelog">
+      <div class="container changelog-wrap">
+        <div class="section-head">
+          <span class="section-kicker">更新日志</span>
+          <h2>持续迭代</h2>
+          <p>每个版本都经过实机测速验证，拒绝空壳功能。</p>
+        </div>
+
+        <div class="changelog">
+          <details class="changelog-item" open>
+            <summary>
+              <span class="version-tag">v1.4.0</span>
+              <span class="version-date">2026-08-20</span>
+              <span class="version-title">多网卡并行测速</span>
+              <span class="chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="changelog-body">
+              <h4>🚀 新功能</h4>
+              <ul>
+                <li>多网卡同时测速，每张网卡独立绑定源 IP</li>
+                <li>下载 / 上传图表支持「合计 / 单网卡」曲线切换</li>
+                <li>双向测速显示下载 + 上传总速度</li>
+                <li>完成弹窗展示每网卡独立速率 / 错误信息</li>
+                <li>单文件发布，可直接运行 exe</li>
+              </ul>
+              <h4>🛠️ 修复 &amp; 优化</h4>
+              <ul>
+                <li>修复多网卡总流量显示跳动、时间轴错乱等问题</li>
+                <li>默认优先选择有默认网关的网卡</li>
+                <li>DNS 解析增加缓存，测速前自动清空</li>
+              </ul>
+            </div>
+          </details>
+
+          <details class="changelog-item">
+            <summary>
+              <span class="version-tag">v1.3.7</span>
+              <span class="version-date">2026-08-10</span>
+              <span class="version-title">界面全面重构</span>
+              <span class="chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="changelog-body">
+              <h4>🚀 重大更新</h4>
+              <ul>
+                <li>历史 / 配置 / 设置 / 更多 / 协议 / 关于改为右侧内嵌页</li>
+                <li>自绘标题栏 + 侧边栏导航</li>
+                <li>GitHub OTA 在线升级，启动自动检查</li>
+                <li>关于页全新改版</li>
+              </ul>
+            </div>
+          </details>
+
+          <details class="changelog-item">
+            <summary>
+              <span class="version-tag">v1.3.5</span>
+              <span class="version-date">2026-07-28</span>
+              <span class="version-title">18 合 1 工具箱</span>
+              <span class="chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="changelog-body">
+              <h4>🚀 新增</h4>
+              <ul>
+                <li>18 种网络诊断工具一窗口搞定</li>
+                <li>测速准备弹窗：DNS 预解析 + HTTP 握手预热</li>
+                <li>NAT 检测支持自定义 STUN 服务器</li>
+              </ul>
+              <h4>🛠️ 修复</h4>
+              <ul>
+                <li>修复 DNS 重绑定 SSRF，解析 IP 后判私有地址</li>
+                <li>SQLite 并发写入冲突修复（WAL 模式）</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+
+        <p class="changelog-more">
+          完整变更记录请查看
+          <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/CHANGELOG.md">CHANGELOG.md →</a>
+        </p>
+      </div>
+    </section>
+
+    <!-- Download -->
+    <section class="section download-section" id="download">
+      <div class="container download-box">
+        <img src="NetSpeedTest/Resources/app.png" alt="" class="download-icon" width="96" height="96" />
+        <span class="section-kicker">立即体验</span>
+        <h2>下载 NetSpeedTest</h2>
+        <p>Windows 10 / 11 · .NET 8 单文件发布 · 约 170 MB · MIT 开源免费</p>
+        <div class="download-actions">
+          <a class="btn btn-primary btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest/releases/latest">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/><path d="M5 17v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 1 0-2 0v1H7v-1a1 1 0 1 0-2 0Z"/></svg>
+            前往 Releases 下载
+          </a>
+          <a class="btn btn-ghost btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest">浏览源代码</a>
+        </div>
+        <div class="build-steps">
+          <span>或者从源码构建：</span>
+          <code>git clone https://github.com/lingyingaojue/NetSpeedTest.git &amp;&amp; cd NetSpeedTest &amp;&amp; dotnet run --project NetSpeedTest/NetSpeedTest.csproj</code>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="NetSpeedTest/Resources/app.png" alt="" width="32" height="32" />
+        <strong>NetSpeedTest</strong>
+      </div>
+      <p>Windows 桌面端网络测速工具 · 专业级 · 开源免费</p>
+      <p class="footer-meta">MIT License · © <span id="year">2026</span> lingyingaojue</p>
+      <div class="footer-links">
+        <a href="https://github.com/lingyingaojue/NetSpeedTest">GitHub</a>
+        <a href="https://github.com/lingyingaojue/NetSpeedTest/releases">Releases</a>
+        <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/CHANGELOG.md">更新日志</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/site.js"></script>
+</body>
+</html>

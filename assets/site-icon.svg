@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="NetSpeedTest 图标">
+  <defs>
+    <linearGradient id="nst-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#58a6ff"/>
+      <stop offset="0.5" stop-color="#bc8cff"/>
+      <stop offset="1" stop-color="#3fb950"/>
+    </linearGradient>
+  </defs>
+  <rect width="96" height="96" rx="22" fill="#0d1117"/>
+  <rect x="0.75" y="0.75" width="94.5" height="94.5" rx="21.25" fill="none" stroke="#30363d" stroke-width="1.5"/>
+  <circle cx="48" cy="53" r="28" fill="none" stroke="#21262d" stroke-width="8"/>
+  <path d="M24.5 60.5 A28 28 0 0 1 71.5 60.5" fill="none" stroke="url(#nst-grad)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M48 53 L62 37" fill="none" stroke="#e6edf3" stroke-width="4.5" stroke-linecap="round"/>
+  <circle cx="48" cy="53" r="5.5" fill="url(#nst-grad)"/>
+  <path d="M37 30h8l-3.5 9H50l-15 20 4.5-13H31z" fill="url(#nst-grad)"/>
+</svg>
