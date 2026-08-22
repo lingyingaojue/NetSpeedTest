@@ -38,6 +38,10 @@ public partial class MainViewModel : ObservableObject
     private readonly List<double> _lanLatencies = new();
     private readonly List<double> _wanLatencies = new();
     private readonly List<double> _jitterSamples = new();
+    private readonly object _latencyLock = new();
+    private long _packetLossSent;
+    private long _packetLossReceived;
+    private int _maxActiveThreadCount;
     private readonly Dictionary<string, ObservableCollection<ObservablePoint>> _downloadPointsByNic = new();
     private readonly Dictionary<string, ObservableCollection<ObservablePoint>> _uploadPointsByNic = new();
 
@@ -141,6 +145,35 @@ public partial class MainViewModel : ObservableObject
     public double? RecentUploadMbps => _lastResult?.UploadMbps;
 
     public double RecentLatencyMs => _lastResult?.LatencyMs ?? 0;
+
+    /// <summary>
+    /// 实时丢包率（百分比）
+    /// </summary>
+    [ObservableProperty]
+    private double? _packetLossPercent;
+
+    /// <summary>
+    /// 丢包率收发计数文本
+    /// </summary>
+    [ObservableProperty]
+    private string _packetLossDetail = "收 0/0";
+
+    /// <summary>
+    /// 丢包率显示文本
+    /// </summary>
+    public string PacketLossDisplay => PacketLossPercent.HasValue ? $"{PacketLossPercent.Value:F1}%" : "--";
+
+    /// <summary>
+    /// 丢包率颜色等级：0=无样本/0%，1=>0%，2=≥5%
+    /// </summary>
+    [ObservableProperty]
+    private int _packetLossLevel;
+
+    public long PacketLossSent => Interlocked.Read(ref _packetLossSent);
+
+    public long PacketLossReceived => Interlocked.Read(ref _packetLossReceived);
+
+    public string RecentPacketLossDisplay => _lastResult == null ? "--" : $"{_lastResult.PacketLoss:F1}%";
 
     /// <summary>
     /// 总流量（字节）
@@ -346,21 +379,40 @@ public partial class MainViewModel : ObservableObject
             Logger.Log($"测速启动: gateway={gw ?? "null"}, adapters={selectedAdapters.Count}");
             var pn = SelectedProfile?.Name ?? "未知配置";
 
-            var results = await svc.RunMultiNicTestsAsync(
-                selectedUrls, new List<string>(), ThreadCount, selectedAdapters, pn, gateway: gw,
-                onNicDownloadProgress: OnNicDownloadProgress,
-                onNicUploadProgress: OnNicUploadProgress,
-                onNicAdapterRates: OnNicAdapterRates,
-                onDownloadProgress: OnDownloadProgress,
-                onUploadProgress: OnUploadProgress,
-                onAdapterRates: OnAdapterRates,
-                onActiveThreadCount: OnActiveThreadCount,
-                onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
-                onAverageSpeed: OnAverageSpeed, onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
-                onTotalBytes: OnTotalBytes,
-                ct: _cts!.Token);
-
-            FinishMultiNicTest(results);
+            if (selectedAdapters.Count == 1)
+            {
+                var result = await svc.RunMultiUrlTestAsync(
+                    selectedUrls, ThreadCount, selectedAdapters, pn, gateway: gw,
+                    onUrlProgress: null,
+                    onDownloadProgress: OnDownloadProgress,
+                    onUploadProgress: OnUploadProgress,
+                    onAdapterRates: OnAdapterRates,
+                    onActiveThreadCount: OnActiveThreadCount,
+                    onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                    onPacketLoss: OnPacketLossSample,
+                    onAverageSpeed: OnAverageSpeed, onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                    onTotalBytes: OnTotalBytes,
+                    ct: _cts!.Token);
+                FinishTest(result);
+            }
+            else
+            {
+                var results = await svc.RunMultiNicTestsAsync(
+                    selectedUrls, new List<string>(), ThreadCount, selectedAdapters, pn, gateway: gw,
+                    onNicDownloadProgress: OnNicDownloadProgress,
+                    onNicUploadProgress: OnNicUploadProgress,
+                    onNicAdapterRates: OnNicAdapterRates,
+                    onDownloadProgress: OnDownloadProgress,
+                    onUploadProgress: OnUploadProgress,
+                    onAdapterRates: OnAdapterRates,
+                    onActiveThreadCount: OnActiveThreadCount,
+                    onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                    onPacketLoss: OnPacketLossSample,
+                    onAverageSpeed: OnAverageSpeed, onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                    onTotalBytes: OnTotalBytes,
+                    ct: _cts!.Token);
+                FinishMultiNicTest(results);
+            }
         }
         catch (OperationCanceledException) { StatusText = "已取消"; FinishTestCancelled(); }
         catch (Exception ex) { Logger.Log($"测速失败: {ex}"); StatusText = $"测速失败: {ex.Message}"; }
@@ -384,21 +436,41 @@ public partial class MainViewModel : ObservableObject
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
             var gw = _networkInfoService.FindPingableGateway();
-            var results = await svc.RunMultiNicTestsAsync(
-                new List<string>(), selectedUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
-                gateway: gw,
-                onNicDownloadProgress: OnNicDownloadProgress,
-                onNicUploadProgress: OnNicUploadProgress,
-                onNicAdapterRates: OnNicAdapterRates,
-                onDownloadProgress: OnDownloadProgress,
-                onUploadProgress: OnUploadProgress,
-                onAdapterRates: OnAdapterRates,
-                onActiveThreadCount: OnActiveThreadCount,
-                onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
-                onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
-                onTotalBytes: OnTotalBytes,
-                ct: _cts!.Token);
-            FinishMultiNicTest(results);
+            if (selectedAdapters.Count == 1)
+            {
+                var result = await svc.RunUploadTestAsync(
+                    selectedUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
+                    gateway: gw,
+                    onDownloadProgress: OnDownloadProgress,
+                    onUploadProgress: OnUploadProgress,
+                    onAdapterRates: OnAdapterRates,
+                    onActiveThreadCount: OnActiveThreadCount,
+                    onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                    onPacketLoss: OnPacketLossSample,
+                    onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                    onTotalBytes: OnTotalBytes,
+                    ct: _cts!.Token);
+                FinishTest(result);
+            }
+            else
+            {
+                var results = await svc.RunMultiNicTestsAsync(
+                    new List<string>(), selectedUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
+                    gateway: gw,
+                    onNicDownloadProgress: OnNicDownloadProgress,
+                    onNicUploadProgress: OnNicUploadProgress,
+                    onNicAdapterRates: OnNicAdapterRates,
+                    onDownloadProgress: OnDownloadProgress,
+                    onUploadProgress: OnUploadProgress,
+                    onAdapterRates: OnAdapterRates,
+                    onActiveThreadCount: OnActiveThreadCount,
+                    onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                    onPacketLoss: OnPacketLossSample,
+                    onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                    onTotalBytes: OnTotalBytes,
+                    ct: _cts!.Token);
+                FinishMultiNicTest(results);
+            }
         }
         catch (OperationCanceledException) { StatusText = "已取消"; FinishTestCancelled(); }
         catch (Exception ex) { Logger.Log($"测速失败: {ex}"); StatusText = $"测速失败: {ex.Message}"; }
@@ -416,31 +488,109 @@ public partial class MainViewModel : ObservableObject
         var selectedAdapters = GetSelectedAdapters();
         if (selectedAdapters.Count == 0) { StatusText = "请至少选择一张网卡"; return; }
 
+        var effectiveMode = dlUrls.Count > 0 && ulUrls.Count > 0 ? "双向" : dlUrls.Count > 0 ? "下载" : "上传";
         if (!await ShowPreparingDialogAsync(dlUrls.Concat(ulUrls).Distinct().ToList())) return;
-        StartTestCommon(dlUrls.Count + ulUrls.Count, "双向");
+        StartTestCommon(dlUrls.Count + ulUrls.Count, effectiveMode);
         try
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
             var gw = _networkInfoService.FindPingableGateway();
             (Application.Current.MainWindow as Views.MainWindow)?.SetChartFocus(null);
-            var results = await svc.RunMultiNicTestsAsync(
-                dlUrls, ulUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
-                gateway: gw,
-                onNicDownloadProgress: OnNicDownloadProgress,
-                onNicUploadProgress: OnNicUploadProgress,
-                onNicAdapterRates: OnNicAdapterRates,
-                onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
-                onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
-                onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
-                onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
-                onTotalBytes: OnTotalBytes,
-                ct: _cts!.Token);
-            FinishMultiNicTest(results);
+
+            if (effectiveMode == "上传")
+            {
+                if (selectedAdapters.Count == 1)
+                {
+                    var result = await svc.RunUploadTestAsync(ulUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
+                        gateway: gw,
+                        onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
+                        onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
+                        onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                        onPacketLoss: OnPacketLossSample,
+                        onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                        onTotalBytes: OnTotalBytes,
+                        ct: _cts!.Token);
+                    FinishTest(result);
+                }
+                else
+                {
+                    var results = await svc.RunMultiNicTestsAsync(new List<string>(), ulUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
+                        gateway: gw,
+                        onNicDownloadProgress: OnNicDownloadProgress, onNicUploadProgress: OnNicUploadProgress, onNicAdapterRates: OnNicAdapterRates,
+                        onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
+                        onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
+                        onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                        onPacketLoss: OnPacketLossSample,
+                        onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                        onTotalBytes: OnTotalBytes,
+                        ct: _cts!.Token);
+                    FinishMultiNicTest(results);
+                }
+            }
+            else if (effectiveMode == "下载")
+            {
+                if (selectedAdapters.Count == 1)
+                {
+                    var result = await svc.RunMultiUrlTestAsync(dlUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
+                        gateway: gw,
+                        onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
+                        onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
+                        onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                        onPacketLoss: OnPacketLossSample,
+                        onAverageSpeed: OnAverageSpeed,
+                        onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                        onTotalBytes: OnTotalBytes,
+                        ct: _cts!.Token);
+                    FinishTest(result);
+                }
+                else
+                {
+                    var results = await svc.RunMultiNicTestsAsync(dlUrls, new List<string>(), ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
+                        gateway: gw,
+                        onNicDownloadProgress: OnNicDownloadProgress, onNicUploadProgress: OnNicUploadProgress, onNicAdapterRates: OnNicAdapterRates,
+                        onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
+                        onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
+                        onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                        onPacketLoss: OnPacketLossSample,
+                        onAverageSpeed: OnAverageSpeed, onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                        onTotalBytes: OnTotalBytes,
+                        ct: _cts!.Token);
+                    FinishMultiNicTest(results);
+                }
+            }
+            else if (selectedAdapters.Count == 1)
+            {
+                var result = await svc.RunFullTestAsync(dlUrls, ulUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
+                    gateway: gw,
+                    onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
+                    onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
+                    onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                    onPacketLoss: OnPacketLossSample,
+                    onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                    onTotalBytes: OnTotalBytes,
+                    ct: _cts!.Token);
+                FinishTest(result);
+            }
+            else
+            {
+                var results = await svc.RunMultiNicTestsAsync(dlUrls, ulUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
+                    gateway: gw,
+                    onNicDownloadProgress: OnNicDownloadProgress, onNicUploadProgress: OnNicUploadProgress, onNicAdapterRates: OnNicAdapterRates,
+                    onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
+                    onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
+                    onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
+                    onPacketLoss: OnPacketLossSample,
+                    onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
+                    onTotalBytes: OnTotalBytes,
+                    ct: _cts!.Token);
+                FinishMultiNicTest(results);
+            }
         }
         catch (OperationCanceledException) { StatusText = "已取消"; FinishTestCancelled(); }
         catch (Exception ex) { Logger.Log($"测速失败: {ex}"); StatusText = $"测速失败: {ex.Message}"; }
         finally { CleanupTest(); }
     }
+
 
     // ==================== 共用辅助 ====================
 
@@ -523,9 +673,15 @@ public partial class MainViewModel : ObservableObject
         LatencyMs = null; WanLatencyMs = null; JitterMs = null;
         if (Application.Current.MainWindow is Views.MainWindow mw)
             mw.JitterText.Text = "--";
-        _lanLatencies.Clear(); _wanLatencies.Clear(); _jitterSamples.Clear();
+        lock (_latencyLock) { _lanLatencies.Clear(); _wanLatencies.Clear(); _jitterSamples.Clear(); }
         Logger.Log($"[D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec={_options.AverageDelaySec}");
         AverageMbps = null; AverageDownloadMbps = null; AverageUploadMbps = null; AverageTotalMbps = null;
+        _maxActiveThreadCount = 0;
+        _packetLossSent = 0; _packetLossReceived = 0;
+        PacketLossPercent = null;
+        PacketLossDetail = string.Format(LocalizationService.Get("Metric_PacketLossDetail"), 0L, 0L);
+        PacketLossLevel = 0;
+        OnPropertyChanged(nameof(PacketLossDisplay));
         TotalBytes = null;
         DownloadRatePoints.Clear();
         UploadRatePoints.Clear();
@@ -565,9 +721,10 @@ public partial class MainViewModel : ObservableObject
             TotalBytes = TotalBytes ?? 0,
             LatencyMs = LatencyMs ?? 0,
             WanLatencyMs = WanLatencyMs,
+            PacketLoss = PacketLossPercent ?? 0,
             NodeName = SelectedProfile?.Name ?? "",
             NetworkAdapterName = string.Join(", ", GetSelectedAdapters().Select(a => a.Name ?? "")),
-            ThreadCount = ThreadCount,
+            ThreadCount = _options.AdaptiveThreadsEnabled && _maxActiveThreadCount > 0 ? _maxActiveThreadCount : ThreadCount,
             DurationSeconds = _stopwatch?.Elapsed.TotalSeconds ?? 0,
             UrlDetails = new()
         };
@@ -577,11 +734,14 @@ public partial class MainViewModel : ObservableObject
 
     private void FinishTest(SpeedTestResult result, bool showDialog = true)
     {
-        Logger.Log($"[D-FIN1] VM.LatencyMs={LatencyMs:F1} VM.WanLatencyMs={WanLatencyMs:F1} VM.JitterMs={JitterMs:F1} lists: lan={_lanLatencies.Count} wan={_wanLatencies.Count} jitter={_jitterSamples.Count}");
-        if (_lanLatencies.Count > 0) { result.LatencyMs = _lanLatencies.Average(); }
-        if (_wanLatencies.Count > 0) result.WanLatencyMs = _wanLatencies.Average();
+        int lanCount, wanCount, jitterCount;
+        lock (_latencyLock) { lanCount = _lanLatencies.Count; wanCount = _wanLatencies.Count; jitterCount = _jitterSamples.Count; }
+        Logger.Log($"[D-FIN1] VM.LatencyMs={LatencyMs:F1} VM.WanLatencyMs={WanLatencyMs:F1} VM.JitterMs={JitterMs:F1} lists: lan={lanCount} wan={wanCount} jitter={jitterCount}");
+        lock (_latencyLock) { if (_lanLatencies.Count > 0) { result.LatencyMs = _lanLatencies.Average(); } }
+        lock (_latencyLock) { if (_wanLatencies.Count > 0) result.WanLatencyMs = _wanLatencies.Average(); }
         result.WanLatencyMs = (result.WanLatencyMs ?? 0) > 0 ? result.WanLatencyMs : null;
         var j = ComputeJitter();
+        result.PacketLoss = PacketLossPercent ?? 0;
         result.JitterMs = double.IsNaN(j) ? null : j;
         Logger.Log($"[D-FIN2] result.LatencyMs={result.LatencyMs:F1}(AVG) VM.LatencyMs={LatencyMs:F1}(LAST) result.WanLatencyMs={result.WanLatencyMs:F1}(AVG) VM.WanLatencyMs={WanLatencyMs:F1}(LAST) result.JitterMs={result.JitterMs:F1} VM.JitterMs={JitterMs:F1}");
         result.AverageTotalMbps = _currentTestMode switch { "下载" => AverageDownloadMbps ?? 0, "上传" => AverageUploadMbps ?? 0, _ => AverageTotalMbps ?? 0 };
@@ -599,6 +759,7 @@ public partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(RecentDownloadMbps));
             OnPropertyChanged(nameof(RecentUploadMbps));
             OnPropertyChanged(nameof(RecentLatencyMs));
+            OnPropertyChanged(nameof(RecentPacketLossDisplay));
             RecentRecords.Insert(0, result);
             while (RecentRecords.Count > 20)
                 RecentRecords.RemoveAt(RecentRecords.Count - 1);
@@ -621,6 +782,7 @@ public partial class MainViewModel : ObservableObject
                 TotalBytes ?? 0,
                 AverageTotalMbps ?? double.NaN, result.LatencyMs, result.WanLatencyMs ?? double.NaN,
                 result.JitterMs ?? double.NaN,
+                result.PacketLoss,
                 ExportResult)
             {
                 Owner = Application.Current.MainWindow
@@ -652,16 +814,17 @@ public partial class MainViewModel : ObservableObject
             BytesDownloaded = results.Sum(r => r.BytesDownloaded),
             BytesUploaded = results.Sum(r => r.BytesUploaded),
             DurationSeconds = results.Max(r => r.DurationSeconds),
-            ThreadCount = ThreadCount,
+            ThreadCount = _options.AdaptiveThreadsEnabled ? Math.Max(1, results.Sum(r => r.ThreadCount)) : ThreadCount,
             TestType = _currentTestMode,
             TotalBytes = TotalBytes ?? 0,
             AverageTotalMbps = _currentTestMode switch { "下载" => AverageDownloadMbps ?? 0, "上传" => AverageUploadMbps ?? 0, _ => AverageTotalMbps ?? 0 },
             BatchId = batchId
         };
-        if (_lanLatencies.Count > 0) { aggregate.LatencyMs = _lanLatencies.Average(); }
-        if (_wanLatencies.Count > 0) aggregate.WanLatencyMs = _wanLatencies.Average();
+        lock (_latencyLock) { if (_lanLatencies.Count > 0) { aggregate.LatencyMs = _lanLatencies.Average(); } }
+        lock (_latencyLock) { if (_wanLatencies.Count > 0) aggregate.WanLatencyMs = _wanLatencies.Average(); }
         var j = ComputeJitter();
         aggregate.JitterMs = double.IsNaN(j) ? null : j;
+        aggregate.PacketLoss = PacketLossPercent ?? 0;
         if (_currentTestMode == "上传") aggregate.DownloadMbps = null;
         if (_currentTestMode == "下载") aggregate.UploadMbps = null;
 
@@ -672,9 +835,10 @@ public partial class MainViewModel : ObservableObject
             r.TestType = _currentTestMode;
             r.AverageTotalMbps = aggregate.AverageTotalMbps;
             r.TotalBytes = r.BytesDownloaded + r.BytesUploaded;
-            if (_lanLatencies.Count > 0) r.LatencyMs = _lanLatencies.Average();
-            if (_wanLatencies.Count > 0) r.WanLatencyMs = _wanLatencies.Average();
+            lock (_latencyLock) { if (_lanLatencies.Count > 0) r.LatencyMs = _lanLatencies.Average(); }
+            lock (_latencyLock) { if (_wanLatencies.Count > 0) r.WanLatencyMs = _wanLatencies.Average(); }
             r.JitterMs = aggregate.JitterMs;
+            r.PacketLoss = aggregate.PacketLoss;
             if (_currentTestMode == "上传") r.DownloadMbps = null;
             if (_currentTestMode == "下载") r.UploadMbps = null;
             _ = Task.Run(() => { try { _dataService.SaveResult(r); } catch (Exception ex) { Logger.Log($"SaveResult failed: {ex.Message}"); } });
@@ -688,6 +852,7 @@ public partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(RecentDownloadMbps));
         OnPropertyChanged(nameof(RecentUploadMbps));
         OnPropertyChanged(nameof(RecentLatencyMs));
+        OnPropertyChanged(nameof(RecentPacketLossDisplay));
         var successCount = results.Count(r => string.IsNullOrEmpty(r.ErrorMessage));
         var failCount = results.Count - successCount;
         StatusText = failCount > 0
@@ -700,6 +865,7 @@ public partial class MainViewModel : ObservableObject
             TotalBytes ?? 0,
             aggregate.AverageTotalMbps, aggregate.LatencyMs, aggregate.WanLatencyMs ?? double.NaN,
             aggregate.JitterMs ?? double.NaN,
+            aggregate.PacketLoss,
             ExportResult,
             results)
         { Owner = Application.Current.MainWindow };
@@ -805,37 +971,56 @@ public partial class MainViewModel : ObservableObject
             if (item != null) { item.DownloadMbps = dl; item.UploadMbps = ul; }
         });
     }
-    private void OnActiveThreadCount(int count) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => ActiveThreadCount = count); }
-    private void OnLatency(double latency) { if (!IsTesting) return; var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0; var added = elapsed >= _options.AverageDelaySec; Application.Current.Dispatcher.InvokeAsync(() => LatencyMs = latency); if (added) _lanLatencies.Add(latency); Logger.Log($"[D-LAN] raw={latency:F1}ms elapsed={elapsed:F1}s added={(added?"YES":"NO")} count={_lanLatencies.Count}"); }
+    private void OnActiveThreadCount(int count) { if (!IsTesting) return; if (count > _maxActiveThreadCount) _maxActiveThreadCount = count; Application.Current.Dispatcher.InvokeAsync(() => ActiveThreadCount = count); }
+    private void OnLatency(double latency) { if (!IsTesting) return; var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0; var added = elapsed >= _options.AverageDelaySec; Application.Current.Dispatcher.InvokeAsync(() => LatencyMs = latency); int lanCount; lock (_latencyLock) { if (added) _lanLatencies.Add(latency); lanCount = _lanLatencies.Count; } Logger.Log($"[D-LAN] raw={latency:F1}ms elapsed={elapsed:F1}s added={(added?"YES":"NO")} count={lanCount}"); }
 
     private double ComputeJitter()
     {
-        if (_jitterSamples.Count < 2) return double.NaN;
-        var avg = _jitterSamples.Average();
-        return Math.Sqrt(_jitterSamples.Sum(x => (x - avg) * (x - avg)) / (_jitterSamples.Count - 1));
+        lock (_latencyLock)
+        {
+            if (_jitterSamples.Count < 2) return double.NaN;
+            var avg = _jitterSamples.Average();
+            return Math.Sqrt(_jitterSamples.Sum(x => (x - avg) * (x - avg)) / (_jitterSamples.Count - 1));
+        }
     }
     private void OnJitterSample(double rtt)
     {
         if (!IsTesting) return;
-        _jitterSamples.Add(rtt);
-        if (_jitterSamples.Count > 50) _jitterSamples.RemoveAt(0);
+        lock (_latencyLock)
+        {
+            _jitterSamples.Add(rtt);
+            if (_jitterSamples.Count > 50) _jitterSamples.RemoveAt(0);
+        }
         var j = ComputeJitter();
         JitterMs = double.IsNaN(j) ? null : j;
-        Logger.Log($"[D-JIT] rawRtt={rtt:F1}ms count={_jitterSamples.Count} jitter={j:F1}");
+        int jitterCount;
+        lock (_latencyLock) { jitterCount = _jitterSamples.Count; }
+        Logger.Log($"[D-JIT] rawRtt={rtt:F1}ms count={jitterCount} jitter={j:F1}");
         Application.Current.Dispatcher.InvokeAsync(() =>
         {
             if (Application.Current.MainWindow is Views.MainWindow mw)
                 mw.JitterText.Text = Helpers.FormatHelper.FormatLatency(j);
         });
     }
-    private void OnWanLatency(double latency)
+    private void OnWanLatency(double latency) { if (!IsTesting) return; var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0; var added = elapsed >= _options.AverageDelaySec; Application.Current.Dispatcher.InvokeAsync(() => WanLatencyMs = latency); int wanCount; lock (_latencyLock) { if (added) _wanLatencies.Add(latency); wanCount = _wanLatencies.Count; } Logger.Log($"[D-WAN] raw={latency:F1}ms elapsed={elapsed:F1}s added={(added?"YES":"NO")} count={wanCount}"); }
+    private void OnPacketLossSample(PacketLossSample sample)
     {
         if (!IsTesting) return;
-        var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0;
-        var added = elapsed >= _options.AverageDelaySec;
-        Application.Current.Dispatcher.InvokeAsync(() => WanLatencyMs = latency);
-        if (added) _wanLatencies.Add(latency);
-        Logger.Log($"[D-WAN] raw={latency:F1}ms elapsed={elapsed:F1}s added={(added?"YES":"NO")} count={_wanLatencies.Count}");
+        Interlocked.Add(ref _packetLossSent, sample.Sent);
+        Interlocked.Add(ref _packetLossReceived, sample.Received);
+        var sent = Interlocked.Read(ref _packetLossSent);
+        var received = Interlocked.Read(ref _packetLossReceived);
+        var percent = sent <= 0 ? (double?)null : Math.Max(0, (sent - received) * 100.0 / sent);
+        var level = !percent.HasValue || percent.Value <= 0 ? 0 : percent.Value < 5 ? 1 : 2;
+        // detail 在 UI 线程计算：资源字典访问必须在 UI 线程
+        Logger.Log($"[D-LOSS] batch={sample.Received}/{sample.Sent} ({sample.Method}) total={received}/{sent} loss={percent?.ToString("F1") ?? "--"}%");
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            PacketLossPercent = percent;
+            PacketLossDetail = string.Format(LocalizationService.Get("Metric_PacketLossDetail"), received, sent);
+            PacketLossLevel = level;
+            OnPropertyChanged(nameof(PacketLossDisplay));
+        });
     }
     private void OnTotalBytes(long bytes) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => TotalBytes = bytes); }
     private void OnAverageSpeed(double avg) { if (!IsTesting) return; Application.Current.Dispatcher.InvokeAsync(() => AverageMbps = avg); }
@@ -868,6 +1053,15 @@ public partial class MainViewModel : ObservableObject
         var vm = _serviceProvider.GetRequiredService<SettingsViewModel>();
         vm.CloseRequested += ClosePage;
         CurrentPage = new Views.SettingsPage { DataContext = vm };
+    }
+
+    [RelayCommand]
+    private void OpenWebServer()
+    {
+        var vm = _serviceProvider.GetRequiredService<WebServerViewModel>();
+        vm.CloseRequested -= ClosePage;
+        vm.CloseRequested += ClosePage;
+        CurrentPage = new Views.WebServerPage { DataContext = vm };
     }
 
     [RelayCommand]
@@ -953,6 +1147,8 @@ public partial class MainViewModel : ObservableObject
         else
             UrlSelectionItems = new ObservableCollection<UrlSelectionItem>();
     }
+
+    public void RefreshProfilesForWeb() => RefreshProfiles();
 
     private void RefreshProfiles()
     {

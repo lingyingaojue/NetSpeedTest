@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <Version>1.4.0</Version>
+    <Version>1.4.1</Version>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -25,5 +25,10 @@
     <Resource Include="Resources\app.png" />
     <Resource Include="Resources\ad.jpg" />
   </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="wwwroot\**\*" />
+    </ItemGroup>
+
 
 </Project>

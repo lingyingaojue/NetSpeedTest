@@ -4,7 +4,7 @@
         Title="用户协议与声明" Height="540" Width="960"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         Icon="/Resources/app.png"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -13,14 +13,14 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" x:Name="HeaderText" Text="请仔细阅读以下协议，同意后方可使用本软件" FontSize="13"
-                   Foreground="{StaticResource AccentBrush}" Margin="0,0,0,12" />
+                   Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,12" />
 
-        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8">
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <TextBlock Text="{Binding EulaText}" FontSize="11"
-                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                TextWrapping="Wrap" LineHeight="18" />
                 </StackPanel>
             </ScrollViewer>

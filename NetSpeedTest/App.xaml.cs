@@ -71,7 +71,7 @@ namespace NetSpeedTest;
             {
                 Timeout = TimeSpan.FromSeconds(900)
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.4.0");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.4.1");
             return client;
         });
 
@@ -81,13 +81,15 @@ namespace NetSpeedTest;
         {
             var dbDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NetSpeedTest");
             Directory.CreateDirectory(dbDir);
-            return new ProfileService($"Data Source={Path.Combine(dbDir, "NetSpeedTest.db")}");
+            return new ProfileService($"Data Source={Path.Combine(dbDir, "NetSpeedTest.db")}", configuration);
         });
         services.AddTransient<SpeedTestService>();
+        services.AddSingleton<WebServerService>();
         services.AddTransient<NetworkInfoService>();
 
         // 注册 ViewModel
         services.AddSingleton<MainViewModel>();
+        services.AddSingleton<WebServerViewModel>();
         services.AddTransient<HistoryViewModel>();
         services.AddTransient<ProfileViewModel>();
         services.AddTransient<SettingsViewModel>();
@@ -114,6 +116,10 @@ namespace NetSpeedTest;
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // 应用上次保存的主题
+        ThemeService.ApplySavedTheme();
+        LocalizationService.ApplySavedLanguage();
 
         // 检查 EULA 同意状态（注册表）
         bool eulaAccepted = false;
@@ -149,6 +155,13 @@ namespace NetSpeedTest;
         mainWindow.SourceInitialized += (_, _) => Helpers.WindowHelper.ApplyWindowChrome(mainWindow);
 
         mainWindow.Show();
+
+        // 启动内置 Web 服务器（如果上次已启用）
+        _ = Task.Run(() =>
+        {
+            try { _serviceProvider.GetRequiredService<WebServerService>().ApplySavedState(); }
+            catch (Exception ex) { Logger.Log($"ApplySavedState failed: {ex.Message}"); }
+        });
         Application.Current.MainWindow = mainWindow;
 
         // 广告弹窗（设置页关闭广告 7 天内跳过；弹窗关闭不写抑制，抑制仅由设置页提供）

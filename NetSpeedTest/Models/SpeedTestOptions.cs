@@ -11,9 +11,12 @@ public class SpeedTestOptions
     public int LatencyPollIntervalMs { get; set; } = 2000;
     public string JitterTargetHost { get; set; } = "8.8.8.8";
     public int JitterPollIntervalMs { get; set; } = 1000;
+    public string PacketLossTargetHost { get; set; } = "8.8.8.8";
+    public int PacketLossPollIntervalMs { get; set; } = 1000;
     public bool CompensationEnabled { get; set; } = true;
     public double CompensationThreshold { get; set; } = 0.5;
     public int CompensationExtraThreads { get; set; } = 16;
     public int CompensationConfirmSec { get; set; } = 3;
     public bool AdaptiveThreadsEnabled { get; set; } = true;
+    public int AdaptiveStartThreads { get; set; } = 2;
 }

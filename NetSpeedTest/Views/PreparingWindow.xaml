@@ -5,17 +5,17 @@
         WindowStyle="ToolWindow" WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         Icon="/Resources/app.png"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <StackPanel Margin="24">
         <TextBlock Text="正在准备测速..." FontSize="15" FontWeight="SemiBold"
-                   Foreground="{StaticResource TextPrimaryBrush}"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
                    HorizontalAlignment="Center"/>
         <ProgressBar x:Name="ProgBar" Value="0" Minimum="0" Maximum="100"
                      Height="6" Margin="0,16,0,8">
             <ProgressBar.Style>
                 <Style TargetType="ProgressBar">
-                    <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
-                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                    <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
                     <Setter Property="BorderBrush" Value="Transparent"/>
                     <Setter Property="Template">
                         <Setter.Value>
@@ -36,7 +36,7 @@
             </ProgressBar.Style>
         </ProgressBar>
         <TextBlock x:Name="StatusText" Text="初始化..." FontSize="12"
-                   Foreground="{StaticResource TextSecondaryBrush}"
+                   Foreground="{DynamicResource TextSecondaryBrush}"
                    HorizontalAlignment="Center"/>
     </StackPanel>
 </Window>

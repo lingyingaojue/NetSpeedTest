@@ -378,15 +378,16 @@ public partial class MoreViewModel : ObservableObject
         {
             if (!IPAddress.TryParse(SubnetIp, out var ip) || !IPAddress.TryParse(SubnetMask, out var mask)) { SubnetResult = "IP 地址或掩码格式无效"; return; }
             var ib = ip.GetAddressBytes(); var mb = mask.GetAddressBytes();
-            if (ib.Length != 4) { SubnetResult = "仅支持 IPv4"; return; }
+            if (ib.Length != 4 || mb.Length != 4) { SubnetResult = "仅支持 IPv4"; return; }
             var nb = new byte[4]; var bb = new byte[4]; uint ipv4 = 0, m = 0;
             for (int i = 0; i < 4; i++) { nb[i] = (byte)(ib[i] & mb[i]); bb[i] = (byte)(ib[i] | (byte)(~mb[i])); ipv4 = (ipv4 << 8) | ib[i]; m = (m << 8) | mb[i]; }
             uint cidr = 0; uint tm = m; while (tm > 0) { if ((tm & 0x80000000) != 0) cidr++; tm <<= 1; }
-            uint hosts = m != 0xFFFFFFFF ? (uint)((1 << (32 - (int)cidr)) - 2) : 1;
+            uint hosts = cidr >= 32 ? 1u : cidr == 31 ? 0u : (uint)((1L << (32 - (int)cidr)) - 2);
             var sb = new StringBuilder(); sb.AppendLine($"子网计算: {SubnetIp}/{cidr}"); sb.AppendLine(new string('-', 40));
             sb.AppendLine($"网络地址: {new IPAddress(nb)}"); sb.AppendLine($"广播地址: {new IPAddress(bb)}"); sb.AppendLine($"子网掩码: {mask} (/{cidr})"); sb.AppendLine($"可用主机: {hosts}"); sb.AppendLine($"IP 范围: {new IPAddress(nb)} ~ {new IPAddress(bb)}"); sb.AppendLine(new string('-', 40));
             if (cidr == 32) sb.AppendLine("单个主机地址 (子网掩码 /32)");
-            else { var f = new byte[4]; var l = new byte[4]; Array.Copy(nb, f, 4); Array.Copy(bb, l, 4); if (hosts > 0) { f[3]++; l[3]--; } sb.AppendLine($"可用范围: {new IPAddress(f)} ~ {new IPAddress(l)}"); }
+            else if (cidr == 31) sb.AppendLine("可用范围: 无可用主机 (点对点 /31)");
+            else { var net = (uint)((nb[0] << 24) | (nb[1] << 16) | (nb[2] << 8) | nb[3]); var broad = (uint)((bb[0] << 24) | (bb[1] << 16) | (bb[2] << 8) | bb[3]); var first = net + 1; var last = broad - 1; sb.AppendLine($"可用范围: {(first >> 24) & 255}.{(first >> 16) & 255}.{(first >> 8) & 255}.{first & 255} ~ {(last >> 24) & 255}.{(last >> 16) & 255}.{(last >> 8) & 255}.{last & 255}"); }
             SubnetResult = sb.ToString();
         }
         catch (Exception ex) { SubnetResult = $"计算失败: {ex.Message}"; }

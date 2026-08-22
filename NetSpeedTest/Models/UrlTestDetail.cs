@@ -41,6 +41,11 @@ public class UrlTestDetail
     public bool IsFailed { get; set; }
 
     /// <summary>
+    /// 是否因自适应降线程被主动裁剪（不计成功、不计失败）
+    /// </summary>
+    public bool IsTrimmed { get; set; }
+
+    /// <summary>
     /// 失败原因
     /// </summary>
     public string? ErrorMessage { get; set; }

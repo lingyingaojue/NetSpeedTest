@@ -4,66 +4,73 @@
         Title="测速完成" Width="640" Height="540"
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
         Icon="/Resources/app.png"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <StackPanel Margin="24,20,24,24">
-        <TextBlock Text="测速完成" FontSize="22" FontWeight="Bold"
-                   Foreground="{StaticResource AccentBrush}"
+        <TextBlock Text="{DynamicResource Res_Title}" FontSize="22" FontWeight="Bold"
+                   Foreground="{DynamicResource AccentBrush}"
                    HorizontalAlignment="Center" Margin="0,0,0,14" />
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="测速时长" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="{DynamicResource Res_Duration}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="ElapsedValue" FontSize="18" FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel x:Name="DownloadRow" Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="下载平均速度" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="{DynamicResource Res_Download}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="DlValue" FontSize="18" FontWeight="SemiBold"
-                       Foreground="{StaticResource DownloadChartStroke}" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource DownloadChartStroke}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel x:Name="UploadRow" Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="上传平均速度" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="{DynamicResource Res_Upload}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="UlValue" FontSize="18" FontWeight="SemiBold"
-                       Foreground="{StaticResource UploadChartStroke}" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource UploadChartStroke}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel x:Name="TotalAvgRow" Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="总均速" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="{DynamicResource Res_TotalAvg}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="TotalAvgValue" FontSize="18" FontWeight="SemiBold"
-                       Foreground="{StaticResource SuccessBrush}" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource SuccessBrush}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="总流量" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="{DynamicResource Res_TotalTraffic}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="TotalBytesValue" FontSize="18" FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="内网平均延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="{DynamicResource Res_Lan}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="LanValue" FontSize="18" FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-            <TextBlock Text="平均抖动延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="{DynamicResource Res_Jitter}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="JitterValue" FontSize="18" FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-            <TextBlock Text="外网平均延迟" FontSize="14" Foreground="{StaticResource TextSecondaryBrush}"
+            <TextBlock Text="{DynamicResource Res_Wan}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
                        Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
             <TextBlock x:Name="WanValue" FontSize="18" FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="{DynamicResource Res_PacketLoss}" FontSize="14" Foreground="{DynamicResource TextSecondaryBrush}"
+                       Width="130" TextAlignment="Right" Margin="0,0,16,0" VerticalAlignment="Center" />
+            <TextBlock x:Name="PacketLossValue" FontSize="18" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
         </StackPanel>
 
         <Border x:Name="NicResultsPanel" Background="{DynamicResource GlassFillBrush}" CornerRadius="6"
@@ -75,13 +82,13 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="0,2">
                                 <TextBlock Text="{Binding NetworkAdapterName}" FontSize="12" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextPrimaryBrush}" MinWidth="140" />
+                                           Foreground="{DynamicResource TextPrimaryBrush}" MinWidth="140" />
                                 <TextBlock Text="{Binding DownloadMbps, StringFormat={}{0:F1} Mbps, TargetNullValue=--}"
-                                           FontSize="12" Foreground="{StaticResource DownloadChartStroke}" MinWidth="100" />
+                                           FontSize="12" Foreground="{DynamicResource DownloadChartStroke}" MinWidth="100" />
                                 <TextBlock Text="{Binding UploadMbps, StringFormat={}{0:F1} Mbps, TargetNullValue=--}"
-                                           FontSize="12" Foreground="{StaticResource UploadChartStroke}" MinWidth="100" />
+                                           FontSize="12" Foreground="{DynamicResource UploadChartStroke}" MinWidth="100" />
                                 <TextBlock Text="{Binding ErrorMessage, TargetNullValue=''}"
-                                           FontSize="12" Foreground="{StaticResource ErrorBrush}" />
+                                           FontSize="12" Foreground="{DynamicResource ErrorBrush}" />
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -90,9 +97,9 @@
         </Border>
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4,0,0">
-            <Button Content="复制" Width="80" Click="Copy_Click" />
-            <Button Content="导出" Width="80" Margin="8,0,0,0" Click="Export_Click" />
-            <Button Content="确定" Width="80" Margin="8,0,0,0"
+            <Button Content="{DynamicResource Copy}" Width="80" Click="Copy_Click" />
+            <Button Content="{DynamicResource Export}" Width="80" Margin="8,0,0,0" Click="Export_Click" />
+            <Button Content="{DynamicResource OK}" Width="80" Margin="8,0,0,0"
                     Style="{StaticResource AccentButtonStyle}" Click="Close_Click" />
         </StackPanel>
     </StackPanel>

@@ -62,6 +62,11 @@ public partial class ProfileViewModel : ObservableObject
     private void DeleteProfile(SpeedTestProfile? profile)
     {
         if (profile == null) return;
+        if (Profiles.Count <= 1)
+        {
+            MessageBox.Show("至少保留一个测速配置", "无法删除", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         var result = MessageBox.Show(
             $"确定要删除配置 \"{profile.Name}\" 吗？",
             "确认删除", MessageBoxButton.YesNo, MessageBoxImage.Question);

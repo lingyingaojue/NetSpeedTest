@@ -16,7 +16,7 @@ public class DataService
     {
         var dbDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NetSpeedTest");
         Directory.CreateDirectory(dbDir);
-        _connectionString = $"Data Source={Path.Combine(dbDir, "NetSpeedTest.db")}";
+        _connectionString = $"Data Source={Path.Combine(dbDir, "NetSpeedTest.db")};Default Timeout=5";
     }
 
     /// <summary>
@@ -28,6 +28,8 @@ public class DataService
         connection.Open();
         using var pragma = connection.CreateCommand();
         pragma.CommandText = "PRAGMA journal_mode = WAL";
+        pragma.ExecuteNonQuery();
+        pragma.CommandText = "PRAGMA busy_timeout = 5000";
         pragma.ExecuteNonQuery();
 
         // 测速记录表
@@ -60,6 +62,10 @@ public class DataService
 
         // 自动迁移：兼容旧版本数据库
         MigrateTable(connection);
+
+        using var idxCmd = connection.CreateCommand();
+        idxCmd.CommandText = "CREATE INDEX IF NOT EXISTS IX_SpeedTestRecords_Timestamp ON SpeedTestRecords(Timestamp)";
+        idxCmd.ExecuteNonQuery();
 
         // 自定义节点表
         using var cmd2 = connection.CreateCommand();

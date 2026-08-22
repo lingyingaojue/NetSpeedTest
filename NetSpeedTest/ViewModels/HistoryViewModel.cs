@@ -147,6 +147,7 @@ public partial class HistoryViewModel : ObservableObject
         if (result != MessageBoxResult.Yes) return;
 
         _dataService.DeleteRecord(SelectedRecord.Id);
+        if (Records.Count <= 1 && _currentPage > 1) _currentPage--;
         LoadPage(_currentPage);
         LoadStats();
     }
@@ -181,7 +182,7 @@ public partial class HistoryViewModel : ObservableObject
             if (dialog.ShowDialog() != true) return;
 
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine("Time,Type,Profile,Threads,DownloadAvg(Mbps),UploadAvg(Mbps),LANLatency(ms),WANLatency(ms),TotalAvg(Mbps),TotalBytes,Duration(s),Adapter,BatchId");
+            sb.AppendLine("Time,Type,Profile,Threads,DownloadAvg(Mbps),UploadAvg(Mbps),LANLatency(ms),WANLatency(ms),PacketLoss(%),TotalAvg(Mbps),TotalBytes,Duration(s),Adapter,BatchId");
             int totalExported = 0;
             const int batchSize = 500;
             for (int page = 1; ; page++)
@@ -192,7 +193,7 @@ public partial class HistoryViewModel : ObservableObject
                 {
                     sb.AppendLine($"{r.Timestamp:yyyy-MM-dd HH:mm:ss},{r.TestType},{EscapeCsv(r.NodeName)},{r.ThreadCount}," +
                         $"{FormatCsv(r.DownloadMbps)},{FormatCsv(r.UploadMbps)},{FormatCsvLatency(r.LatencyMs)}," +
-                        $"{FormatCsv(r.WanLatencyMs)},{FormatCsv(r.AverageTotalMbps)},{r.TotalBytes},{r.DurationSeconds:F1}," +
+                        $"{FormatCsv(r.WanLatencyMs)},{r.PacketLoss.ToString("F1", CultureInfo.InvariantCulture)},{FormatCsv(r.AverageTotalMbps)},{r.TotalBytes},{r.DurationSeconds:F1}," +
                         $"{EscapeCsv(r.NetworkAdapterName)},{EscapeCsv(r.BatchId)}");
                     totalExported++;
                 }

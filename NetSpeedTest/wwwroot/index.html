@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NetSpeedTest Web 控制台</title>
+  <link rel="icon" type="image/png" href="/assets/app.png" />
+  <link rel="stylesheet" href="/assets/web.css" />
+</head>
+<body>
+  <div class="bg-fx" aria-hidden="true">
+    <i class="orb orb-1"></i>
+    <i class="orb orb-2"></i>
+    <i class="orb orb-3"></i>
+  </div>
+  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img class="brand-logo" src="/assets/app.png" alt="NetSpeedTest" />
+        <div>
+          <strong>NetSpeedTest</strong>
+          <small>Web 控制台</small>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-btn" id="themeToggle" title="切换主题">🌙</button>
+        <select class="lang-switch" id="langSwitch" title="Language / 语言">
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+        </select>
+        <span class="conn-dot" id="connDot"></span>
+        <span id="connText">连接中…</span>
+        <a href="http://127.0.0.1:8080" target="_blank" rel="noreferrer" class="server-link">打开新窗口 ↗</a>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <nav>
+          <button class="nav-btn active" data-view="speed">📊 测速</button>
+          <button class="nav-btn" data-view="history">🗂️ 历史</button>
+          <button class="nav-btn" data-view="profiles">🧩 配置</button>
+          <button class="nav-btn" data-view="settings">⚙️ 设置</button>
+          <button class="nav-btn" data-view="server">🌐 服务器</button>
+        </nav>
+        <div class="sidebar-foot">
+          <span class="pulse"></span>
+          <span>v1.4.1 · 本机服务</span>
+        </div>
+      </aside>
+
+      <main class="content">
+        <!-- 测速 -->
+        <section class="view active" id="view-speed">
+          <div class="page-head">
+            <div>
+              <h1>测速控制台</h1>
+              <p class="muted">实时速率 · 延迟 · 多网卡选择</p>
+            </div>
+            <div class="status-pill" id="statusPill">
+              <span class="status-dot"></span>
+              <span id="statusText">就绪</span>
+            </div>
+          </div>
+
+          <div class="metrics">
+            <div class="metric">
+              <span class="metric-label blue">下载</span>
+              <strong id="mDownload">--</strong>
+              <small>Mbps</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label green">上传</span>
+              <strong id="mUpload">--</strong>
+              <small>Mbps</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label purple">总速率</span>
+              <strong id="mTotal">--</strong>
+              <small>Mbps</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label orange">平均总速率</span>
+              <strong id="mAvgTotal">--</strong>
+              <small>Mbps</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label cyan">内网延迟</span>
+              <strong id="mLatency">--</strong>
+              <small>ms</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label red">外网延迟</span>
+              <strong id="mWan">--</strong>
+              <small>ms</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label yellow">抖动</span>
+              <strong id="mJitter">--</strong>
+              <small>ms</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label red">丢包率</span>
+              <strong id="mPacketLoss">--</strong>
+              <small id="mPacketLossDetail">--</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label blue">流量</span>
+              <strong id="mTraffic">--</strong>
+              <small>已传输</small>
+            </div>
+            <div class="metric">
+              <span class="metric-label purple">线程</span>
+              <strong id="mThreads">--</strong>
+              <small>活跃</small>
+            </div>
+          </div>
+
+          <div class="panel chart-panel">
+            <div class="panel-head">
+              <h2>实时速率</h2>
+              <div class="legend">
+                <span><i class="dot dl"></i>下载</span>
+                <span><i class="dot ul"></i>上传</span>
+                <span id="chartElapsed">00:00</span>
+              </div>
+            </div>
+            <canvas id="rateChart" height="260"></canvas>
+          </div>
+
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-head"><h2>测速模式</h2></div>
+              <div class="mode-buttons">
+                <button class="mode-btn active" data-mode="download">下载测速</button>
+                <button class="mode-btn" data-mode="upload">上传测速</button>
+                <button class="mode-btn" data-mode="full">双向测速</button>
+              </div>
+              <div class="actions">
+                <button class="btn primary" id="startBtn">▶ 开始测速</button>
+                <button class="btn danger" id="stopBtn" disabled>■ 停止</button>
+              </div>
+              <p class="hint">当前配置：<strong id="currentProfile">--</strong></p>
+              <p class="hint">最近结果：<span id="recentResult">暂无</span></p>
+            </div>
+
+            <div class="panel">
+              <div class="panel-head">
+                <h2>选择网卡</h2>
+                <button class="btn ghost small" id="adapterRefreshBtn">刷新</button>
+              </div>
+              <div class="adapter-list" id="adapterList">加载中…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 历史 -->
+        <section class="view" id="view-history">
+          <div class="page-head">
+            <div>
+              <h1>测速历史</h1>
+              <p class="muted">SQLite 持久化记录</p>
+            </div>
+            <div class="actions">
+              <button class="btn ghost small" id="historyRefreshBtn">刷新</button>
+              <button class="btn danger small" id="historyClearBtn">清空全部</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>时间</th>
+                    <th>类型</th>
+                    <th>下载</th>
+                    <th>上传</th>
+                    <th>平均总速率</th>
+                    <th>延迟</th>
+                    <th>抖动</th>
+                    <th>丢包率</th>
+                    <th>网卡</th>
+                    <th>节点</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+              </table>
+            </div>
+            <div class="pagination">
+              <button class="btn ghost small" id="historyPrev">上一页</button>
+              <span id="historyPageInfo">1 / 1</span>
+              <button class="btn ghost small" id="historyNext">下一页</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 配置 -->
+        <section class="view" id="view-profiles">
+          <div class="page-head">
+            <div>
+              <h1>测速配置</h1>
+              <p class="muted">管理下载 / 上传 URL 配置</p>
+            </div>
+            <button class="btn primary small" id="profileNewBtn">＋ 新建配置</button>
+          </div>
+          <div class="profile-list" id="profileList">加载中…</div>
+        </section>
+
+        <!-- 设置 -->
+        <section class="view" id="view-settings">
+          <div class="page-head">
+            <div>
+              <h1>测速参数</h1>
+              <p class="muted">保存后立即生效</p>
+            </div>
+            <button class="btn primary small" id="settingsSaveBtn">保存设置</button>
+          </div>
+          <div class="settings-cards" id="settingsForm"></div>
+        </section>
+
+        <!-- 服务器 -->
+        <section class="view" id="view-server">
+          <div class="page-head">
+            <div>
+              <h1>Web 服务器</h1>
+              <p class="muted">本机 HTTP 服务信息</p>
+            </div>
+          </div>
+          <div class="panel server-panel">
+            <div class="server-row">
+              <span>状态</span>
+              <strong id="serverStatus">--</strong>
+            </div>
+            <div class="server-row">
+              <span>端口</span>
+              <strong id="serverPort">8080</strong>
+            </div>
+            <div class="server-row">
+              <span>地址</span>
+              <a id="serverUrl" href="http://127.0.0.1:8080" target="_blank" rel="noreferrer">http://127.0.0.1:8080</a>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h2>REST API</h2></div>
+            <ul class="api-list">
+              <li><code>GET</code> /api/status</li>
+              <li><code>GET</code> /api/adapters</li>
+              <li><code>GET/POST</code> /api/profiles</li>
+              <li><code>GET/DELETE</code> /api/history</li>
+              <li><code>GET/POST</code> /api/settings</li>
+              <li><code>POST</code> /api/test/start</li>
+              <li><code>POST</code> /api/test/stop</li>
+              <li><code>GET</code> /api/server</li>
+            </ul>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="profileModal" hidden>
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="profileModalTitle">编辑配置</h2>
+        <button class="modal-close" id="profileModalClose">✕</button>
+      </div>
+      <label class="field">
+        <span>名称</span>
+        <input id="profileName" type="text" placeholder="配置名称" />
+      </label>
+      <label class="field">
+        <span>下载 URL（每行一个）</span>
+        <textarea id="profileDownloadUrls" rows="5" placeholder="https://example.com/100MB.zip"></textarea>
+      </label>
+      <label class="field">
+        <span>上传 URL（每行一个）</span>
+        <textarea id="profileUploadUrls" rows="3" placeholder="https://example.com/upload.php"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button class="btn ghost" id="profileCancelBtn">取消</button>
+        <button class="btn primary" id="profileSaveBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="/assets/web.js"></script>
+</body>
+</html>

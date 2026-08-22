@@ -9,14 +9,14 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="用户协议与声明（已同意）" FontSize="13"
-                   Foreground="{StaticResource AccentBrush}" Margin="0,0,0,12" />
+                   Foreground="{DynamicResource AccentBrush}" Margin="0,0,0,12" />
 
-        <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8">
+        <Border Grid.Row="1" Background="{DynamicResource SurfaceBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel>
                     <TextBlock Text="{Binding EulaText}" FontSize="11"
-                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                TextWrapping="Wrap" LineHeight="18" />
                 </StackPanel>
             </ScrollViewer>

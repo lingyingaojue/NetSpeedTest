@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Data.Sqlite;
 using NetSpeedTest.Models;
 
@@ -13,11 +14,11 @@ public class ProfileService
 {
     private readonly string _connectionString;
 
-    public ProfileService(string connectionString)
+    public ProfileService(string connectionString, IConfiguration? config = null)
     {
         _connectionString = connectionString;
         InitializeTable();
-        SeedDefaultProfiles();
+        SeedDefaultProfiles(config);
     }
 
     private void InitializeTable()
@@ -40,26 +41,47 @@ public class ProfileService
     /// <summary>
     /// 首次启动时插入默认配置
     /// </summary>
-    private void SeedDefaultProfiles()
+    private void SeedDefaultProfiles(IConfiguration? config)
     {
         var existing = GetAllProfiles();
         if (existing.Count > 0) return;
+
+        var dlUrls = new List<string>();
+        var ulUrls = new List<string>();
+        try
+        {
+            var nodes = config?.GetSection("PresetNodes").GetChildren();
+            if (nodes != null)
+            {
+                foreach (var node in nodes)
+                {
+                    var dl = node["DownloadUrl"];
+                    if (!string.IsNullOrWhiteSpace(dl) && !dlUrls.Contains(dl)) dlUrls.Add(dl);
+                    var ul = node["UploadUrl"];
+                    if (!string.IsNullOrWhiteSpace(ul) && !ulUrls.Contains(ul)) ulUrls.Add(ul);
+                }
+            }
+        }
+        catch { }
+
+        if (dlUrls.Count == 0)
+        {
+            dlUrls.Add("https://speedtest.tele2.net/100MB.zip");
+            dlUrls.Add("https://ipv4.download.thinkbroadband.com/100MB.zip");
+            dlUrls.Add("https://proof.ovh.net/files/100Mb.dat");
+        }
+        if (ulUrls.Count == 0)
+        {
+            ulUrls.Add("https://speedtest.tele2.net/upload.php");
+            ulUrls.Add("https://httpbin.org/post");
+        }
 
         var defaultProfile = new SpeedTestProfile
         {
             Id = Guid.NewGuid().ToString("N"),
             Name = "默认配置",
-            DownloadUrls = new List<string>
-            {
-                "https://speedtest.tele2.net/100MB.zip",
-                "https://ipv4.download.thinkbroadband.com/100MB.zip",
-                "https://proof.ovh.net/files/100Mb.dat"
-            },
-            UploadUrls = new List<string>
-            {
-                "https://speedtest.tele2.net/upload.php",
-                "https://httpbin.org/post"
-            },
+            DownloadUrls = dlUrls,
+            UploadUrls = ulUrls,
             CreatedAt = DateTime.Now,
             UpdatedAt = DateTime.Now
         };
@@ -159,12 +181,15 @@ public class ProfileService
 
         foreach (var entry in config.Profiles)
         {
+            if (entry == null) continue;
+            var downloads = entry.DownloadUrls ?? new List<string>();
+            var uploads = entry.UploadUrls ?? new List<string>();
             var profile = new SpeedTestProfile
             {
                 Id = Guid.NewGuid().ToString("N"),
-                Name = entry.Name,
-                DownloadUrls = urlFilter == null ? entry.DownloadUrls : entry.DownloadUrls.Where(u => !urlFilter(u)).ToList(),
-                UploadUrls = urlFilter == null ? entry.UploadUrls : entry.UploadUrls.Where(u => !urlFilter(u)).ToList(),
+                Name = string.IsNullOrWhiteSpace(entry.Name) ? "导入配置" : entry.Name,
+                DownloadUrls = urlFilter == null ? downloads : downloads.Where(u => !urlFilter(u)).ToList(),
+                UploadUrls = urlFilter == null ? uploads : uploads.Where(u => !urlFilter(u)).ToList(),
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Microsoft.Extensions.Configuration;
 using NetSpeedTest.Services;
 
@@ -11,6 +12,8 @@ namespace NetSpeedTest.Views;
 public partial class AboutPage : UserControl
 {
     public List<ChangelogEntry> Changelog { get; } = new();
+
+    private DispatcherTimer? _copyToastTimer;
 
     public AboutPage()
     {
@@ -21,6 +24,16 @@ public partial class AboutPage : UserControl
         var ad = config.GetSection("Advertising");
         SponsorNameText.Text = ad["SponsorName"] ?? "暂无";
         SponsorDetailText.Text = ad["SponsorDetail"] ?? "";
+        Changelog.Add(new ChangelogEntry("V1.4.1", "2026-08-22", new()
+        {
+            "🚀 新功能",
+            "● 关于页改版：开发者/AI 协作/GitHub/官方网站四张信息卡，官网与 GitHub 可点击跳转",
+            "● 联系方式点击复制：邮箱、微信、QQ 一键复制到剪贴板",
+            "● 复制成功弹窗：点击复制后弹出「已复制」提示，2 秒自动关闭",
+            "✨ 优化",
+            "● 复制流程更稳定：剪贴板被占用时提示不受影响",
+        }));
+
         Changelog.Add(new ChangelogEntry("V1.4.0", "2026-08-20", new()
         {
             "🚀 新功能",
@@ -32,6 +45,9 @@ public partial class AboutPage : UserControl
             "● 单模式隐藏无效指标：下载隐藏上传，上传隐藏下载",
             "● 完成弹窗每网卡结果：多网卡测速完成后展示每张网卡独立速率/错误信息",
             "● 导出增强：多网卡导出包含聚合结果+每网卡明细+BatchId",
+            "● 丢包率实时监测：测速过程实时显示丢包率，结果/历史/CSV/Web API 全链路记录",
+            "● Web 服务器网卡网段映射：局域网设备可经本机网卡访问，并自动配置 HTTP.sys ACL 与防火墙规则",
+            "● 自适应线程调度：开启后忽略固定线程数，线程数从 1 起步线性加压至严格 1024 上限，掉速时自动补偿统计与速率修正",
             "🐛 修复",
             "● 修复启动时只读属性绑定导致崩溃的问题",
             "● 修复上传测速后最近结果卡片不显示的问题",
@@ -93,30 +109,6 @@ public partial class AboutPage : UserControl
             "● 修复 STUN 事务 ID 永为 0（GetItems<byte> 从全零数组选元素 → RandomNumberGenerator.Fill）",
         }));
 
-        Changelog.Add(new ChangelogEntry("V1.3.5", "2026-07-28", new()
-        {
-            "🐛 修复",
-            "● 修复 DNS 重绑定 SSRF 漏洞（导入路径绕过 IsPrivateHost → IsPrivateUrl 逐条过滤 + DNS 解析判 IP）",
-            "● 修复日志系统死代码（_path 字段初始化绕过 setter → Log() 内延迟初始化）",
-            "● 修复数据库初始化失败后双重崩溃（throw → Environment.Exit(1)）",
-            "● 修复 UDP 探测定时被算作有效延迟（ct.IsCancellationRequested → winner==receiveTask）",
-            "● 修复 SQLite 并发写入冲突（PRAGMA busy_timeout → journal_mode=WAL）",
-            "● 修复窗口关闭阻止 Windows 关机（增加 HasShutdownStarted 检查）",
-            "● 修复 NAT 检测中 STUN DNS 重复解析（每服务器仅一次，cached IP 复用）",
-            "● 修复 _cts.Dispose() 后 Cancel() 抛 ObjectDisposedException（先 Cancel 再 Dispose）",
-            "● 修复注册表日志消息反错（EULA ↔ Version 文案互换）",
-            "🔧 优化",
-            "● 多 URL 下载调度器改为探索-利用两阶段（每个 URL 至少被测一次后改用最快节点）",
-            "● 完成状态消息区分测速模式（下载保留 X/Y 成功计数，上传/双向显示\"测速完成\"）",
-            "● 双向测速 URL 计数改为实际值（dl+ul 而非 Max）",
-            "🚀 新增",
-            "● 更多功能窗口（Ping/DNS/HTTP/路由追踪/端口测试/MTU/NAT 检测等 18 个网络工具）",
-            "● 测速准备弹窗（DNS 预解析 + HTTP 握手预热 + 线性进度条动画，准备中关窗停止）",
-            "● NAT 检测支持自定义 STUN 服务器",
-            "● 设置页改为左导航三分类布局",
-        }));
-
-
     }
 
     private void Close_Click(object sender, RoutedEventArgs e)
@@ -131,10 +123,54 @@ public partial class AboutPage : UserControl
         catch (Exception ex) { Logger.Log($"Open GitHub failed: {ex.Message}"); }
     }
 
+    private void Website_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("https://lingyingaojue.github.io/NetSpeedTest/") { UseShellExecute = true }); }
+        catch (Exception ex) { Logger.Log($"Open website failed: {ex.Message}"); }
+    }
+
     private void Email_Click(object sender, RoutedEventArgs e)
     {
-        try { Process.Start(new ProcessStartInfo("mailto:mashuo2010az@163.com") { UseShellExecute = true }); }
-        catch (Exception ex) { Logger.Log($"Open email failed: {ex.Message}"); }
+        CopyContact("mashuo2010az@163.com", "mashuo2010az@163.com");
+    }
+
+    private void WeChat_Click(object sender, RoutedEventArgs e)
+    {
+        CopyContact("Smailboy2010", $"{LocalizationService.Get("About_WeChat")} Smailboy2010");
+    }
+
+    private void Qq_Click(object sender, RoutedEventArgs e)
+    {
+        CopyContact("Smailboy2010", $"{LocalizationService.Get("About_QQ")} Smailboy2010");
+    }
+
+    private void CopyContact(string value, string label)
+    {
+        var message = $"{label} {LocalizationService.Get("About_Copied")}";
+        CopyResultText!.Text = message;
+        CopyToastText!.Text = $"{message} ✓";
+        CopyToast!.IsOpen = true;
+
+        if (_copyToastTimer == null)
+        {
+            _copyToastTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+            _copyToastTimer.Tick += (_, _) =>
+            {
+                _copyToastTimer.Stop();
+                CopyToast.IsOpen = false;
+            };
+        }
+        _copyToastTimer.Stop();
+        _copyToastTimer.Start();
+
+        try
+        {
+            Clipboard.SetText(value);
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Copy contact failed: {ex.Message}");
+        }
     }
 
     private async void CheckUpdate_Click(object sender, RoutedEventArgs e)

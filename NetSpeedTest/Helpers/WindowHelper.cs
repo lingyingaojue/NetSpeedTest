@@ -2,6 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using NetSpeedTest.Services;
 
 namespace NetSpeedTest.Helpers;
 
@@ -23,7 +24,7 @@ public static class WindowHelper
             var hwnd = new WindowInteropHelper(window).Handle;
             if (hwnd == IntPtr.Zero) return;
 
-            int dark = 1;
+            int dark = ThemeService.Current == ThemeMode.Dark ? 1 : 0;
             DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref dark, sizeof(int));
 
             int corner = 2; // DWMWCP_ROUND

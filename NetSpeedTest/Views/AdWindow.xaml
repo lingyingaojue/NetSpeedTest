@@ -5,7 +5,7 @@
         WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
         ShowInTaskbar="False" Topmost="True"
         WindowStyle="ToolWindow"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{DynamicResource BackgroundBrush}">
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <Grid Margin="20">
             <Grid.RowDefinitions>
@@ -17,15 +17,15 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Border Background="{StaticResource AccentBrush}"
+            <Border Background="{DynamicResource AccentBrush}"
                     CornerRadius="10" Padding="14,5"
                     HorizontalAlignment="Center" Margin="0,0,0,16" Grid.ColumnSpan="2">
                 <TextBlock Text="赞助商广告" FontSize="16" FontWeight="SemiBold"
-                           Foreground="{StaticResource BackgroundBrush}" />
+                           Foreground="{DynamicResource BackgroundBrush}" />
             </Border>
 
-            <Border Grid.Row="1" Grid.Column="0" Background="{StaticResource SurfaceBrush}"
-                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="8"
+            <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource SurfaceBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="10" Padding="8"
                     VerticalAlignment="Center">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.35" Color="#000000" />
@@ -36,13 +36,13 @@
 
             <StackPanel Grid.Row="1" Grid.Column="1" Margin="28,0,8,0" VerticalAlignment="Center">
                 <TextBlock x:Name="SponsorNameText" FontSize="24" FontWeight="Bold"
-                           Foreground="{StaticResource AccentBrush}"
+                           Foreground="{DynamicResource AccentBrush}"
                            Margin="0,0,0,14" TextWrapping="Wrap" TextAlignment="Left" />
 
-                <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,0,0,14" />
+                <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="0,0,0,14" />
 
                 <TextBlock x:Name="SponsorDetailText" FontSize="16" LineHeight="28"
-                           Foreground="{StaticResource TextPrimaryBrush}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
                            Margin="0,0,0,24" TextAlignment="Left" TextWrapping="Wrap" />
 
                 <Button Content="关闭" Width="90" FontSize="14" HorizontalAlignment="Right"

@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using NetSpeedTest.Helpers;
+using NetSpeedTest.Services;
 using NetSpeedTest.ViewModels;
 
 namespace NetSpeedTest.Views;
@@ -17,6 +18,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         SetupTray();
+
+        ThemeService.ThemeChanged += () =>
+        {
+            Dispatcher.Invoke(() => WindowHelper.ApplyWindowChrome(this));
+        };
 
         DataContextChanged += (_, _) =>
         {

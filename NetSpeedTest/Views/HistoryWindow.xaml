@@ -18,24 +18,24 @@
         <!-- ======== 统计栏 ======== -->
         <Border Grid.Row="0" Style="{StaticResource CardBorderStyle}" Margin="0,0,0,8" Padding="10,6">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
-                    <Run Text="共 "/><Run Text="{Binding Stats.TotalCount}" Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/><Run Text=" 次"/>
+                <TextBlock FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}">
+                    <Run Text="共 "/><Run Text="{Binding Stats.TotalCount}" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold"/><Run Text=" 次"/>
                 </TextBlock>
-                <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,0"/>
-                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
-                    <Run Text="最快下载 "/><Run Text="{Binding Stats.MaxDownloadMbps, Converter={StaticResource RateDisplayConverter}}" Foreground="{StaticResource SuccessBrush}" FontWeight="Bold"/>
+                <Border Width="1" Background="{DynamicResource BorderBrush}" Margin="12,0"/>
+                <TextBlock FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}">
+                    <Run Text="最快下载 "/><Run Text="{Binding Stats.MaxDownloadMbps, Converter={StaticResource RateDisplayConverter}}" Foreground="{DynamicResource SuccessBrush}" FontWeight="Bold"/>
                 </TextBlock>
-                <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,0"/>
-                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
-                    <Run Text="最快上传 "/><Run Text="{Binding Stats.MaxUploadMbps, Converter={StaticResource RateDisplayConverter}}" Foreground="{StaticResource SuccessBrush}" FontWeight="Bold"/>
+                <Border Width="1" Background="{DynamicResource BorderBrush}" Margin="12,0"/>
+                <TextBlock FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}">
+                    <Run Text="最快上传 "/><Run Text="{Binding Stats.MaxUploadMbps, Converter={StaticResource RateDisplayConverter}}" Foreground="{DynamicResource SuccessBrush}" FontWeight="Bold"/>
                 </TextBlock>
-                <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,0"/>
-                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
-                    <Run Text="平均下载 "/><Run Text="{Binding Stats.AvgDownloadMbps, Converter={StaticResource RateDisplayConverter}}" Foreground="{StaticResource AccentBrush}" FontWeight="Bold"/>
+                <Border Width="1" Background="{DynamicResource BorderBrush}" Margin="12,0"/>
+                <TextBlock FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}">
+                    <Run Text="平均下载 "/><Run Text="{Binding Stats.AvgDownloadMbps, Converter={StaticResource RateDisplayConverter}}" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold"/>
                 </TextBlock>
-                <Border Width="1" Background="{StaticResource BorderBrush}" Margin="12,0"/>
-                <TextBlock FontSize="12" Foreground="{StaticResource TextPrimaryBrush}">
-                    <Run Text="最低延迟 "/><Run Text="{Binding Stats.MinLatencyMs, Converter={StaticResource LatencyDisplayConverter}}" Foreground="{StaticResource WarningBrush}" FontWeight="Bold"/>
+                <Border Width="1" Background="{DynamicResource BorderBrush}" Margin="12,0"/>
+                <TextBlock FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}">
+                    <Run Text="最低延迟 "/><Run Text="{Binding Stats.MinLatencyMs, Converter={StaticResource LatencyDisplayConverter}}" Foreground="{DynamicResource WarningBrush}" FontWeight="Bold"/>
                 </TextBlock>
             </StackPanel>
         </Border>
@@ -64,6 +64,7 @@
                                     Width="70" />
                 <DataGridTextColumn Header="外网平均延迟" Binding="{Binding WanLatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
                                     Width="70" />
+                <DataGridTextColumn Header="{DynamicResource Hist_Loss}" Binding="{Binding PacketLoss, StringFormat={}{0:F1}%}" Width="60" />
                 <DataGridTextColumn Header="总均速" Binding="{Binding AverageTotalMbps, Converter={StaticResource RateDisplayConverter}}"
                                     Width="90" />
                 <DataGridTextColumn Header="总流量" Binding="{Binding TotalBytes, Converter={StaticResource BytesDisplayConverter}}"
@@ -93,38 +94,38 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Button Grid.Column="0" Content="上一页"
+                <Button Grid.Column="0" Content="{DynamicResource Hist_Prev}"
                         Command="{Binding PreviousPageCommand}"
                         IsEnabled="{Binding CanGoPrevious}"
                         Width="70" />
 
                 <TextBlock Grid.Column="1" Text="{Binding PageNumber, StringFormat='第 {0} 页'}"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            FontSize="13" VerticalAlignment="Center" Margin="16,0" />
 
                 <TextBlock Grid.Column="2" Text="{Binding TotalPages, StringFormat='/ 共 {0} 页'}"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            FontSize="12" VerticalAlignment="Center" Margin="0,0,16,0" />
 
-                <Button Grid.Column="3" Content="下一页"
+                <Button Grid.Column="3" Content="{DynamicResource Hist_Next}"
                         Command="{Binding NextPageCommand}"
                         IsEnabled="{Binding CanGoNext}"
                         Width="70" />
 
-                <Button Grid.Column="4" Content="清除全部" Width="90" Margin="12,0,0,0"
+                <Button Grid.Column="4" Content="{DynamicResource Hist_Clear}" Width="90" Margin="12,0,0,0"
                         Command="{Binding ClearAllRecordsCommand}"
-                        Background="{StaticResource ErrorBrush}"
-                        Foreground="{StaticResource BackgroundBrush}" />
+                        Background="{DynamicResource ErrorBrush}"
+                        Foreground="{DynamicResource BackgroundBrush}" />
 
-                <Button Grid.Column="5" Content="导出CSV" Width="90" Margin="12,0,0,0"
+                <Button Grid.Column="5" Content="{DynamicResource Hist_Export}" Width="90" Margin="12,0,0,0"
                         Command="{Binding ExportCsvCommand}"
-                        Background="{StaticResource AccentHoverBrush}"
-                        Foreground="{StaticResource BackgroundBrush}" />
+                        Background="{DynamicResource AccentHoverBrush}"
+                        Foreground="{DynamicResource BackgroundBrush}" />
 
-                <Button Grid.Column="6" Content="删除选中"
+                <Button Grid.Column="6" Content="{DynamicResource Hist_Delete}"
                         Command="{Binding DeleteRecordCommand}"
-                        Background="{StaticResource ErrorBrush}"
-                        Foreground="{StaticResource BackgroundBrush}"
+                        Background="{DynamicResource ErrorBrush}"
+                        Foreground="{DynamicResource BackgroundBrush}"
                         Width="90" Margin="12,0,0,0" />
             </Grid>
         </Border>

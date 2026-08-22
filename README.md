@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
-[![Release](https://img.shields.io/badge/release-v1.4.0-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+[![Release](https://img.shields.io/badge/release-v1.4.1-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Stars](https://img.shields.io/github/stars/lingyingaojue/NetSpeedTest?color=yellow)](https://github.com/lingyingaojue/NetSpeedTest/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/lingyingaojue/NetSpeedTest/total?color=blue)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Last Commit](https://img.shields.io/github/last-commit/lingyingaojue/NetSpeedTest)](https://github.com/lingyingaojue/NetSpeedTest/commits)
@@ -70,6 +70,14 @@
 - **总速度显示** — 双向测速时显示下载 + 上传总速度
 - **完成弹窗每网卡结果** — 每张网卡独立速率/错误信息一目了然
 - **默认优先默认网关网卡** — 自动选中有默认网关的网卡
+
+### 🕸️ 内置 Web 服务器 & Web 控制台 (New in v1.4.1)
+- **浏览器远程测速** — 设置页一键开关（默认开启），手机/电脑访问 `http://<本机IP>:8080` 即得 Web 控制台，实时查看测速数据
+- **全套 REST API** — 远程开始/停止测速、切换网卡、读取历史/设置（`/api/test/start`、`/api/adapters`、`/api/history` 等）
+- **局域网访问控制（ACL）** — 按本机网卡网段生成访问清单，仅允许同网段设备访问，并自动探测防火墙放行状态
+- **丢包率实时监测** — 5 包/批探测（ICMP 优先，首轮全失败自动切 UDP 复核），结果随测速记录写入历史/CSV/Web API
+- **界面语言切换** — 简体中文 / English 一键切换，选择持久化
+- **深/浅主题切换** — 即时切换且持久化，启动自动恢复
 
 ### 📊 NIC 级精准计量
 - 基于 `IPv4Statistics` 差分计算，不受 HTTP 开销干扰
@@ -177,6 +185,10 @@
 | 网卡轮询间隔 | 200 – 5000 ms | **1000 ms** |
 | 抖动探测主机 | — | **8.8.8.8** |
 | 抖动采样间隔 | 1 – 60 s | **5 s** |
+| 丢包率目标主机 | — | **8.8.8.8** |
+| 丢包率轮询间隔 | 500 – 5000 ms | **1000 ms** |
+| 自适应起始线程数 | — | **2** |
+| Web 服务器端口 | — | **8080** |
 
 ---
 

@@ -20,11 +20,11 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="测速配置管理" FontSize="16" FontWeight="Bold"
-                           Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" />
-                <Button Grid.Column="1" Content="导入" Command="{Binding ImportConfigCommand}"
+                <TextBlock Text="{DynamicResource Profile_Title}" FontSize="16" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Content="{DynamicResource Import}" Command="{Binding ImportConfigCommand}"
                         Width="60" Margin="0,0,8,0" />
-                <Button Grid.Column="2" Content="导出" Command="{Binding ExportConfigCommand}"
+                <Button Grid.Column="2" Content="{DynamicResource Export}" Command="{Binding ExportConfigCommand}"
                         Width="60" />
             </Grid>
         </Border>
@@ -48,27 +48,27 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="配置列表" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
+                        <TextBlock Text="{DynamicResource Profile_List}" FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
                         <Button Grid.Column="1" Content="+" Width="30" Padding="0"
                                 Command="{Binding CreateProfileCommand}" Margin="0,0,4,0" />
-                        <Button Grid.Column="2" Content="删除" Width="48" Padding="4,2"
+                        <Button Grid.Column="2" Content="{DynamicResource Delete}" Width="48" Padding="4,2"
                                 Command="{Binding DeleteProfileCommand}"
                                 CommandParameter="{Binding SelectedProfile}"
-                                Background="{StaticResource ErrorBrush}" />
+                                Background="{DynamicResource ErrorBrush}" />
                     </Grid>
 
                     <ListBox Grid.Row="1" ItemsSource="{Binding Profiles}"
                              SelectedItem="{Binding SelectedProfile}"
-                             Background="{StaticResource SurfaceBrush}"
-                             Foreground="{StaticResource TextPrimaryBrush}"
-                             BorderBrush="{StaticResource BorderBrush}">
+                             Background="{DynamicResource SurfaceBrush}"
+                             Foreground="{DynamicResource TextPrimaryBrush}"
+                             BorderBrush="{DynamicResource BorderBrush}">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Margin="4,6">
                                     <TextBlock Text="{Binding Name}" FontSize="13"
-                                               Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
-                                    <TextBlock FontSize="11" Foreground="{StaticResource TextSecondaryBrush}">
+                                               Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                                    <TextBlock FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}">
                                         <TextBlock.Text>
                                             <MultiBinding StringFormat="{}{0} 个下载地址, {1} 个上传地址">
                                                 <Binding Path="DownloadUrls.Count" />
@@ -88,23 +88,23 @@
                     Visibility="{Binding SelectedProfile, Converter={StaticResource NotNullConverter}, FallbackValue=Collapsed}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <TextBlock Text="选中配置详情" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,12" />
+                        <TextBlock Text="{DynamicResource Profile_Detail}" FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12" />
 
                         <!-- 名称 -->
-                        <TextBlock Text="名称" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <TextBlock Text="{DynamicResource Name}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" />
                         <TextBox Text="{Binding SelectedProfile.Name, UpdateSourceTrigger=PropertyChanged}"
                                  Margin="0,2,0,12"
-                                 Background="{StaticResource CardBrush}"
-                                 Foreground="{StaticResource TextPrimaryBrush}"
-                                 BorderBrush="{StaticResource BorderBrush}" />
+                                 Background="{DynamicResource CardBrush}"
+                                 Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}" />
 
                         <!-- 下载地址 -->
-                        <TextBlock Text="下载地址" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <TextBlock Text="{DynamicResource DownloadUrls}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4" />
                         <ItemsControl ItemsSource="{Binding SelectedProfile.DownloadUrls}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{StaticResource SurfaceBrush}"
+                                    <Border Background="{DynamicResource SurfaceBrush}"
                                             CornerRadius="4" Padding="8,4" Margin="0,2">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -112,12 +112,12 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{Binding}" FontSize="12"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        TextTrimming="CharacterEllipsis"
                                                        VerticalAlignment="Center" />
-                                             <Button Grid.Column="1" Content="删除"
+                                             <Button Grid.Column="1" Content="{DynamicResource Delete}"
                                                      Width="40" Padding="2,1" FontSize="11"
-                                                     Background="{StaticResource ErrorBrush}"
+                                                     Background="{DynamicResource ErrorBrush}"
                                                     Command="{Binding DataContext.RemoveDownloadUrlCommand,
                                                               RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" />
@@ -134,20 +134,20 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Text="{Binding NewDownloadUrl, UpdateSourceTrigger=PropertyChanged}"
-                                     Background="{StaticResource CardBrush}"
-                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                     BorderBrush="{StaticResource BorderBrush}" />
-                            <Button Grid.Column="1" Content="添加" Width="50" Margin="8,0,0,0"
+                                     Background="{DynamicResource CardBrush}"
+                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                     BorderBrush="{DynamicResource BorderBrush}" />
+                            <Button Grid.Column="1" Content="{DynamicResource Add}" Width="50" Margin="8,0,0,0"
                                     Command="{Binding AddDownloadUrlCommand}"
                                     CommandParameter="{Binding SelectedProfile}" />
                         </Grid>
 
                         <!-- 上传地址 -->
-                        <TextBlock Text="上传地址" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}" Margin="0,0,0,4" />
+                        <TextBlock Text="{DynamicResource UploadUrls}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4" />
                         <ItemsControl ItemsSource="{Binding SelectedProfile.UploadUrls}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{StaticResource SurfaceBrush}"
+                                    <Border Background="{DynamicResource SurfaceBrush}"
                                             CornerRadius="4" Padding="8,4" Margin="0,2">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
@@ -155,12 +155,12 @@
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
                                             <TextBlock Text="{Binding}" FontSize="12"
-                                                       Foreground="{StaticResource TextPrimaryBrush}"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
                                                        TextTrimming="CharacterEllipsis"
                                                        VerticalAlignment="Center" />
-                                             <Button Grid.Column="1" Content="删除"
+                                             <Button Grid.Column="1" Content="{DynamicResource Delete}"
                                                      Width="40" Padding="2,1" FontSize="11"
-                                                     Background="{StaticResource ErrorBrush}"
+                                                     Background="{DynamicResource ErrorBrush}"
                                                     Command="{Binding DataContext.RemoveUploadUrlCommand,
                                                               RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" />
@@ -177,16 +177,16 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBox Grid.Column="0" Text="{Binding NewUploadUrl, UpdateSourceTrigger=PropertyChanged}"
-                                     Background="{StaticResource CardBrush}"
-                                     Foreground="{StaticResource TextPrimaryBrush}"
-                                     BorderBrush="{StaticResource BorderBrush}" />
-                            <Button Grid.Column="1" Content="添加" Width="50" Margin="8,0,0,0"
+                                     Background="{DynamicResource CardBrush}"
+                                     Foreground="{DynamicResource TextPrimaryBrush}"
+                                     BorderBrush="{DynamicResource BorderBrush}" />
+                            <Button Grid.Column="1" Content="{DynamicResource Add}" Width="50" Margin="8,0,0,0"
                                     Command="{Binding AddUploadUrlCommand}"
                                     CommandParameter="{Binding SelectedProfile}" />
                         </Grid>
 
                         <!-- 保存名称按钮 -->
-                        <Button Content="保存名称" HorizontalAlignment="Right" Width="80"
+                        <Button Content="{DynamicResource SaveName}" HorizontalAlignment="Right" Width="80"
                                 Command="{Binding SaveProfileNameCommand}"
                                 CommandParameter="{Binding SelectedProfile}" />
                     </StackPanel>

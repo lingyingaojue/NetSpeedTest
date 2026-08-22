@@ -8,7 +8,7 @@
         Icon="/Resources/app.png"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
-        Background="{StaticResource BackgroundBrush}"
+        Background="{DynamicResource BackgroundBrush}"
         ResizeMode="CanResize">
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="48" ResizeBorderThickness="6"
@@ -48,30 +48,33 @@
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0">
                     <TextBlock Text="NetSpeedTest" FontSize="16" FontWeight="Bold"
-                               Foreground="{StaticResource TextPrimaryBrush}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
                                Margin="20,14,20,22" />
-                    <Button Content="测速" Style="{StaticResource SidebarItemStyle}"
-                            Foreground="{StaticResource AccentBrush}" FontWeight="SemiBold"
+                    <Button Content="{DynamicResource Nav_SpeedTest}" Style="{StaticResource SidebarItemStyle}"
+                            Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"
                             Command="{Binding ClosePageCommand}" />
-                    <Button Content="历史记录" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
+                    <Button Content="{DynamicResource Nav_History}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
                             Command="{Binding OpenHistoryCommand}"
                             IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
-                    <Button Content="配置管理" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
+                    <Button Content="{DynamicResource Nav_Profiles}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
                             Command="{Binding OpenProfileConfigCommand}"
                             IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
-                    <Button Content="设置" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
+                    <Button Content="{DynamicResource Nav_Settings}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
                             Command="{Binding OpenSettingsCommand}"
                             IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
-                    <Button Content="更多功能" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
+                    <Button Content="{DynamicResource Nav_WebServer}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
+                            Command="{Binding OpenWebServerCommand}"
+                            IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
+                    <Button Content="{DynamicResource Nav_More}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
                             Command="{Binding OpenMoreCommand}"
                             IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
                 </StackPanel>
                 <StackPanel Grid.Row="1" Margin="0,8,0,12">
-                    <Border Height="1" Background="{StaticResource BorderBrush}" Margin="16,0,16,10" />
-                    <Button Content="用户协议" Style="{StaticResource SidebarItemStyle}"
+                    <Border Height="1" Background="{DynamicResource BorderBrush}" Margin="16,0,16,10" />
+                    <Button Content="{DynamicResource Nav_Eula}" Style="{StaticResource SidebarItemStyle}"
                             Command="{Binding OpenEulaCommand}"
                             IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
-                    <Button Content="关于" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
+                    <Button Content="{DynamicResource Nav_About}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
                             Command="{Binding OpenAboutCommand}"
                             IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
                 </StackPanel>
@@ -98,8 +101,8 @@
 
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
                     <TextBlock Text="NetSpeedTest" FontSize="15" FontWeight="Bold"
-                               Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="配置" Foreground="{StaticResource TextSecondaryBrush}"
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{DynamicResource Header_Profile}" Foreground="{DynamicResource TextSecondaryBrush}"
                                FontSize="12" Margin="16,0,6,0" VerticalAlignment="Center" />
                     <ComboBox Width="140"
                               ItemsSource="{Binding Profiles}"
@@ -114,7 +117,7 @@
                 </StackPanel>
 
                 <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="12"
-                           Foreground="{StaticResource TextSecondaryBrush}"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
                            VerticalAlignment="Center" Margin="8,0,8,0"
                            TextTrimming="CharacterEllipsis" />
 
@@ -136,7 +139,7 @@
                             <Setter Property="BorderThickness" Value="0" />
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="{StaticResource ErrorBrush}" />
+                                    <Setter Property="Background" Value="{DynamicResource ErrorBrush}" />
                                 </Trigger>
                             </Style.Triggers>
                         </Style>
@@ -181,17 +184,17 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock Text="选择测速模式" FontSize="22" FontWeight="Bold"
-                                   Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Idle_ChooseMode}" FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                    HorizontalAlignment="Center" Margin="0,0,0,28" />
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button Content="下载测速" Style="{StaticResource HeroButtonStyle}"
+                            <Button Content="{DynamicResource Btn_Download}" Style="{StaticResource HeroButtonStyle}"
                                     Command="{Binding StartDownloadTestCommand}"
                                     IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
-                            <Button Content="上传测速" Style="{StaticResource HeroButtonStyle}" Margin="16,0,0,0"
+                            <Button Content="{DynamicResource Btn_Upload}" Style="{StaticResource HeroButtonStyle}" Margin="16,0,0,0"
                                     Command="{Binding StartUploadTestCommand}"
                                     IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
-                            <Button Content="双向测速" Style="{StaticResource HeroButtonStyle}" Margin="16,0,0,0"
+                            <Button Content="{DynamicResource Btn_Both}" Style="{StaticResource HeroButtonStyle}" Margin="16,0,0,0"
                                     Command="{Binding StartFullTestCommand}"
                                     IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
 
@@ -200,8 +203,8 @@
                                 BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
                                 Padding="10,8" Margin="0,16,0,0">
                             <StackPanel>
-                                <TextBlock Text="选择要同时测速的网卡" FontSize="13" FontWeight="SemiBold"
-                                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6" />
+                                <TextBlock Text="{DynamicResource Adapter_Select}" FontSize="13" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6" />
                                 <ItemsControl ItemsSource="{Binding AdapterSelectionItems}">
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
@@ -211,11 +214,11 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <CheckBox IsChecked="{Binding IsSelected}" Margin="0,2,16,2"
-                                                      Foreground="{StaticResource TextPrimaryBrush}">
+                                                      Foreground="{DynamicResource TextPrimaryBrush}">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{Binding Name}" FontSize="13" />
                                                     <TextBlock Text="{Binding IPAddress, TargetNullValue='无IP'}" FontSize="12"
-                                                               Foreground="{StaticResource TextMutedBrush}" Margin="6,0,0,0" />
+                                                               Foreground="{DynamicResource TextMutedBrush}" Margin="6,0,0,0" />
                                                 </StackPanel>
                                             </CheckBox>
                                         </DataTemplate>
@@ -229,24 +232,29 @@
                     <Border Grid.Row="1" Style="{StaticResource GlassCardStyle}" Margin="0,16,0,0"
                             Visibility="{Binding HasRecentResult, Converter={StaticResource BoolToVisibility}, FallbackValue=Collapsed}">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <TextBlock Text="最近结果：" FontSize="13"
-                                       Foreground="{StaticResource TextSecondaryBrush}"
+                            <TextBlock Text="{DynamicResource Recent_Result}" FontSize="13"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
                                        VerticalAlignment="Center" />
                             <TextBlock FontSize="16" FontWeight="Bold" VerticalAlignment="Center"
-                                       Foreground="{StaticResource DownloadChartStroke}"
+                                       Foreground="{DynamicResource DownloadChartStroke}"
                                        Visibility="{Binding RecentDownloadMbps, Converter={StaticResource NotNullConverter}, FallbackValue=Collapsed}">
                                 <Run Text="▼ " /><Run Text="{Binding RecentDownloadMbps, Mode=OneWay, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
                             <TextBlock FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="16,0,0,0"
-                                       Foreground="{StaticResource UploadChartStroke}"
+                                       Foreground="{DynamicResource UploadChartStroke}"
                                        Visibility="{Binding RecentUploadMbps, Converter={StaticResource NotNullConverter}, FallbackValue=Collapsed}">
                                 <Run Text="▲ " /><Run Text="{Binding RecentUploadMbps, Mode=OneWay, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
                             <TextBlock FontSize="16" FontWeight="Bold" VerticalAlignment="Center" Margin="16,0,0,0"
-                                       Foreground="{StaticResource SuccessBrush}">
+                                       Foreground="{DynamicResource SuccessBrush}">
                                 <Run Text="{Binding RecentLatencyMs, Mode=OneWay, Converter={StaticResource LatencyDisplayConverter}}" />
                             </TextBlock>
-                            <Button Content="导出" Width="70" Margin="16,0,0,0" VerticalAlignment="Center"
+                            <TextBlock Text="{DynamicResource Recent_PacketLoss}" FontSize="13"
+                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                       VerticalAlignment="Center" Margin="16,0,4,0" />
+                            <TextBlock Text="{Binding RecentPacketLossDisplay, Mode=OneWay}" FontSize="16" FontWeight="Bold"
+                                       Foreground="{DynamicResource WarningBrush}" VerticalAlignment="Center" />
+                            <Button Content="{DynamicResource Export}" Width="70" Margin="16,0,0,0" VerticalAlignment="Center"
                                     Command="{Binding ExportResultCommand}" />
                         </StackPanel>
                     </Border>
@@ -266,63 +274,88 @@
                     <UniformGrid Grid.Row="0" Rows="1" Margin="0,0,0,12">
                         <StackPanel HorizontalAlignment="Center"
                                     Visibility="{Binding ShowDownloadMetrics, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="下载速率" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                            <TextBlock Text="{DynamicResource Metric_Download}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock FontSize="20" FontWeight="Bold"
-                                       Foreground="{StaticResource DownloadChartStroke}" HorizontalAlignment="Center">
+                                       Foreground="{DynamicResource DownloadChartStroke}" HorizontalAlignment="Center">
                                 <Run Text="▼ " /><Run Text="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center"
                                     Visibility="{Binding ShowUploadMetrics, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="上传速率" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                            <TextBlock Text="{DynamicResource Metric_Upload}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock FontSize="20" FontWeight="Bold"
-                                       Foreground="{StaticResource UploadChartStroke}" HorizontalAlignment="Center">
+                                       Foreground="{DynamicResource UploadChartStroke}" HorizontalAlignment="Center">
                                 <Run Text="▲ " /><Run Text="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center"
                                     Visibility="{Binding ShowTotalMetrics, Converter={StaticResource BoolToVisibility}}">
-                            <TextBlock Text="总速度" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                            <TextBlock Text="{DynamicResource Metric_Total}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock FontSize="20" FontWeight="Bold"
-                                       Foreground="{StaticResource SuccessBrush}" HorizontalAlignment="Center">
+                                       Foreground="{DynamicResource SuccessBrush}" HorizontalAlignment="Center">
                                 <Run Text="⇅ " /><Run Text="{Binding TotalRateMbps, Mode=OneWay, Converter={StaticResource RateDisplayConverter}}" />
                             </TextBlock>
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="测速时长" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                            <TextBlock Text="{DynamicResource Metric_Duration}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock Text="{Binding ElapsedSeconds, Converter={StaticResource DurationDisplayConverter}}"
-                                       FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
+                                       FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="内网延迟" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                            <TextBlock Text="{DynamicResource Metric_Lan}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock Text="{Binding LatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
-                                       FontSize="20" FontWeight="Bold" Foreground="{StaticResource SuccessBrush}"
+                                       FontSize="20" FontWeight="Bold" Foreground="{DynamicResource SuccessBrush}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="抖动延迟" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                            <TextBlock Text="{DynamicResource Metric_Jitter}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock x:Name="JitterText" Text="--" FontSize="20" FontWeight="Bold"
-                                       Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center" />
+                                       Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" />
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="外网延迟" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                            <TextBlock Text="{DynamicResource Metric_Wan}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock Text="{Binding WanLatencyMs, Converter={StaticResource LatencyDisplayConverter}}"
-                                       FontSize="20" FontWeight="Bold" Foreground="{StaticResource WarningBrush}"
+                                       FontSize="20" FontWeight="Bold" Foreground="{DynamicResource WarningBrush}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
                         <StackPanel HorizontalAlignment="Center">
-                            <TextBlock Text="总流量" FontSize="12" Foreground="{StaticResource TextMutedBrush}"
+                            <TextBlock Text="{DynamicResource Metric_PacketLoss}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                                       HorizontalAlignment="Center" />
+                            <TextBlock Text="{Binding PacketLossDisplay, Mode=OneWay}" FontSize="20" FontWeight="Bold"
+                                       HorizontalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding PacketLossPercent}" Value="{x:Null}">
+                                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding PacketLossLevel}" Value="1">
+                                                <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding PacketLossLevel}" Value="2">
+                                                <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock Text="{Binding PacketLossDetail}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                       HorizontalAlignment="Center" Margin="0,2,0,0" />
+                        </StackPanel>
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="{DynamicResource Metric_Traffic}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                                        HorizontalAlignment="Center" />
                             <TextBlock Text="{Binding TotalBytes, Converter={StaticResource BytesDisplayConverter}}"
-                                       FontSize="20" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"
+                                       FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
                     </UniformGrid>
@@ -342,8 +375,8 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Text="下载速率" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{StaticResource DownloadChartStroke}" />
+                                    <TextBlock Text="{DynamicResource Metric_Download}" FontSize="15" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource DownloadChartStroke}" />
                                     <ComboBox Width="120" Margin="8,0,0,0" ItemsSource="{Binding ChartAdapterOptions}"
                                               SelectedItem="{Binding SelectedChartAdapter}" />
                                 </StackPanel>
@@ -363,8 +396,8 @@
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                                    <TextBlock Text="上传速率" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{StaticResource UploadChartStroke}" />
+                                    <TextBlock Text="{DynamicResource Metric_Upload}" FontSize="15" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource UploadChartStroke}" />
                                     <ComboBox Width="120" Margin="8,0,0,0" ItemsSource="{Binding ChartAdapterOptions}"
                                               SelectedItem="{Binding SelectedChartAdapter}" />
                                 </StackPanel>
@@ -393,27 +426,27 @@
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding Name}" FontSize="13"
-                                                           Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="140"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="140"
                                                            VerticalAlignment="Center" />
                                                 <TextBlock Text="{Binding IpAddress, TargetNullValue='—'}" FontSize="11"
-                                                           Foreground="{StaticResource TextMutedBrush}" Margin="6,0,0,0"
+                                                           Foreground="{DynamicResource TextMutedBrush}" Margin="6,0,0,0"
                                                            VerticalAlignment="Center" />
-                                                <Border Background="{StaticResource SurfaceBrush}" CornerRadius="3"
-                                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                                <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="3"
+                                                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
                                                         Padding="4,1" Margin="8,0,0,0">
                                                     <TextBlock Text="{Binding StatusText}" FontSize="11"
-                                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                                               Foreground="{DynamicResource TextSecondaryBrush}" />
                                                 </Border>
                                             </StackPanel>
                                             <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                                 <TextBlock FontSize="15" FontWeight="Bold"
-                                                           Foreground="{StaticResource DownloadChartStroke}"
+                                                           Foreground="{DynamicResource DownloadChartStroke}"
                                                            VerticalAlignment="Center">
                                                     <Run Text="▼ " />
                                                     <Run Text="{Binding DownloadMbps, Converter={StaticResource RateDisplayConverter}}" />
                                                 </TextBlock>
                                                 <TextBlock FontSize="15" FontWeight="Bold"
-                                                           Foreground="{StaticResource UploadChartStroke}"
+                                                           Foreground="{DynamicResource UploadChartStroke}"
                                                            VerticalAlignment="Center" Margin="8,0,0,0">
                                                     <Run Text="▲ " />
                                                     <Run Text="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}" />
@@ -428,18 +461,19 @@
 
                     <!-- 操作行 -->
                     <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12">
-                        <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}"
+                        <Border Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}"
                                 BorderThickness="1" CornerRadius="4" Padding="8,4" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding ActiveThreadCount, StringFormat=活跃线程 {0}}" FontSize="12"
-                                       Foreground="{StaticResource AccentBrush}" FontWeight="Bold" />
+                            <TextBlock FontSize="12" Foreground="{DynamicResource AccentBrush}" FontWeight="Bold">
+                                    <Run Text="{DynamicResource Active_Threads_Prefix}" /><Run Text="{Binding ActiveThreadCount}" />
+                                </TextBlock>
                         </Border>
-                        <Button Content="取消" Width="80" Margin="16,0,0,0" Style="{StaticResource DangerButtonStyle}"
+                        <Button Content="{DynamicResource Cancel}" Width="80" Margin="16,0,0,0" Style="{StaticResource DangerButtonStyle}"
                                 Command="{Binding CancelTestCommand}" />
                     </StackPanel>
 
                     <!-- 网卡详细信息（折叠） -->
-                    <Expander Grid.Row="4" Header="网卡详细信息" FontSize="13"
-                              Foreground="{StaticResource TextSecondaryBrush}" Margin="0,4,0,0">
+                    <Expander Grid.Row="4" Header="{DynamicResource Nic_Details}" FontSize="13"
+                              Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0">
                         <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <ItemsControl ItemsSource="{Binding Adapters}" Margin="0,8,0,0">
                             <ItemsControl.ItemTemplate>
@@ -462,13 +496,13 @@
                                                     </Ellipse.Style>
                                                 </Ellipse>
                                                 <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="Bold"
-                                                           Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"
                                                            VerticalAlignment="Center" />
-                                                <Border Background="{StaticResource AccentBrush}" CornerRadius="4"
+                                                <Border Background="{DynamicResource AccentBrush}" CornerRadius="4"
                                                         Padding="6,2" Margin="8,0,0,0">
                                                     <TextBlock Text="{Binding TypeName}" FontSize="12" Foreground="White" TextTrimming="CharacterEllipsis" />
                                                 </Border>
-                                                <Border Background="{StaticResource AccentBrush}" CornerRadius="4"
+                                                <Border Background="{DynamicResource AccentBrush}" CornerRadius="4"
                                                         Padding="6,2" Margin="4,0,0,0">
                                                     <TextBlock Text="{Binding LinkSpeedBps, Converter={StaticResource SpeedDisplayConverter}}"
                                                                FontSize="12" Foreground="White" />
@@ -476,54 +510,54 @@
                                             </StackPanel>
                                             <UniformGrid Columns="3">
                                                 <StackPanel>
-                                                    <TextBlock Text="IP 地址" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                                    <TextBlock Text="{DynamicResource NIC_IP}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                                     <TextBlock Text="{Binding IPAddress, TargetNullValue='—'}" FontSize="14" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource DownloadChartStroke}" />
+                                                               Foreground="{DynamicResource DownloadChartStroke}" />
                                                 </StackPanel>
                                                 <StackPanel>
-                                                    <TextBlock Text="默认网关" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                                    <TextBlock Text="{DynamicResource NIC_Gateway}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                                     <TextBlock Text="{Binding Gateway, TargetNullValue='—'}" FontSize="14" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource SuccessBrush}" />
+                                                               Foreground="{DynamicResource SuccessBrush}" />
                                                 </StackPanel>
                                                 <StackPanel>
-                                                    <TextBlock Text="子网掩码" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                                    <TextBlock Text="{DynamicResource NIC_Mask}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                                     <TextBlock Text="{Binding SubnetMask, TargetNullValue='—'}" FontSize="14" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                                 </StackPanel>
                                                 <StackPanel>
-                                                    <TextBlock Text="MAC 地址" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                                    <TextBlock Text="{DynamicResource NIC_MAC}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                                     <TextBlock Text="{Binding MacAddress, TargetNullValue='—'}" FontSize="14" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource WarningBrush}" />
+                                                               Foreground="{DynamicResource WarningBrush}" />
                                                 </StackPanel>
                                                 <StackPanel>
-                                                    <TextBlock Text="IPv6 地址" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                                    <TextBlock Text="{DynamicResource NIC_IPv6}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                                     <TextBlock Text="{Binding IPv6Address, TargetNullValue='—'}" FontSize="14" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                                                               Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
                                                 </StackPanel>
                                                 <StackPanel>
-                                                    <TextBlock Text="DNS 服务器" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                                    <TextBlock Text="{DynamicResource NIC_DNS}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                                     <TextBlock Text="{Binding DnsServers, TargetNullValue='—'}" FontSize="14" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource UploadChartStroke}" TextWrapping="Wrap" />
+                                                               Foreground="{DynamicResource UploadChartStroke}" TextWrapping="Wrap" />
                                                 </StackPanel>
                                                 <StackPanel>
-                                                    <TextBlock Text="DHCP 服务器" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                                    <TextBlock Text="{DynamicResource NIC_DHCP}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                                     <TextBlock Text="{Binding DhcpServer, TargetNullValue='—'}" FontSize="14" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource DownloadChartStroke}" />
+                                                               Foreground="{DynamicResource DownloadChartStroke}" />
                                                 </StackPanel>
                                                 <StackPanel>
-                                                    <TextBlock Text="MTU" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                                    <TextBlock Text="{DynamicResource NIC_MTU}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                                     <TextBlock Text="{Binding Mtu, TargetNullValue='—'}" FontSize="14" FontWeight="SemiBold"
-                                                               Foreground="{StaticResource TextPrimaryBrush}" />
+                                                               Foreground="{DynamicResource TextPrimaryBrush}" />
                                                 </StackPanel>
                                                 <StackPanel>
-                                                    <TextBlock Text="连接状态" FontSize="12" Foreground="{StaticResource TextMutedBrush}" />
+                                                    <TextBlock Text="{DynamicResource NIC_Status}" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
                                                     <TextBlock Text="{Binding StatusText}" FontSize="14" FontWeight="SemiBold">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
-                                                                <Setter Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                                                                <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding StatusText}" Value="已断开">
-                                                                        <Setter Property="Foreground" Value="{StaticResource ErrorBrush}" />
+                                                                        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}" />
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>

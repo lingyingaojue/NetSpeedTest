@@ -33,72 +33,93 @@ public class NetworkInfoService
         {
             try
             {
-                if (ni.OperationalStatus != OperationalStatus.Up)
-                    continue;
-
+                if (ni.OperationalStatus != OperationalStatus.Up) continue;
                 if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
-                    ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel)
-                    continue;
+                    ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel) continue;
 
                 var desc = ni.Description ?? string.Empty;
                 var name = ni.Name ?? string.Empty;
-
                 if (ExcludeKeywords.Any(k => desc.Contains(k, StringComparison.OrdinalIgnoreCase) ||
                                               name.Contains(k, StringComparison.OrdinalIgnoreCase)))
                     continue;
 
-                var ipProps = ni.GetIPProperties();
-                var ipv4 = ipProps.UnicastAddresses
-                    .FirstOrDefault(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
-
-                var gateway = ipProps.GatewayAddresses
-                    .FirstOrDefault(g => g.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.Address?.ToString()
-                    ?? ipProps.GatewayAddresses.FirstOrDefault()?.Address?.ToString();
-
-                var ipv6 = ipProps.UnicastAddresses
-                    .FirstOrDefault(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)?.Address?.ToString();
-                var dns = string.Join(", ", ipProps.DnsAddresses.Select(d => d.ToString()).Where(s => !string.IsNullOrEmpty(s)));
-                var dhcpServer = ipProps.DhcpServerAddresses.FirstOrDefault()?.ToString();
-                var mtu = ni.GetIPProperties().GetIPv4Properties()?.Mtu;
-                var typeName = ni.NetworkInterfaceType switch
-                {
-                    NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet => "以太网",
-                    NetworkInterfaceType.Wireless80211 => "WiFi",
-                    _ => ni.NetworkInterfaceType.ToString()
-                };
-                var statusText = ni.OperationalStatus == OperationalStatus.Up ? "已连接" :
-                                 ni.OperationalStatus == OperationalStatus.Down ? "已断开" : "未知";
-
-                var adapter = new NetworkAdapterInfo
-                {
-                    Id = ni.Id,
-                    Name = name,
-                    Description = desc,
-                    IPAddress = ipv4?.Address?.ToString(),
-                    SubnetMask = ipv4?.IPv4Mask?.ToString(),
-                    Gateway = gateway,
-                    MacAddress = ni.GetPhysicalAddress().ToString(),
-                    LinkSpeedBps = ni.Speed > 0 ? ni.Speed : null,
-                    IPv6Address = ipv6,
-                    DnsServers = dns.Length > 0 ? dns : null,
-                    DhcpServer = dhcpServer,
-                    Mtu = mtu,
-                    TypeName = typeName,
-                    StatusText = statusText,
-                    IsPhysical = true,
-                    IsWifi = ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211,
-                    IsOperational = true
-                };
-
-                adapters.Add(adapter);
+                var adapter = CreateAdapter(ni);
+                if (adapter != null) adapters.Add(adapter);
             }
-            catch
+            catch { }
+        }
+
+        // 严格过滤后如果一张网卡都没识别到，降级为宽松模式，避免部分机器上误过滤导致无网卡
+        if (adapters.Count == 0)
+        {
+            foreach (var ni in allInterfaces)
             {
-                // 跳过单个失败的网卡
+                if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
+                    ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel) continue;
+
+                var adapter = CreateAdapter(ni);
+                if (adapter != null) adapters.Add(adapter);
             }
         }
 
         return adapters;
+    }
+
+    private NetworkAdapterInfo? CreateAdapter(NetworkInterface ni)
+    {
+        try
+        {
+            var desc = ni.Description ?? string.Empty;
+            var name = ni.Name ?? string.Empty;
+            var ipProps = ni.GetIPProperties();
+            var ipv4 = ipProps.UnicastAddresses
+                .FirstOrDefault(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+
+            var gateway = ipProps.GatewayAddresses
+                .FirstOrDefault(g => g.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)?.Address?.ToString()
+                ?? ipProps.GatewayAddresses.FirstOrDefault()?.Address?.ToString();
+
+            var ipv6 = ipProps.UnicastAddresses
+                .FirstOrDefault(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)?.Address?.ToString();
+            var dns = string.Join(", ", ipProps.DnsAddresses.Select(d => d.ToString()).Where(s => !string.IsNullOrEmpty(s)));
+            var dhcpServer = ipProps.DhcpServerAddresses.FirstOrDefault()?.ToString();
+            int? mtu = null;
+            try { mtu = ipProps.GetIPv4Properties()?.Mtu; } catch { }
+
+            var typeName = ni.NetworkInterfaceType switch
+            {
+                NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet => "以太网",
+                NetworkInterfaceType.Wireless80211 => "WiFi",
+                _ => ni.NetworkInterfaceType.ToString()
+            };
+            var statusText = ni.OperationalStatus == OperationalStatus.Up ? "已连接" :
+                             ni.OperationalStatus == OperationalStatus.Down ? "已断开" : "未知";
+
+            return new NetworkAdapterInfo
+            {
+                Id = ni.Id,
+                Name = name,
+                Description = desc,
+                IPAddress = ipv4?.Address?.ToString(),
+                SubnetMask = ipv4?.IPv4Mask?.ToString(),
+                Gateway = gateway,
+                MacAddress = ni.GetPhysicalAddress().ToString(),
+                LinkSpeedBps = ni.Speed > 0 ? ni.Speed : null,
+                IPv6Address = ipv6,
+                DnsServers = dns.Length > 0 ? dns : null,
+                DhcpServer = dhcpServer,
+                Mtu = mtu,
+                TypeName = typeName,
+                StatusText = statusText,
+                IsPhysical = true,
+                IsWifi = ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211,
+                IsOperational = ni.OperationalStatus == OperationalStatus.Up
+            };
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     /// <summary>

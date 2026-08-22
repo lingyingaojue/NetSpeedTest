@@ -1,7 +1,12 @@
 <UserControl x:Class="NetSpeedTest.Views.SettingsPage"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:converters="clr-namespace:NetSpeedTest.Converters"
         xml:lang="en-US">
+    <UserControl.Resources>
+        <converters:BoolInverterConverter x:Key="BoolInverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="160"/>
@@ -13,13 +18,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <Border Background="{StaticResource SurfaceBrush}" Grid.Row="0" Grid.RowSpan="2">
+        <Border Background="{DynamicResource SurfaceBrush}" Grid.Row="0" Grid.RowSpan="2">
             <ListBox ItemsSource="{Binding Categories}"
-                     SelectedIndex="{Binding SelectedCategoryIndex}"
+                     SelectedIndex="{Binding SelectedCategoryIndex, Mode=TwoWay}"
                      Background="Transparent"
                      BorderThickness="0"
                      FontSize="14"
-                     Foreground="{StaticResource TextPrimaryBrush}">
+                     Foreground="{DynamicResource TextPrimaryBrush}">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
                         <Setter Property="Padding" Value="20,14"/>
@@ -33,11 +38,11 @@
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsSelected" Value="True">
                                             <Setter TargetName="Border" Property="Background"
-                                                    Value="{StaticResource AccentBrush}"/>
+                                                    Value="{DynamicResource AccentBrush}"/>
                                         </Trigger>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="Border" Property="Background"
-                                                    Value="{StaticResource CardBrush}"/>
+                                                    Value="{DynamicResource CardBrush}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -48,7 +53,7 @@
             </ListBox>
         </Border>
 
-        <Border Background="{StaticResource BorderBrush}" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
+        <Border Background="{DynamicResource BorderBrush}" Grid.Column="1" Grid.Row="0" Grid.RowSpan="2"/>
 
         <Grid Grid.Column="2" Grid.Row="0" Margin="28,20,28,0">
             <StackPanel>
@@ -65,21 +70,28 @@
 
                 <StackPanel Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="并发线程数" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_Concurrency}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding ThreadCount, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
-                    <Slider Minimum="0" Maximum="8" Value="{Binding ThreadIndex}"
-                            IsSnapToTickEnabled="True" Ticks="0 1 2 3 4 5 6 7 8"/>
+                    <Slider Minimum="2" Maximum="1024" Value="{Binding ThreadCount}"
+                            IsSnapToTickEnabled="True" TickFrequency="2"
+                            IsEnabled="{Binding AdaptiveThreadsEnabled, Converter={StaticResource BoolInverter}}"/>
+
+                <CheckBox Content="{DynamicResource Set_AdaptiveMode}" IsChecked="{Binding AdaptiveThreadsEnabled}"
+                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" Margin="0,12,0,0"/>
+                <TextBlock Text="{DynamicResource Set_AdaptiveHint}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="0,4,0,0"
+                           Visibility="{Binding AdaptiveThreadsEnabled, Converter={StaticResource BoolToVisibility}}" TextWrapping="Wrap"/>
+
                 </StackPanel>
 
                 <StackPanel Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="测速时长 (秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_Timeout}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding TestTimeoutSec, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
                     <Slider Minimum="10" Maximum="600" Value="{Binding TestTimeoutSec}"
                             TickFrequency="10" IsSnapToTickEnabled="True"/>
@@ -87,10 +99,10 @@
 
                 <StackPanel Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="线程启动间隔 (毫秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_Ramp}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding ThreadRampUpMs, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
                     <Slider Minimum="0" Maximum="2000" Value="{Binding ThreadRampUpMs}"
                             TickFrequency="100" IsSnapToTickEnabled="True"/>
@@ -98,10 +110,10 @@
 
                 <StackPanel Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="平均计量延迟 (秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_AvgDelay}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding AverageDelaySec, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
                     <Slider Minimum="1" Maximum="30" Value="{Binding AverageDelaySec}"
                             TickFrequency="1" IsSnapToTickEnabled="True"/>
@@ -109,10 +121,10 @@
 
                 <StackPanel Margin="0,0,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="速率平滑窗口 (秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_RateWindow}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding RateWindowSec, StringFormat={}{0:F1}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
                     <Slider Minimum="0.5" Maximum="10" Value="{Binding RateWindowSec}"
                             TickFrequency="0.5" IsSnapToTickEnabled="True"/>
@@ -133,10 +145,10 @@
 
                 <StackPanel Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="网卡轮询间隔 (毫秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_NicPoll}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding NicPollIntervalMs, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
                     <Slider Minimum="200" Maximum="5000" Value="{Binding NicPollIntervalMs}"
                             TickFrequency="100" IsSnapToTickEnabled="True"/>
@@ -144,10 +156,10 @@
 
                 <StackPanel Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="延迟轮询间隔 (毫秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_LatencyPoll}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding LatencyPollIntervalMs, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
                     <Slider Minimum="500" Maximum="10000" Value="{Binding LatencyPollIntervalMs}"
                             TickFrequency="500" IsSnapToTickEnabled="True"/>
@@ -155,10 +167,10 @@
 
                 <StackPanel Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="抖动采样间隔 (毫秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_JitterPoll}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding JitterPollIntervalMs, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
                     <Slider Minimum="500" Maximum="5000" Value="{Binding JitterPollIntervalMs}"
                             TickFrequency="500" IsSnapToTickEnabled="True"/>
@@ -166,13 +178,35 @@
 
                 <StackPanel Margin="0,0,0,0">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="抖动探测主机" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_JitterHost}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBox Text="{Binding JitterTargetHost, UpdateSourceTrigger=PropertyChanged}" Width="200"
-                                 FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
-                                 Background="{StaticResource BackgroundBrush}"
-                                 BorderBrush="{StaticResource BorderBrush}"/>
+                                 FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                                 Background="{DynamicResource BackgroundBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"/>
                     </StackPanel>
+                </StackPanel>
+
+                <StackPanel Margin="0,12,0,16">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{DynamicResource Set_PacketLossHost}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Width="160" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding PacketLossTargetHost, UpdateSourceTrigger=PropertyChanged}" Width="200"
+                                 FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                                 Background="{DynamicResource BackgroundBrush}"
+                                 BorderBrush="{DynamicResource BorderBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Margin="0,0,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{DynamicResource Set_PacketLossPoll}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Width="160" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding PacketLossPollIntervalMs, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                    </StackPanel>
+                    <Slider Minimum="500" Maximum="5000" Value="{Binding PacketLossPollIntervalMs}"
+                            TickFrequency="500" IsSnapToTickEnabled="True"/>
                 </StackPanel>
             </StackPanel>
 
@@ -188,47 +222,34 @@
                     </Style>
                 </StackPanel.Style>
 
-                <CheckBox Content="启用补偿" IsChecked="{Binding CompensationEnabled}"
-                          Foreground="{StaticResource TextPrimaryBrush}" FontSize="13" Margin="0,0,0,16"/>
+                <CheckBox Content="{DynamicResource Set_CompEnable}" IsChecked="{Binding CompensationEnabled}"
+                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" Margin="0,0,0,16"/>
 
                 <StackPanel Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="补偿阈值" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_CompThreshold}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding CompensationThreshold, StringFormat={}{0:F2}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
                     <Slider Minimum="0.3" Maximum="0.8" Value="{Binding CompensationThreshold}"
                             TickFrequency="0.05" IsSnapToTickEnabled="True"
                             IsEnabled="{Binding CompensationEnabled}"/>
                 </StackPanel>
 
-                <StackPanel Margin="0,0,0,16">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="补偿线程数" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
-                                   Width="160" VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding CompensationExtraThreads, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
-                    </StackPanel>
-                    <Slider Minimum="0" Maximum="64" Value="{Binding CompensationExtraThreads}"
-                            TickFrequency="4" IsSnapToTickEnabled="True"
-                            IsEnabled="{Binding CompensationEnabled}"/>
-                </StackPanel>
 
                 <StackPanel Margin="0,0,0,16">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="确认时长 (秒)" FontSize="13" Foreground="{StaticResource TextPrimaryBrush}"
+                        <TextBlock Text="{DynamicResource Set_CompConfirm}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                                    Width="160" VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding CompensationConfirmSec, StringFormat={}{0}}" FontSize="14" FontWeight="Bold"
-                                   Foreground="{StaticResource AccentBrush}" Width="50" TextAlignment="Right"/>
+                                   Foreground="{DynamicResource AccentBrush}" Width="50" TextAlignment="Right"/>
                     </StackPanel>
                     <Slider Minimum="1" Maximum="10" Value="{Binding CompensationConfirmSec}"
                             TickFrequency="1" IsSnapToTickEnabled="True"
                             IsEnabled="{Binding CompensationEnabled}"/>
                 </StackPanel>
 
-                <CheckBox Content="启用自适应线程上限" IsChecked="{Binding AdaptiveThreadsEnabled}" Margin="0,0,0,0"
-                          Foreground="{StaticResource TextPrimaryBrush}" FontSize="13"/>
             </StackPanel>
         </Grid>
 
@@ -245,31 +266,63 @@
                 </Style>
             </StackPanel.Style>
 
-            <TextBlock Text="广告设置" FontSize="15" FontWeight="SemiBold"
-                       Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+            <TextBlock Text="{DynamicResource Set_AdTitle}" FontSize="15" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
 
             <StackPanel Margin="0,0,0,16">
-                <TextBlock Text="当前赞助商" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="{DynamicResource Set_Sponsor}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 <TextBlock Text="{Binding AdSponsorName}" FontSize="13" FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,4,0,0"
+                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,4,0,0"
                            TextWrapping="Wrap"/>
             </StackPanel>
 
             <StackPanel Margin="0,0,0,16">
-                <TextBlock Text="广告状态" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"/>
+                <TextBlock Text="{DynamicResource Set_AdStatus}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 <TextBlock Text="{Binding AdStatusText}" FontSize="13" FontWeight="SemiBold"
-                           Foreground="{StaticResource AccentBrush}" Margin="0,4,0,0"/>
+                           Foreground="{DynamicResource AccentBrush}" Margin="0,4,0,0"/>
             </StackPanel>
 
-            <Button Content="关闭广告 7 天" Width="130"
+            <Button Content="{DynamicResource Set_CloseAd}" Width="130"
                     Command="{Binding CloseAdCommand}"/>
         </StackPanel>
 
+
+        <!-- 分类 4：外观 -->
+        <StackPanel Grid.Column="2" Grid.Row="0" Margin="28,20,28,0" VerticalAlignment="Top">
+            <StackPanel.Style>
+                <Style TargetType="StackPanel">
+                    <Setter Property="Visibility" Value="Collapsed"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedCategoryIndex}" Value="4">
+                            <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+
+            <TextBlock Text="{DynamicResource Set_Appearance}" FontSize="15" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{DynamicResource Set_Theme}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                           Width="160" VerticalAlignment="Center"/>
+                <ComboBox Width="160" ItemsSource="{Binding ThemeOptions}"
+                          SelectedIndex="{Binding ThemeIndex, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+                <TextBlock Text="{DynamicResource Set_Language}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                           Width="160" VerticalAlignment="Center"/>
+                <ComboBox Width="160" ItemsSource="{Binding LanguageOptions}"
+                          SelectedIndex="{Binding LanguageIndex, Mode=TwoWay}"/>
+            </StackPanel>
+
+        </StackPanel>
         <StackPanel Grid.Column="2" Grid.Row="1" Orientation="Horizontal"
                     HorizontalAlignment="Right" Margin="28,16,28,20">
-            <Button Content="保存" Width="80" Style="{StaticResource AccentButtonStyle}"
+            <Button Content="{DynamicResource Save}" Width="80" Style="{StaticResource AccentButtonStyle}"
                     Command="{Binding SaveCommand}"/>
-            <Button Content="取消" Width="60" Margin="8,0,0,0"
+            <Button Content="{DynamicResource Cancel}" Width="60" Margin="8,0,0,0"
                     Command="{Binding CancelCommand}"/>
         </StackPanel>
     </Grid>

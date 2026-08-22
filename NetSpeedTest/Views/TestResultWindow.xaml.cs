@@ -13,6 +13,7 @@ public partial class TestResultWindow : Window
     public TestResultWindow(string testMode, double elapsed, double dlRate,
         double? ulRate, long totalBytes,
         double totalAvg, double lanLat, double wanLat, double jitter,
+        double packetLoss,
         Action? exportAction = null,
         IEnumerable<SpeedTestResult>? nicResults = null)
     {
@@ -20,7 +21,9 @@ public partial class TestResultWindow : Window
         InitializeComponent();
 
         NicResultsList.ItemsSource = nicResults;
-        NicResultsList.Visibility = nicResults != null && nicResults.Any() ? Visibility.Visible : Visibility.Collapsed;
+        var hasNicResults = nicResults != null && nicResults.Any();
+        NicResultsPanel.Visibility = hasNicResults ? Visibility.Visible : Visibility.Collapsed;
+        NicResultsList.Visibility = hasNicResults ? Visibility.Visible : Visibility.Collapsed;
         Logger.Log($"[D-DLG] received: lanLat={lanLat:F1} wanLat={wanLat:F1} jitter={jitter:F1}");
 
         if (testMode == "上传")
@@ -38,6 +41,7 @@ public partial class TestResultWindow : Window
         LanValue.Text = FormatHelper.FormatLatency(lanLat);
         JitterValue.Text = FormatHelper.FormatLatency(jitter);
         WanValue.Text = FormatHelper.FormatLatency(wanLat);
+        PacketLossValue.Text = $"{packetLoss:F1}%";
     }
 
     private void Copy_Click(object sender, RoutedEventArgs e)
@@ -56,6 +60,7 @@ public partial class TestResultWindow : Window
             sb.AppendLine($"内网平均延迟: {LanValue.Text}");
             sb.AppendLine($"平均抖动延迟: {JitterValue.Text}");
             sb.AppendLine($"外网平均延迟: {WanValue.Text}");
+            sb.AppendLine($"丢包率: {PacketLossValue.Text}");
             sb.AppendLine($"测速时长: {ElapsedValue.Text}");
             Clipboard.SetText(sb.ToString().TrimEnd());
         }
