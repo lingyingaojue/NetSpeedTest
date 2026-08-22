@@ -244,6 +244,7 @@ code {
 .site-nav {
   position: relative;
   display: flex;
+  margin-left: auto;
   align-items: center;
   gap: 2px;
   padding: 6px;
@@ -1293,6 +1294,10 @@ html.js :where(.reveal.visible) {
     display: flex;
   }
 
+  .header-tools {
+    margin-left: auto;
+  }
+
   .site-nav {
     position: absolute;
     top: 76px;
@@ -1448,4 +1453,349 @@ html.js :where(.reveal.visible) {
     white-space: normal;
     word-break: break-all;
   }
+}
+
+/* ---------------- 顶栏主题/语言控件 ---------------- */
+.header-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-toggle,
+.lang-switch {
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)), rgba(22, 27, 34, 0.5);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.theme-toggle {
+  width: 36px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.lang-switch {
+  padding: 0 8px;
+  font-size: 12px;
+  outline: none;
+}
+
+.lang-switch option {
+  background: #161b22;
+  color: #e6edf3;
+}
+
+.theme-toggle:hover,
+.lang-switch:hover {
+  border-color: rgba(88, 166, 255, 0.6);
+}
+
+/* ---------------- 亮色主题 ---------------- */
+html.light {
+  --bg: #f2f5f9;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #eef2f7;
+  --border: #d5dce5;
+  --border-muted: #e3e8ef;
+  --text: #1f242b;
+  --text-muted: #596273;
+  --text-faint: #8993a0;
+  --shadow: 0 18px 50px rgba(30, 45, 70, 0.14);
+}
+
+html.light body {
+  background:
+    radial-gradient(900px 420px at 80% -10%, rgba(88, 166, 255, 0.2), transparent 60%),
+    radial-gradient(700px 400px at 5% 110%, rgba(188, 140, 255, 0.16), transparent 60%),
+    var(--bg);
+}
+
+html.light .site-header {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.62));
+  border-bottom-color: rgba(15, 25, 45, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 12px 32px rgba(30, 45, 70, 0.08);
+}
+
+html.light .site-header.scrolled {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.82));
+}
+
+html.light .site-nav {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.72));
+  border-color: rgba(15, 25, 45, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 28px rgba(30, 45, 70, 0.1);
+}
+
+html.light .site-nav a:not(.btn):hover {
+  background: rgba(15, 25, 45, 0.06);
+}
+
+html.light .site-nav a:not(.btn).active {
+  color: #0b5dd6;
+}
+
+html.light .nav-indicator {
+  background: linear-gradient(135deg, rgba(31, 111, 235, 0.2), rgba(88, 166, 255, 0.14) 55%, rgba(188, 140, 255, 0.12));
+  border-color: rgba(31, 111, 235, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 6px 18px rgba(31, 111, 235, 0.14);
+}
+
+html.light .theme-toggle,
+html.light .lang-switch,
+html.light .nav-toggle {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+  border-color: rgba(15, 25, 45, 0.14);
+  color: var(--text);
+}
+
+html.light .lang-switch option {
+  background: #ffffff;
+  color: #1f242b;
+}
+
+html.light .btn-ghost {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(15, 25, 45, 0.16);
+  color: var(--text);
+}
+
+html.light .btn-ghost:hover {
+  border-color: rgba(31, 111, 235, 0.5);
+  background: #ffffff;
+}
+
+html.light .hero-bg {
+  background:
+    radial-gradient(900px 480px at 78% -10%, rgba(88, 166, 255, 0.2), transparent 62%),
+    radial-gradient(700px 420px at 12% 110%, rgba(188, 140, 255, 0.17), transparent 60%),
+    radial-gradient(620px 380px at 95% 100%, rgba(63, 185, 80, 0.12), transparent 60%);
+}
+
+html.light .hero-bg::after {
+  background-image:
+    linear-gradient(rgba(120, 135, 155, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 135, 155, 0.18) 1px, transparent 1px);
+}
+
+html.light .hero-badge {
+  background: rgba(63, 185, 80, 0.1);
+  border-color: rgba(46, 160, 67, 0.4);
+  color: #1a7f37;
+}
+
+html.light .demo-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.72));
+  border-color: rgba(15, 25, 45, 0.12);
+}
+
+html.light .demo-card-head {
+  border-bottom-color: rgba(15, 25, 45, 0.1);
+}
+
+html.light .demo-value {
+  background: rgba(245, 248, 252, 0.85);
+  border-color: rgba(15, 25, 45, 0.1);
+}
+
+html.light .demo-card canvas {
+  background: rgba(245, 248, 252, 0.75);
+  border-color: rgba(15, 25, 45, 0.1);
+}
+
+html.light .stat-item,
+html.light .feature-card,
+html.light .tool-item,
+html.light .stack-item,
+html.light .key-row,
+html.light .table-wrap,
+html.light .changelog-item,
+html.light .screenshot-frame {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(15, 25, 45, 0.12);
+}
+
+html.light .feature-card:hover,
+html.light .tool-item:hover,
+html.light .stack-item:hover {
+  border-color: rgba(31, 111, 235, 0.4);
+  box-shadow: 0 18px 44px rgba(30, 45, 70, 0.12);
+}
+
+html.light .tool-item:hover {
+  background: rgba(31, 111, 235, 0.06);
+}
+
+html.light .param-table th,
+html.light .param-table td {
+  border-bottom-color: rgba(15, 25, 45, 0.1);
+}
+
+html.light kbd {
+  background: #ffffff;
+  border-color: rgba(15, 25, 45, 0.16);
+  color: var(--text);
+}
+
+html.light code {
+  background: rgba(31, 111, 235, 0.08);
+  border-color: rgba(31, 111, 235, 0.2);
+  color: #6f42c1;
+}
+
+html.light .download-box {
+  background:
+    radial-gradient(600px 260px at 50% 0%, rgba(88, 166, 255, 0.16), transparent 70%),
+    radial-gradient(500px 240px at 50% 100%, rgba(63, 185, 80, 0.12), transparent 70%),
+    rgba(255, 255, 255, 0.8);
+  border-color: rgba(15, 25, 45, 0.12);
+}
+
+html.light .site-footer {
+  background: rgba(255, 255, 255, 0.6);
+  border-top-color: rgba(15, 25, 45, 0.1);
+}
+
+html.light .cursor-glow {
+  mix-blend-mode: normal;
+  opacity: 0.5;
+}
+
+@media (max-width: 640px) {
+  .lang-switch {
+    max-width: 70px;
+  }
+}
+
+html[lang="en"] .hero h1 {
+  font-size: clamp(1.9rem, 3.6vw, 2.8rem);
+}
+
+/* ---------------- 联系方式 ---------------- */
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.contact-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding: 26px 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contact-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(88, 166, 255, 0.6);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.3);
+  text-decoration: none;
+}
+
+.contact-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 62px;
+  height: 62px;
+  font-size: 30px;
+  border-radius: 18px;
+  margin-bottom: 16px;
+  background: rgba(88, 166, 255, 0.1);
+  border: 1px solid rgba(88, 166, 255, 0.25);
+}
+
+.contact-card img {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 6px;
+  margin-bottom: 14px;
+}
+
+.contact-card h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.contact-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  word-break: break-all;
+}
+
+@media (max-width: 960px) {
+  .contact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+html.light .contact-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(15, 25, 45, 0.12);
+}
+
+html.light .contact-card:hover {
+  border-color: rgba(31, 111, 235, 0.4);
+  box-shadow: 0 18px 40px rgba(30, 45, 70, 0.12);
+}
+
+/* ---------------- 联系方式交互 ---------------- */
+.qr-link {
+  display: block;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.qr-link img {
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+.qr-link:hover img {
+  transform: scale(1.04);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.contact-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.contact-card p a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.contact-card p a:hover {
+  text-decoration: underline;
+}
+
+.footer-credit {
+  margin: 12px 0 0 !important;
+  color: var(--text-faint);
+  font-size: 12px;
+  letter-spacing: 0.04em;
 }

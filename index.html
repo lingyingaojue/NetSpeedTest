@@ -26,7 +26,7 @@
           <strong>NetSpeedTest</strong>
           <small>Windows 网络测速</small>
         </span>
-        <span class="version-chip">v1.4.0</span>
+        <span class="version-chip">v1.4.1</span>
       </a>
 
       <button class="nav-toggle" id="navToggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="siteNav">
@@ -41,10 +41,19 @@
         <a href="#architecture">技术架构</a>
         <a href="#changelog">更新日志</a>
         <a href="#download">
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/><path d="M5 17v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 1 0-2 0v1H7v-1a1 1 0 1 0-2 0Z"/></svg>
-          免费下载
-        </a>
-      </nav>
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/><path d="M5 17v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 1 0-2 0v1H7v-1a1 1 0 1 0-2 0Z"/></svg>
+            免费下载
+          </a>
+          <a href="#contact">联系方式</a>
+        </nav>
+
+      <div class="header-tools">
+        <button class="theme-toggle" id="siteThemeToggle" type="button" aria-label="切换主题">🌙</button>
+        <select class="lang-switch" id="siteLangSwitch" aria-label="语言 / Language">
+          <option value="zh">中文</option>
+          <option value="en">English</option>
+        </select>
+      </div>
     </div>
   </header>
 
@@ -56,7 +65,7 @@
         <div class="hero-copy">
           <div class="hero-badge">
             <span class="pulse-dot"></span>
-            v1.4.0 已发布 · 多网卡并行测速
+            v1.4.1 已发布 · 关于页改版与联系方式
           </div>
           <h1>把 Windows 网络测速<br />做到<span class="gradient-text">专业级</span></h1>
           <p class="hero-subtitle">
@@ -148,6 +157,7 @@
               <li>128 线程并发 HTTP GET / POST</li>
               <li>URL 动态调度，实时选择最优节点</li>
               <li>CPU 自适应线程上限，低配不反噬</li>
+                <li>自适应线程调度：线性加压，最高 1024 线程</li>
               <li>掉速紧急补偿：自动加线程 + 结果修正</li>
               <li>10s 稳定后取均值，3s 滑动窗口去毛刺</li>
               <li>200ms 渐变启动，避免瞬间占满带宽</li>
@@ -200,6 +210,7 @@
               <li>8.8.8.8 单主机 UDP 轮询，避免批量阻塞</li>
               <li>滑动窗口标准差算法，抖动实时平滑输出</li>
               <li>1000ms 刷新，三指标同步更新</li>
+                <li>丢包率实时监测，结果 / 历史 / CSV / Web API 全链路记录</li>
             </ul>
           </article>
 
@@ -208,6 +219,7 @@
             <h3>历史 &amp; 配置管理</h3>
             <ul class="check-list">
               <li>SQLite 持久化，独立页面 + 统计栏</li>
+                <li>内置 Web 服务器 + Web 控制台，REST API 远程测速</li>
               <li>历史记录 CSV 导出、一键清除</li>
               <li>8 个内置 CDN 节点</li>
               <li>自定义配置导入 / 导出（JSON 兼容 HBCS）</li>
@@ -224,12 +236,12 @@
         <div class="section-head">
           <span class="section-kicker">界面预览</span>
           <h2>暗色主题 · 侧边栏导航 · 自绘标题栏</h2>
-          <p>v1.4.0 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。</p>
+          <p>v1.4.1 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。</p>
         </div>
         <div class="screenshot-frame reveal">
-          <img src="assets/screenshot.png" alt="NetSpeedTest v1.4.0 主界面截图" width="1280" height="720" loading="lazy" />
+          <img src="assets/screenshot.png" alt="NetSpeedTest v1.4.1 主界面截图" width="1280" height="720" loading="lazy" />
           <div class="screenshot-caption">
-            <span>🖥️ v1.4.0 主界面</span>
+            <span>🖥️ v1.4.1 主界面</span>
             <span>截图由用户实机提供</span>
           </div>
         </div>
@@ -366,6 +378,26 @@
 
         <div class="changelog">
           <details class="changelog-item" open>
+              <summary>
+                <span class="version-tag">v1.4.1</span>
+                <span class="version-date">2026-08-22</span>
+                <span class="version-title">关于页改版与联系方式</span>
+                <span class="chevron" aria-hidden="true"></span>
+              </summary>
+              <div class="changelog-body">
+                <h4>🚀 新功能</h4>
+                <ul>
+                  <li>关于页改版：开发者 / AI 协作 / GitHub / 官方网站四张信息卡，官网与 GitHub 可点击跳转</li>
+                  <li>联系方式点击复制：邮箱、微信、QQ 一键复制到剪贴板</li>
+                  <li>复制成功弹窗：「已复制」提示，2 秒自动关闭</li>
+                </ul>
+                <h4>✨ 优化</h4>
+                <ul>
+                  <li>复制流程更稳定：剪贴板被占用时提示不受影响</li>
+                </ul>
+              </div>
+            </details>
+            <details class="changelog-item">
             <summary>
               <span class="version-tag">v1.4.0</span>
               <span class="version-date">2026-08-20</span>
@@ -460,21 +492,73 @@
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <img src="NetSpeedTest/Resources/app.png" alt="" width="32" height="32" />
-        <strong>NetSpeedTest</strong>
+  <section class="section section-alt" id="contact">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-kicker">联系方式</span>
+          <h2>找到我们</h2>
+          <p>欢迎反馈问题、交流使用经验或合作。</p>
+        </div>
+                  <div class="contact-grid">
+            <div class="contact-card reveal">
+              <span class="contact-icon">✉️</span>
+              <h3>邮箱</h3>
+              <p><a href="mailto:mashuo2010az@163.com">mashuo2010az@163.com</a></p>
+              <button class="btn btn-ghost btn-sm" type="button" id="copyEmailBtn">复制邮箱</button>
+            </div>
+            <div class="contact-card reveal">
+              <a class="qr-link" href="assets/contact/wechat.png" target="_blank" rel="noreferrer">
+                <img src="assets/contact/wechat.png" alt="微信好友二维码" loading="lazy" />
+              </a>
+              <h3>微信好友</h3>
+              <p>扫码添加</p>
+              <div class="contact-actions">
+                <a class="btn btn-ghost btn-sm" href="assets/contact/wechat.png" target="_blank" rel="noreferrer">打开</a>
+                <a class="btn btn-ghost btn-sm" href="assets/contact/wechat.png" download="微信好友二维码.png">保存</a>
+              </div>
+            </div>
+            <div class="contact-card reveal">
+              <a class="qr-link" href="assets/contact/qq-friend.png" target="_blank" rel="noreferrer">
+                <img src="assets/contact/qq-friend.png" alt="QQ好友二维码" loading="lazy" />
+              </a>
+              <h3>QQ好友</h3>
+              <p>扫码添加</p>
+              <div class="contact-actions">
+                <a class="btn btn-ghost btn-sm" href="assets/contact/qq-friend.png" target="_blank" rel="noreferrer">打开</a>
+                <a class="btn btn-ghost btn-sm" href="assets/contact/qq-friend.png" download="QQ好友二维码.png">保存</a>
+              </div>
+            </div>
+            <div class="contact-card reveal">
+              <a class="qr-link" href="assets/contact/qq-group.jpg" target="_blank" rel="noreferrer">
+                <img src="assets/contact/qq-group.jpg" alt="QQ交流群二维码" loading="lazy" />
+              </a>
+              <h3>QQ交流群</h3>
+              <p>扫码加入</p>
+              <div class="contact-actions">
+                <a class="btn btn-ghost btn-sm" href="assets/contact/qq-group.jpg" target="_blank" rel="noreferrer">打开</a>
+                <a class="btn btn-ghost btn-sm" href="assets/contact/qq-group.jpg" download="QQ交流群二维码.jpg">保存</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div class="footer-brand">
+          <img src="NetSpeedTest/Resources/app.png" alt="" width="32" height="32" />
+          <strong>NetSpeedTest</strong>
+        </div>
+        <p>Windows 桌面端网络测速工具 · 专业级 · 开源免费</p>
+        <p class="footer-meta">MIT License · © <span id="year">2026</span> lingyingaojue</p>
+        <div class="footer-links">
+          <a href="https://github.com/lingyingaojue/NetSpeedTest">GitHub</a>
+          <a href="https://github.com/lingyingaojue/NetSpeedTest/releases">Releases</a>
+          <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/CHANGELOG.md">更新日志</a>
+        </div>
+        <p class="footer-credit">凌影傲爵 · DeepSeek</p>
       </div>
-      <p>Windows 桌面端网络测速工具 · 专业级 · 开源免费</p>
-      <p class="footer-meta">MIT License · © <span id="year">2026</span> lingyingaojue</p>
-      <div class="footer-links">
-        <a href="https://github.com/lingyingaojue/NetSpeedTest">GitHub</a>
-        <a href="https://github.com/lingyingaojue/NetSpeedTest/releases">Releases</a>
-        <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/CHANGELOG.md">更新日志</a>
-      </div>
-    </div>
-  </footer>
+    </footer>
 
   <script src="assets/site.js"></script>
 </body>

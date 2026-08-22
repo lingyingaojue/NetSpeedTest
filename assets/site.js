@@ -8,6 +8,310 @@
   /* 脚本加载成功后再启用“滚动显现”，避免脚本失败时页面空白 */
   document.documentElement.classList.add("js");
 
+  /* ---------- 主题切换 & 中英文切换 ---------- */
+  var SITE_I18N_EN = {
+    "跳到主要内容": "Skip to content",
+    "Windows 网络测速": "Windows network speed test",
+    "核心特性": "Features",
+    "界面预览": "Screenshots",
+    "工具箱": "Toolbox",
+    "技术架构": "Architecture",
+    "更新日志": "Changelog",
+    "免费下载": "Download",
+    "v1.4.0 已发布 · 多网卡并行测速": "v1.4.0 released · Multi-NIC parallel testing",
+    "把 Windows 网络测速": "Test Windows networks",
+    "专业级": "like a pro",
+    "做到": " ",
+    "CDN 智能调度 · 自适应线程引擎 · 多网卡并行测速 · 掉速紧急补偿 · UDP 五层延迟探测 ·": "CDN smart routing · Adaptive threading · Multi-NIC parallel · Drop compensation · UDP-first latency probing",
+    "18 合 1 工具箱，一款工具全部搞定。": "18-in-1 toolbox. One app covers it all.",
+    "下载 Windows 版": "Download for Windows",
+    "GitHub 仓库": "GitHub repo",
+    "Windows 10 / 11 · .NET 8 单文件发布 · MIT 开源免费": "Windows 10 / 11 · .NET 8 single-file · MIT open source",
+    "实时测速演示": "Live demo",
+    "下载": "Download",
+    "上传": "Upload",
+    "总速率": "Total",
+    "均值参考线": "Avg reference",
+    "线程": "threads",
+    "层": "layers",
+    "种": "tools",
+    "个": "nodes",
+    "并发下载 / 上传": "Concurrent download / upload",
+    "UDP 优先延迟回退": "UDP-first latency fallback",
+    "网络诊断工具": "Network diagnostic tools",
+    "内置 CDN 节点": "Built-in CDN nodes",
+    "为重度网络用户设计的引擎": "An engine built for power users",
+    "不只是跑个数字——从线程调度到结果计量，每一层都按专业标准实现。": "More than a number — thread scheduling and metering are engineered to professional standards.",
+    "智能测速引擎": "Smart speed engine",
+    "128 线程并发 HTTP GET / POST": "128-thread concurrent HTTP GET / POST",
+    "URL 动态调度，实时选择最优节点": "Dynamic URL scheduling picks the fastest node",
+    "CPU 自适应线程上限，低配不反噬": "CPU-adaptive thread cap protects low-end PCs",
+    "掉速紧急补偿：自动加线程 + 结果修正": "Drop compensation: auto add threads + fix results",
+    "10s 稳定后取均值，3s 滑动窗口去毛刺": "Averages after 10s stability; 3s smoothing window",
+    "200ms 渐变启动，避免瞬间占满带宽": "200ms ramp-up avoids instant bandwidth saturation",
+    "多网卡并行测速": "Multi-NIC parallel testing",
+    "勾选多张网卡同时测速，独立绑定源 IP": "Check multiple NICs to test simultaneously with bound source IPs",
+    "下载 / 上传曲线支持「合计 / 单网卡」切换": "Download / upload charts switch between Total and per-NIC",
+    "双向测速显示下载 + 上传总速度": "Duplex mode shows download + upload total speed",
+    "完成弹窗展示每网卡独立速率与错误": "Result dialog shows each NIC rate and error",
+    "默认优先选中默认网关网卡": "Default-gateway NIC selected by default",
+    "NIC 级精准计量": "NIC-level precision metering",
+    "基于": "Based on",
+    "差分计算": "differential counters",
+    "不受 HTTP 协议开销干扰": "No HTTP overhead interference",
+    "Kbps / Mbps / Gbps 自动切换": "Kbps / Mbps / Gbps auto-scaling",
+    "每网卡 9 项详情信息卡": "9-detail info card per NIC",
+    "独立速率条 + 活跃线程计数": "Independent rate bar + active thread count",
+    "专业交互体验": "Professional UX",
+    "LiveCharts2 双折线图，200ms 采样、500 点窗口": "LiveCharts2 dual line charts, 200ms sampling, 500-point window",
+    "下载 / 上传图表可拖拽分割线": "Draggable splitter between download / upload charts",
+    "模式切换 300ms 平滑过渡动画": "300ms smooth mode transitions",
+    "系统托盘驻留 + 气泡通知": "System tray + toast notifications",
+    "GitHub Dark 暗色主题、自绘标题栏": "GitHub Dark theme, custom title bar",
+    "内嵌页面架构，告别弹窗": "Embedded pages instead of popups",
+    "全链路 UDP 优先延迟探测": "UDP-first latency probing",
+    "五层回退：UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD": "5-layer fallback: UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD",
+    "WAN / 抖动 / LAN 共用同一探测链路": "WAN / jitter / LAN share one probing chain",
+    "8.8.8.8 单主机 UDP 轮询，避免批量阻塞": "8.8.8.8 single-host UDP polling avoids blocking",
+    "滑动窗口标准差算法，抖动实时平滑输出": "Sliding-window stddev for smooth jitter output",
+    "1000ms 刷新，三指标同步更新": "1000ms refresh, three metrics in sync",
+    "历史 & 配置管理": "History & profiles",
+    "SQLite 持久化，独立页面 + 统计栏": "SQLite persistence with stats bar",
+    "历史记录 CSV 导出、一键清除": "CSV export and one-click clear",
+    "8 个内置 CDN 节点": "8 built-in CDN nodes",
+    "自定义配置导入 / 导出（JSON 兼容 HBCS）": "Custom profile import / export (JSON, HBCS-compatible)",
+    "设置纯内存生效，不污染打包版默认值": "In-memory settings keep defaults clean",
+    "暗色主题 · 侧边栏导航 · 自绘标题栏": "Dark theme · Sidebar navigation · Custom title bar",
+    "v1.4.0 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。": "v1.4.0 UI: choose a mode, check NICs, start with one click.",
+    "🖥️ v1.4.0 主界面": "🖥️ v1.4.0 main UI",
+    "截图由用户实机提供": "Screenshot provided by a real user",
+    "网络工具箱": "Network toolbox",
+    "18 合 1，一窗口搞定日常排查": "18 tools in one window",
+    "从连通性测试到 NAT 类型检测，测速之外的网络诊断需求也全部内置。": "From connectivity tests to NAT detection, diagnostics are built in.",
+    "Ping": "Ping",
+    "ICMP 连通性测试": "ICMP connectivity test",
+    "DNS 查询": "DNS lookup",
+    "A / AAAA / CNAME / MX 记录": "A / AAAA / CNAME / MX records",
+    "HTTP 请求": "HTTP request",
+    "GET / POST / PUT / DELETE": "GET / POST / PUT / DELETE",
+    "路由追踪": "Traceroute",
+    "Traceroute 跳点追踪": "Hop-by-hop route tracing",
+    "端口测试": "Port test",
+    "TCP 端口范围扫描": "TCP port range scan",
+    "MTU 探测": "MTU probe",
+    "自动发现路径最优值": "Auto-discover path MTU",
+    "DNS 对比": "DNS compare",
+    "多 DNS 服务器并行对比": "Compare multiple DNS servers",
+    "IP 归属": "IP info",
+    "IP 地理 / 运营商查询": "IP geo / ISP lookup",
+    "公网 IP": "Public IP",
+    "多源探测公网出口 IP": "Multi-source public IP detection",
+    "SSL 证书": "SSL certificate",
+    "证书链 / 过期时间 / 签名算法": "Chain / expiry / signature",
+    "HTTP Header": "HTTP headers",
+    "任意 URL 响应头查看": "Inspect any URL response headers",
+    "子网计算": "Subnet calc",
+    "CIDR 划分 / 可用地址": "CIDR / usable addresses",
+    "带宽换算": "Bandwidth converter",
+    "Mbps / MBps / Gbps 换算": "Mbps / MBps / Gbps conversion",
+    "时间戳": "Timestamp",
+    "Unix 时间戳 ↔ 日期": "Unix timestamp ↔ date",
+    "文本哈希": "Hash",
+    "MD5 / SHA1 / SHA256 / SHA512": "MD5 / SHA1 / SHA256 / SHA512",
+    "Base64": "Base64",
+    "在线编解码": "Online encode / decode",
+    "UUID 生成": "UUID generator",
+    "UUID v4 / v7 批量生成": "UUID v4 / v7 batch",
+    "NAT 检测": "NAT detection",
+    "STUN 类型 / 自定义服务器": "STUN type / custom server",
+    "效率": "Efficiency",
+    "快捷键": "Shortcuts",
+    "一只手开始测速，另一只手继续喝咖啡。": "Start a test with one hand, keep coffee in the other.",
+    "开始测速": "Start",
+    "停止测速": "Stop",
+    "仅下载": "Download only",
+    "仅上传": "Upload only",
+    "全速双向": "Full duplex",
+    "可控": "Control",
+    "可调参数": "Tunable parameters",
+    "默认值已经够快，细粒度交给喜欢折腾的人。": "Defaults are fast; fine-tuning is for tinkerers.",
+    "参数": "Parameter",
+    "范围": "Range",
+    "默认": "Default",
+    "并发线程数": "Threads",
+    "整体超时": "Timeout",
+    "线程启动间隔": "Ramp-up interval",
+    "平均计量延迟": "Averaging delay",
+    "速率平滑窗口": "Rate window",
+    "网卡轮询间隔": "NIC poll interval",
+    "抖动探测主机": "Jitter host",
+    "抖动采样间隔": "Jitter interval",
+    "干净、现代、可扩展": "Clean, modern, scalable",
+    "基于 .NET 8 与 WPF 的 MVVM 架构，依赖项克制而清晰。": "MVVM on .NET 8 and WPF with a lean dependency set.",
+    "运行时": "Runtime",
+    ".NET 8.0-windows": ".NET 8.0-windows",
+    "单文件发布": "Single-file publish",
+    "UI 框架": "UI framework",
+    "WPF": "WPF",
+    "Windows 原生体验": "Native Windows experience",
+    "架构模式": "Architecture",
+    "MVVM": "MVVM",
+    "CommunityToolkit.Mvvm": "CommunityToolkit.Mvvm",
+    "实时图表": "Charts",
+    "LiveCharts2": "LiveCharts2",
+    "SkiaSharp 硬件渲染": "SkiaSharp hardware rendering",
+    "数据持久化": "Persistence",
+    "SQLite": "SQLite",
+    "Microsoft.Data.Sqlite": "Microsoft.Data.Sqlite",
+    "DI & 配置": "DI & config",
+    "Microsoft.Extensions": "Microsoft.Extensions",
+    "标准配置管线": "Standard configuration pipeline",
+    "持续迭代": "Continuously evolving",
+    "每个版本都经过实机测速验证，拒绝空壳功能。": "Every release is verified on real machines.",
+    "多网卡并行测速": "Multi-NIC parallel testing",
+    "界面全面重构": "UI overhaul",
+    "18 合 1 工具箱": "18-in-1 toolbox",
+    "🚀 新功能": "🚀 New",
+    "🛠️ 修复 & 优化": "🛠️ Fixes & improvements",
+    "🚀 重大更新": "🚀 Major update",
+    "🛠️ 修复": "🛠️ Fixes",
+    "完整变更记录请查看": "See the full changelog",
+    "立即体验": "Get started",
+    "下载 NetSpeedTest": "Download NetSpeedTest",
+    "Windows 10 / 11 · .NET 8 单文件发布 · 约 170 MB · MIT 开源免费": "Windows 10 / 11 · .NET 8 single-file · ~170 MB · MIT",
+    "前往 Releases 下载": "Go to Releases",
+    "浏览源代码": "View source",
+    "或者从源码构建：": "Or build from source:",
+    "Windows 桌面端网络测速工具 · 专业级 · 开源免费": "Windows desktop speed test · Professional · Open source",
+    "均值 ": "Avg ",
+    "联系方式": "Contact",
+    "找到我们": "Get in touch",
+    "欢迎反馈问题、交流使用经验或合作。": "Feedback, tips and cooperation are welcome.",
+    "邮箱": "Email",
+    "微信好友": "WeChat",
+    "QQ好友": "QQ friend",
+    "QQ交流群": "QQ group",
+    "扫码添加": "Scan to add",
+    "扫码加入": "Scan to join",
+    "复制邮箱": "Copy email",
+    "打开": "Open",
+    "保存": "Save",
+    "复制成功": "Copied!",
+    "复制失败": "Copy failed",
+    "v1.4.1 已发布 · 关于页改版与联系方式": "v1.4.1 released · New About page & contacts",
+    "v1.4.1 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。": "v1.4.1 UI: choose a mode, check NICs, start with one click.",
+    "🖥️ v1.4.1 主界面": "🖥️ v1.4.1 main UI",
+    "自适应线程调度：线性加压，最高 1024 线程": "Adaptive threading: linear ramp-up to 1024 threads",
+    "丢包率实时监测，结果 / 历史 / CSV / Web API 全链路记录": "Live packet loss tracking across results, history, CSV and Web API",
+    "内置 Web 服务器 + Web 控制台，REST API 远程测速": "Built-in Web server + Web console with REST API remote testing",
+    "关于页改版与联系方式": "About page redesign & contacts",
+    "关于页改版：开发者 / AI 协作 / GitHub / 官方网站四张信息卡，官网与 GitHub 可点击跳转": "Redesigned About page: developer, AI, GitHub and website cards with clickable links",
+    "联系方式点击复制：邮箱、微信、QQ 一键复制到剪贴板": "One-click copy for email, WeChat and QQ",
+    "复制成功弹窗：「已复制」提示，2 秒自动关闭": "Copied toast with 2-second auto close",
+    "复制流程更稳定：剪贴板被占用时提示不受影响": "More reliable copy flow when the clipboard is busy",
+    "✨ 优化": "✨ Improvements",
+    "中文": "中文",
+    "English": "English"
+  };
+
+  var siteLang = localStorage.getItem("nst-site-lang") || "zh";
+  var siteTheme = localStorage.getItem("nst-site-theme") || "dark";
+  var siteTextNodes = [];
+  var siteTextCaptured = false;
+
+  function siteT(text) {
+    if (siteLang === "en" && SITE_I18N_EN[text]) return SITE_I18N_EN[text];
+    return text;
+  }
+
+  function captureSiteText() {
+    if (siteTextCaptured) return;
+    siteTextCaptured = true;
+    var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue && node.nodeValue.trim() && node.parentElement && node.parentElement.tagName !== "SCRIPT") {
+        siteTextNodes.push({ node: node, original: node.nodeValue });
+      }
+    }
+  }
+
+  function applySiteLanguage(lang) {
+    siteLang = lang;
+    localStorage.setItem("nst-site-lang", lang);
+    captureSiteText();
+    siteTextNodes.forEach(function (item) {
+      var value = item.original;
+      if (lang === "en") {
+        Object.keys(SITE_I18N_EN).sort(function (a, b) { return b.length - a.length; }).forEach(function (key) {
+          value = value.split(key).join(SITE_I18N_EN[key]);
+        });
+      }
+      item.node.nodeValue = value;
+    });
+    document.documentElement.lang = lang === "en" ? "en" : "zh-CN";
+    var sel = document.getElementById("siteLangSwitch");
+    if (sel) sel.value = lang;
+    window.dispatchEvent(new Event("resize"));
+  }
+
+  function applySiteTheme(theme) {
+    siteTheme = theme;
+    localStorage.setItem("nst-site-theme", theme);
+    document.documentElement.classList.toggle("light", theme === "light");
+    var btn = document.getElementById("siteThemeToggle");
+    if (btn) btn.textContent = theme === "light" ? "☀️" : "🌙";
+  }
+
+  var siteThemeBtn = document.getElementById("siteThemeToggle");
+  var siteLangSelect = document.getElementById("siteLangSwitch");
+  if (siteThemeBtn) {
+    siteThemeBtn.addEventListener("click", function () {
+      applySiteTheme(siteTheme === "light" ? "dark" : "light");
+    });
+  }
+  if (siteLangSelect) {
+    siteLangSelect.addEventListener("change", function () {
+      applySiteLanguage(siteLangSelect.value === "en" ? "en" : "zh");
+    });
+  }
+
+  var copyEmailBtn = document.getElementById("copyEmailBtn");
+  if (copyEmailBtn) {
+    copyEmailBtn.addEventListener("click", function () {
+      var email = "mashuo2010az@163.com";
+      function done() {
+        copyEmailBtn.textContent = siteT("复制成功");
+        setTimeout(function () { copyEmailBtn.textContent = siteT("复制邮箱"); }, 2000);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email).then(done, function () {
+          fallbackCopy();
+        });
+      } else {
+        fallbackCopy();
+      }
+      function fallbackCopy() {
+        var ta = document.createElement("textarea");
+        ta.value = email;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          if (document.execCommand("copy")) done();
+          else copyEmailBtn.textContent = siteT("复制失败");
+        } catch (e) {
+          copyEmailBtn.textContent = siteT("复制失败");
+        }
+        document.body.removeChild(ta);
+      }
+    });
+  }
+
+  applySiteTheme(siteTheme);
+  applySiteLanguage(siteLang);
+
   /* ---------- 顶部导航：滚动阴影 & 移动端菜单 ---------- */
   const header = document.getElementById("siteHeader");
   const navToggle = document.getElementById("navToggle");
@@ -263,10 +567,7 @@
         card.style.setProperty("--my", (event.clientY - rect.top) + "px");
       });
 
-      card.addEventListener("mouseleave", function () {
-        card.style.setProperty("--mx", "50%");
-        card.style.setProperty("--my", "50%");
-      });
+      /* 鼠标离开时保留最后位置，避免光斑跳回中心闪一下 */
     });
   }
 
@@ -500,7 +801,7 @@
       ctx.textAlign = "left";
       ctx.textBaseline = "bottom";
       ctx.font = "10px 'Cascadia Code', Consolas, monospace";
-      ctx.fillText("均值 " + avgDownload.toFixed(0), padding.left + 6, avgY - 3);
+      ctx.fillText(siteT("均值 ") + avgDownload.toFixed(0), padding.left + 6, avgY - 3);
     }
 
     function tick(now) {
