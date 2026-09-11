@@ -174,16 +174,37 @@ public class NetworkInfoService
     }
 
     /// <summary>
-    /// 获取第一个可用网关（排除 IPv6 链路本地地址）
+    /// 获取可用网关（排除 IPv6 链路本地地址）。
+    /// 显式传入选中网卡时，优先使用选中网卡的网关；选中网卡均无网关时不回退其他网卡，
+    /// 避免单卡 WLAN 测速时源 IP 与网关不在同一网段导致延迟探测失败。
     /// </summary>
-    public string? FindPingableGateway()
+    public string? FindPingableGateway(IEnumerable<NetworkAdapterInfo>? preferredAdapters = null)
     {
-        // 优先 IPv4 网关
+        if (preferredAdapters != null)
+        {
+            var preferred = preferredAdapters as IReadOnlyCollection<NetworkAdapterInfo>
+                ?? preferredAdapters.ToList();
+
+            foreach (var a in preferred)
+            {
+                if (IsUsableGateway(a.Gateway))
+                    return a.Gateway;
+            }
+
+            if (preferred.Count > 0)
+                return null;
+        }
+
+        // 未指定选中网卡或选中列表为空：保持原逻辑，优先物理网卡 IPv4 网关
         foreach (var a in GetPhysicalAdapters())
         {
-            if (!string.IsNullOrEmpty(a.Gateway) && !a.Gateway.StartsWith("fe80:"))
+            if (IsUsableGateway(a.Gateway))
                 return a.Gateway;
         }
         return null;
     }
+
+    private static bool IsUsableGateway(string? gateway)
+        => !string.IsNullOrWhiteSpace(gateway)
+           && !gateway.StartsWith("fe80:", StringComparison.OrdinalIgnoreCase);
 }

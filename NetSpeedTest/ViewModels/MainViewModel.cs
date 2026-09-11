@@ -527,7 +527,7 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
-            var gw = _networkInfoService.FindPingableGateway();
+            var gw = _networkInfoService.FindPingableGateway(selectedAdapters);
             Logger.Log($"测速启动: gateway={gw ?? "null"}, adapters={selectedAdapters.Count}");
             var pn = SelectedProfile?.Name ?? "未知配置";
 
@@ -536,9 +536,9 @@ public partial class MainViewModel : ObservableObject
                 var result = await svc.RunMultiUrlTestAsync(
                     selectedUrls, ThreadCount, selectedAdapters, pn, gateway: gw,
                     onUrlProgress: null,
-                    onDownloadProgress: OnDownloadProgress,
-                    onUploadProgress: OnUploadProgress,
-                    onAdapterRates: OnAdapterRates,
+                    onDownloadProgress: SingleDownloadProgress(selectedAdapters[0]),
+                    onUploadProgress: SingleUploadProgress(selectedAdapters[0]),
+                    onAdapterRates: SingleAdapterRates(selectedAdapters[0]),
                     onActiveThreadCount: OnActiveThreadCount,
                     onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
                     onPacketLoss: OnPacketLossSample,
@@ -588,15 +588,15 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
-            var gw = _networkInfoService.FindPingableGateway();
+            var gw = _networkInfoService.FindPingableGateway(selectedAdapters);
             if (selectedAdapters.Count == 1)
             {
                 var result = await svc.RunUploadTestAsync(
                     selectedUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
                     gateway: gw,
-                    onDownloadProgress: OnDownloadProgress,
-                    onUploadProgress: OnUploadProgress,
-                    onAdapterRates: OnAdapterRates,
+                    onDownloadProgress: SingleDownloadProgress(selectedAdapters[0]),
+                    onUploadProgress: SingleUploadProgress(selectedAdapters[0]),
+                    onAdapterRates: SingleAdapterRates(selectedAdapters[0]),
                     onActiveThreadCount: OnActiveThreadCount,
                     onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
                     onPacketLoss: OnPacketLossSample,
@@ -648,7 +648,7 @@ public partial class MainViewModel : ObservableObject
         try
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
-            var gw = _networkInfoService.FindPingableGateway();
+            var gw = _networkInfoService.FindPingableGateway(selectedAdapters);
             (Application.Current.MainWindow as Views.MainWindow)?.SetChartFocus(null);
 
             if (effectiveMode == "上传")
@@ -657,8 +657,8 @@ public partial class MainViewModel : ObservableObject
                 {
                     var result = await svc.RunUploadTestAsync(ulUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
                         gateway: gw,
-                        onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
-                        onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
+                        onDownloadProgress: SingleDownloadProgress(selectedAdapters[0]), onUploadProgress: SingleUploadProgress(selectedAdapters[0]),
+                        onAdapterRates: SingleAdapterRates(selectedAdapters[0]), onActiveThreadCount: OnActiveThreadCount,
                         onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
                         onPacketLoss: OnPacketLossSample,
                         onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
@@ -688,8 +688,8 @@ public partial class MainViewModel : ObservableObject
                 {
                     var result = await svc.RunMultiUrlTestAsync(dlUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
                         gateway: gw,
-                        onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
-                        onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
+                        onDownloadProgress: SingleDownloadProgress(selectedAdapters[0]), onUploadProgress: SingleUploadProgress(selectedAdapters[0]),
+                        onAdapterRates: SingleAdapterRates(selectedAdapters[0]), onActiveThreadCount: OnActiveThreadCount,
                         onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
                         onPacketLoss: OnPacketLossSample,
                         onAverageSpeed: OnAverageSpeed,
@@ -718,8 +718,8 @@ public partial class MainViewModel : ObservableObject
             {
                 var result = await svc.RunFullTestAsync(dlUrls, ulUrls, ThreadCount, selectedAdapters, SelectedProfile?.Name ?? "未知配置",
                     gateway: gw,
-                    onDownloadProgress: OnDownloadProgress, onUploadProgress: OnUploadProgress,
-                    onAdapterRates: OnAdapterRates, onActiveThreadCount: OnActiveThreadCount,
+                    onDownloadProgress: SingleDownloadProgress(selectedAdapters[0]), onUploadProgress: SingleUploadProgress(selectedAdapters[0]),
+                    onAdapterRates: SingleAdapterRates(selectedAdapters[0]), onActiveThreadCount: OnActiveThreadCount,
                     onLatency: OnLatency, onWanLatency: OnWanLatency, onJitter: OnJitterSample,
                     onPacketLoss: OnPacketLossSample,
                     onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
@@ -1062,6 +1062,25 @@ public partial class MainViewModel : ObservableObject
 
 
 
+    /// <summary>
+    /// 单卡测速时，同时更新汇总指标和该网卡曲线/速率条。
+    /// </summary>
+    private Action<double, double, long> SingleDownloadProgress(NetworkAdapterInfo adapter) =>
+        (elapsed, rate, bytes) =>
+        {
+            OnDownloadProgress(elapsed, rate, bytes);
+            OnNicDownloadProgress(adapter, elapsed, rate, bytes);
+        };
+
+    private Action<double, double, long> SingleUploadProgress(NetworkAdapterInfo adapter) =>
+        (elapsed, rate, bytes) =>
+        {
+            OnUploadProgress(elapsed, rate, bytes);
+            OnNicUploadProgress(adapter, elapsed, rate, bytes);
+        };
+
+    private Action<string, double, double> SingleAdapterRates(NetworkAdapterInfo adapter) =>
+        (_, downloadMbps, uploadMbps) => OnNicAdapterRates(adapter, downloadMbps, uploadMbps);
     private void OnDownloadProgress(double elapsed, double totalRate, long totalBytes)
     {
         if (!IsTesting) return;

@@ -103,13 +103,16 @@ public class SpeedTestService
         // 信号量控制并发度
         using var semaphore = new SemaphoreSlim(workerCount, workerCount);
 
+        var http = CreateEgressClient(adapters, client, out var isAdapterBound, out var ownsHttpClient);
+        using var ownedClient = ownsHttpClient ? http : null;
+
         var nicMonitorTask = StartNicMonitor(overall, ctLinked, adapters, nicState,
             onDownloadProgress, onUploadProgress, onAdapterRates,
             onAverageDownload, onAverageUpload, onAverageTotal, onAverageSpeed,
             totalBytesDownloaded, onTotalBytes, tc: threadCount, adaptive: adaptive, throughputMode: 1);
 
-        var sourceIp = client != null ? GetAdapterSourceIp(adapters) : null;
-        var gwTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, client);
+        var sourceIp = isAdapterBound ? GetAdapterSourceIp(adapters) : null;
+        var gwTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, http);
 
         var urlBalancer = new UrlBalancer(urls, useFastestAfterProbe: true);
 
@@ -134,7 +137,7 @@ public class SpeedTestService
                         detail.DurationSeconds = elapsed;
                         onUrlProgress?.Invoke(url, detail.Host, elapsed, rate, bytes);
                     },
-                    requestCt, client);
+                    requestCt, http);
                 detail.AvgMbps = result.avgMbps;
                 detail.PeakMbps = result.peakMbps;
                 detail.BytesDownloaded = result.totalBytes;
@@ -1297,7 +1300,8 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         threadCount = Math.Clamp(threadCount, 2, 1024);
         var overall = Stopwatch.StartNew(); int activeThreads = 0; var dummy = new LongRef();
         var nicState = new NicState();
-        var http = client ?? _httpClient;
+        var http = CreateEgressClient(adapters, client, out var isAdapterBound, out var ownsHttpClient);
+        using var ownedClient = ownsHttpClient ? http : null;
 
         using var internalCts = new CancellationTokenSource();
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, _options.TestTimeoutSec)));
@@ -1315,8 +1319,8 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         using var semaphore = new SemaphoreSlim(workerCount, workerCount);
 
         var nicMonitorUpload = StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, dummy, onTotalBytes, tc: threadCount, adaptive: adaptive, throughputMode: 2);
-        var sourceIp = client != null ? GetAdapterSourceIp(adapters) : null;
-        var gwUploadTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, client);
+        var sourceIp = isAdapterBound ? GetAdapterSourceIp(adapters) : null;
+        var gwUploadTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, http);
 
         var rng = new Random(Guid.NewGuid().GetHashCode()); var buf = new byte[64 * 1024]; rng.NextBytes(buf);
         var urlBalancer = new UrlBalancer(urls, useFastestAfterProbe: false);
@@ -1426,7 +1430,8 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         threadCount = Math.Clamp(threadCount, 2, 1024);
         var overall = Stopwatch.StartNew(); int activeThreads = 0;
         var nicState = new NicState(); var bytesDl = new LongRef();
-        var http = client ?? _httpClient;
+        var http = CreateEgressClient(adapters, client, out var isAdapterBound, out var ownsHttpClient);
+        using var ownedClient = ownsHttpClient ? http : null;
 
         using var internalCts = new CancellationTokenSource();
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Max(1, _options.TestTimeoutSec)));
@@ -1444,8 +1449,8 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         using var semaphore = new SemaphoreSlim(workerCount, workerCount);
 
         var nicMonitorFull = StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, bytesDl, onTotalBytes, tc: threadCount, adaptive: adaptive, throughputMode: 0);
-        var sourceIp = client != null ? GetAdapterSourceIp(adapters) : null;
-        var gwFullTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, client);
+        var sourceIp = isAdapterBound ? GetAdapterSourceIp(adapters) : null;
+        var gwFullTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, http);
 
         var rng = new Random(Guid.NewGuid().GetHashCode()); var buf = new byte[64 * 1024]; rng.NextBytes(buf);
         var dlBalancer = new UrlBalancer(dlUrls, useFastestAfterProbe: true);
@@ -1566,6 +1571,80 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
 
 
     /// <summary>
+    /// 创建本次测速使用的 HttpClient。
+    /// 单张显式勾选网卡且系统存在其他活动网卡时，绑定该网卡源 IP，避免流量按默认路由从
+    /// 其他网卡出去；系统只有一张活动网卡时保持默认路由，兼容单网卡环境。
+    /// </summary>
+    private HttpClient CreateEgressClient(List<NetworkAdapterInfo> adapters, HttpClient? requestedClient,
+        out bool isAdapterBound, out bool ownsClient)
+    {
+        var hasMultipleActiveAdapters = adapters.Count == 1
+            && requestedClient == null
+            && HasMultipleActiveAdapters();
+
+        var resolved = ResolveEgressClientCore(
+            adapters,
+            requestedClient,
+            hasMultipleActiveAdapters,
+            CreateNicBoundClient,
+            _httpClient);
+
+        isAdapterBound = resolved.IsAdapterBound;
+        ownsClient = resolved.OwnsClient;
+
+        if (resolved.OwnsClient)
+        {
+            Logger.Log($"[NIC] 测速出口已绑定: {adapters[0].Name} ip={adapters[0].IPAddress ?? "null"}");
+        }
+        else if (resolved.BindFailed)
+        {
+            var message = $"网卡 {adapters[0].Name} 未获取可用 IPv4 地址，无法进行绑定测速";
+            Logger.Log($"[NIC] {message}");
+            throw new InvalidOperationException(message);
+        }
+
+        return resolved.Client;
+    }
+
+    /// <summary>
+    /// 出口客户端解析核心逻辑（无网络依赖，供单测覆盖）。
+    /// </summary>
+    internal static (HttpClient Client, bool IsAdapterBound, bool OwnsClient, bool BindFailed)
+        ResolveEgressClientCore(
+            IReadOnlyList<NetworkAdapterInfo> adapters,
+            HttpClient? requestedClient,
+            bool hasMultipleActiveAdapters,
+            Func<NetworkAdapterInfo, HttpClient?> boundClientFactory,
+            HttpClient fallbackClient)
+    {
+        if (requestedClient != null)
+            return (requestedClient, true, false, false);
+
+        if (adapters.Count == 1 && hasMultipleActiveAdapters)
+        {
+            var boundClient = boundClientFactory(adapters[0]);
+            if (boundClient != null)
+                return (boundClient, true, true, false);
+
+            return (fallbackClient, false, false, true);
+        }
+
+        return (fallbackClient, false, false, false);
+    }
+
+    private bool HasMultipleActiveAdapters()
+    {
+        try
+        {
+            return _networkInfo.GetAdapters(includeVirtual: true).Count > 1;
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"[NIC] 活动网卡枚举失败，按多网卡环境处理: {ex.Message}");
+            return true;
+        }
+    }
+    /// <summary>
     /// 为指定网卡创建绑定源 IP 的 HttpClient（ConnectCallback 内 Socket.Bind 绑定源 IP）
     /// 创建失败返回 null（该网卡将被跳过）
     /// </summary>
@@ -1576,6 +1655,9 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
             if (string.IsNullOrEmpty(adapter.IPAddress)) return null;
             if (!IPAddress.TryParse(adapter.IPAddress, out var localIp)) return null;
             if (localIp.AddressFamily != AddressFamily.InterNetwork) return null;
+            var addressBytes = localIp.GetAddressBytes();
+            if (localIp.Equals(IPAddress.Any) || IPAddress.IsLoopback(localIp)) return null;
+            if (addressBytes.Length == 4 && addressBytes[0] == 169 && addressBytes[1] == 254) return null;
             var handler = new SocketsHttpHandler
             {
                 UseProxy = false,
@@ -1656,7 +1738,8 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         if (adapters == null || adapters.Count == 0) throw new ArgumentException("至少需要一个活跃网卡");
 
         _dnsCache.Clear();
-        // 单网卡时不强制绑定源 IP，走系统默认路由，最大程度兼容不同电脑的网络环境
+        // 单网卡分支：Run* 内部会在系统存在其他活动网卡时自动绑定选中网卡源 IP；
+        // 仅当系统只有一张活动网卡时才走默认路由，以兼容单网卡环境。
         if (adapters.Count == 1)
         {
             var single = adapters[0];
