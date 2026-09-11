@@ -35,7 +35,7 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="160" />
+            <ColumnDefinition Width="190" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -62,7 +62,7 @@
                     <Button Content="{DynamicResource Nav_Settings}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
                             Command="{Binding OpenSettingsCommand}"
                             IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
-                    <Button Content="{DynamicResource Nav_WebServer}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
+                    <Button Content="{DynamicResource Nav_WebServer}" ToolTip="{DynamicResource Nav_WebServer}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"
                             Command="{Binding OpenWebServerCommand}"
                             IsEnabled="{Binding IsTesting, Converter={StaticResource BoolInverter}}" />
                     <Button Content="{DynamicResource Nav_More}" Style="{StaticResource SidebarItemStyle}" Margin="0,4,0,0"

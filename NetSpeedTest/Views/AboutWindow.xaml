@@ -121,7 +121,7 @@
                         <ItemsControl ItemsSource="{Binding Changelog}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Margin="0,6,0,0" Padding="2,0">
+                                    <Border Margin="0,6,0,0" Padding="2,0" CornerRadius="6">
                                         <StackPanel>
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding Version}" FontSize="13"

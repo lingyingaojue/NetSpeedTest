@@ -50,7 +50,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{DynamicResource Profile_List}" FontSize="14" FontWeight="Bold"
                                    Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" />
-                        <Button Grid.Column="1" Content="+" Width="30" Padding="0"
+                        <Button Grid.Column="1" Content="{DynamicResource Add}" MinWidth="56" Padding="10,2"
                                 Command="{Binding CreateProfileCommand}" Margin="0,0,4,0" />
                         <Button Grid.Column="2" Content="{DynamicResource Delete}" Width="48" Padding="4,2"
                                 Command="{Binding DeleteProfileCommand}"
@@ -104,8 +104,8 @@
                         <ItemsControl ItemsSource="{Binding SelectedProfile.DownloadUrls}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{DynamicResource SurfaceBrush}"
-                                            CornerRadius="4" Padding="8,4" Margin="0,2">
+                                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6"
+                                            Padding="8,4" Margin="0,2">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />
@@ -147,8 +147,8 @@
                         <ItemsControl ItemsSource="{Binding SelectedProfile.UploadUrls}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Background="{DynamicResource SurfaceBrush}"
-                                            CornerRadius="4" Padding="8,4" Margin="0,2">
+                                    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="6"
+                                            Padding="8,4" Margin="0,2">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*" />

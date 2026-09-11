@@ -13,7 +13,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Background="{DynamicResource SurfaceBrush}">
+        <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="10">
                 <ListBox ItemsSource="{Binding Tabs}"
                          SelectedIndex="{Binding SelectedTab}"
                          Background="Transparent" BorderThickness="0"
