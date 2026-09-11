@@ -119,38 +119,57 @@
                         <TextBlock Text="{Binding LanStatusText}" FontSize="12"
                                    Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,8,0,0" />
 
-                        <ItemsControl ItemsSource="{Binding LanBindings}" Margin="0,10,0,0">
+                        <ItemsControl ItemsSource="{Binding LanSubnetGroups}" Margin="0,10,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Background="{DynamicResource GlassFillBrush}" CornerRadius="8"
                                             BorderBrush="{DynamicResource GlassBorderBrush}" BorderThickness="1"
-                                            Padding="12,8" Margin="0,0,0,6">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*" />
-                                                <ColumnDefinition Width="Auto" />
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel>
-                                                <TextBlock Text="{Binding AdapterName}" FontSize="13" FontWeight="SemiBold"
-                                                           Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
-                                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                                    <TextBlock Text="{Binding DisplayText, Mode=OneWay}" FontSize="12"
-                                                               Foreground="{DynamicResource TextSecondaryBrush}" />
-                                                    <TextBlock Text="{DynamicResource WebServer_LanSubnetLabel}" FontSize="12"
-                                                               Foreground="{DynamicResource TextMutedBrush}" Margin="8,0,4,0" />
-                                                    <TextBlock Text="{Binding Subnet, Mode=OneWay}" FontSize="12"
-                                                               Foreground="{DynamicResource TextSecondaryBrush}" />
-                                                </StackPanel>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="1" Text="{Binding Url, Mode=OneWay}" FontSize="13"
-                                                       Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
-                                                       Margin="16,0,0,0" TextTrimming="CharacterEllipsis" />
-                                        </Grid>
+                                            Padding="12,10" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right"
+                                                        Content="{DynamicResource WebServer_CopySubnet}"
+                                                        MinWidth="96" Padding="8,2" Margin="8,0,0,0"
+                                                        Command="{Binding DataContext.CopySubnetAddressesCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}" />
+                                                <TextBlock Text="{Binding Subnet}"
+                                                           FontSize="13" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                                           VerticalAlignment="Center" />
+                                            </DockPanel>
+
+                                            <ItemsControl ItemsSource="{Binding Bindings}" Margin="0,8,0,0">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,3">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <StackPanel Grid.Column="0">
+                                                                <TextBlock Text="{Binding AdapterName}" FontSize="12" FontWeight="SemiBold"
+                                                                           Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                                                                <TextBlock Text="{Binding DisplayText}" FontSize="11"
+                                                                           Foreground="{DynamicResource TextSecondaryBrush}" />
+                                                            </StackPanel>
+                                                            <TextBlock Grid.Column="1" Text="{Binding Url}" FontSize="12"
+                                                                       Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"
+                                                                       Margin="12,0,0,0" MaxWidth="260" TextTrimming="CharacterEllipsis"
+                                                                       ToolTip="{Binding Url}" />
+                                                            <Button Grid.Column="2" Content="{DynamicResource WebServer_CopyAddress}"
+                                                                    MinWidth="56" Padding="8,2" Margin="8,0,0,0"
+                                                                    Command="{Binding DataContext.CopyLanAddressCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                    CommandParameter="{Binding}" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-
                         <TextBlock Text="{DynamicResource WebServer_LanNote}" FontSize="12"
                                    Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,4,0,0" />
                     </StackPanel>

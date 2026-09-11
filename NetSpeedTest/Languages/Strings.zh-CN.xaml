@@ -190,6 +190,9 @@
     <sys:String x:Key="WebServer_LanAddresses">网卡网段映射</sys:String>
     <sys:String x:Key="WebServer_LanSubnetLabel">网段</sys:String>
     <sys:String x:Key="WebServer_CopyLan">复制全部地址</sys:String>
+    <sys:String x:Key="WebServer_CopySubnet">复制本网段</sys:String>
+    <sys:String x:Key="WebServer_CopyAddress">复制</sys:String>
+    <sys:String x:Key="WebServer_CopiedSubnet">已复制网段 {0} 的 {1} 个地址</sys:String>
     <sys:String x:Key="WebServer_LanOn">局域网访问已开启</sys:String>
     <sys:String x:Key="WebServer_LanOff">局域网访问未开启</sys:String>
     <sys:String x:Key="WebServer_LanWaitStart">服务器开启后生效</sys:String>

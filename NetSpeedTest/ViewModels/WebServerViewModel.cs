@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using NetSpeedTest.Models;
 using NetSpeedTest.Services;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -36,6 +37,9 @@ public partial class WebServerViewModel : ObservableObject
 
     [ObservableProperty]
     private ObservableCollection<AdapterAccessBinding> _lanBindings = new();
+
+    [ObservableProperty]
+    private ObservableCollection<AdapterSubnetGroup> _lanSubnetGroups = new();
 
     [ObservableProperty]
     private int _currentPort = 8080;
@@ -164,8 +168,20 @@ public partial class WebServerViewModel : ObservableObject
         LanBindings.Clear();
         foreach (var item in _webServer.Bindings)
             LanBindings.Add(item);
-    }
 
+        var groups = LanBindings
+            .GroupBy(x => x.Subnet, StringComparer.OrdinalIgnoreCase)
+            .Select(g => new AdapterSubnetGroup
+            {
+                Subnet = g.Key,
+                Bindings = g.ToList()
+            })
+            .ToList();
+
+        LanSubnetGroups.Clear();
+        foreach (var group in groups)
+            LanSubnetGroups.Add(group);
+    }
     private void RefreshStatus()
     {
         if (_webServer.Enabled)
@@ -194,7 +210,7 @@ public partial class WebServerViewModel : ObservableObject
         }
         else if (_webServer.LanReady)
         {
-            LanStatusText = $"{LocalizationService.Get("WebServer_LanOn")} · {LanBindings.Count} {LocalizationService.Get("WebServer_LanSegments")}";
+            LanStatusText = $"{LocalizationService.Get("WebServer_LanOn")} · {LanSubnetGroups.Count} {LocalizationService.Get("WebServer_LanSegments")}";
         }
         else if (!string.IsNullOrWhiteSpace(_webServer.LanError))
         {
@@ -234,15 +250,40 @@ public partial class WebServerViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void CopyLanAddresses()
+    private void CopySubnetAddresses(AdapterSubnetGroup? group)
     {
+        if (group == null || group.Bindings.Count == 0) return;
+
         try
         {
-            var sb = new StringBuilder();
-            sb.AppendLine(LocalizationService.Get("WebServer_LanAddresses"));
-            foreach (var item in LanBindings)
-                sb.AppendLine($"{item.AdapterName} · {item.DisplayText} · {item.Subnet} → {item.Url}");
-            Clipboard.SetText(sb.ToString().TrimEnd());
+            var urls = group.Bindings
+                .Select(b => b.Url)
+                .Where(u => !string.IsNullOrWhiteSpace(u))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (urls.Count == 0) return;
+
+            Clipboard.SetText(string.Join(Environment.NewLine, urls));
+            CopyResultText = string.Format(
+                LocalizationService.Get("WebServer_CopiedSubnet"),
+                group.Subnet,
+                urls.Count);
+        }
+        catch (Exception ex)
+        {
+            CopyResultText = $"{LocalizationService.Get("WebServer_CopyFailed")}: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private void CopyLanAddress(AdapterAccessBinding? binding)
+    {
+        if (binding == null || string.IsNullOrWhiteSpace(binding.Url)) return;
+
+        try
+        {
+            Clipboard.SetText(binding.Url);
             CopyResultText = LocalizationService.Get("WebServer_Copied");
         }
         catch (Exception ex)
@@ -251,6 +292,30 @@ public partial class WebServerViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private void CopyLanAddresses()
+    {
+        try
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(LocalizationService.Get("WebServer_LanAddresses"));
+
+            foreach (var group in LanSubnetGroups)
+            {
+                sb.AppendLine();
+                sb.AppendLine(group.Subnet);
+                foreach (var item in group.Bindings)
+                    sb.AppendLine($"{item.AdapterName} · {item.DisplayText} · {item.Url}");
+            }
+
+            Clipboard.SetText(sb.ToString().TrimEnd());
+            CopyResultText = LocalizationService.Get("WebServer_Copied");
+        }
+        catch (Exception ex)
+        {
+            CopyResultText = $"{LocalizationService.Get("WebServer_CopyFailed")}: {ex.Message}";
+        }
+    }
     [RelayCommand]
     private void OpenWwwRoot()
     {

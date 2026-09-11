@@ -190,6 +190,9 @@
     <sys:String x:Key="WebServer_LanAddresses">Adapter Subnet Mapping</sys:String>
     <sys:String x:Key="WebServer_LanSubnetLabel">Subnet</sys:String>
     <sys:String x:Key="WebServer_CopyLan">Copy All URLs</sys:String>
+    <sys:String x:Key="WebServer_CopySubnet">Copy Subnet</sys:String>
+    <sys:String x:Key="WebServer_CopyAddress">Copy</sys:String>
+    <sys:String x:Key="WebServer_CopiedSubnet">Copied {1} address(es) from {0}</sys:String>
     <sys:String x:Key="WebServer_LanOn">LAN access enabled</sys:String>
     <sys:String x:Key="WebServer_LanOff">LAN access disabled</sys:String>
     <sys:String x:Key="WebServer_LanWaitStart">Starts when the server is enabled</sys:String>
