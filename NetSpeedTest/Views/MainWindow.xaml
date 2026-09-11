@@ -217,6 +217,8 @@
                                                       Foreground="{DynamicResource TextPrimaryBrush}">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="{Binding Name}" FontSize="13" />
+                                                    <TextBlock Text="{Binding KindText}" FontSize="11"
+                                                               Foreground="{DynamicResource TextMutedBrush}" Margin="6,0,0,0" />
                                                     <TextBlock Text="{Binding IPAddress, TargetNullValue='无IP'}" FontSize="12"
                                                                Foreground="{DynamicResource TextMutedBrush}" Margin="6,0,0,0" />
                                                 </StackPanel>
@@ -427,6 +429,9 @@
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding Name}" FontSize="13"
                                                            Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="140"
+                                                           VerticalAlignment="Center" />
+                                                <TextBlock Text="{Binding KindText}" FontSize="11"
+                                                           Foreground="{DynamicResource TextMutedBrush}" Margin="6,0,0,0"
                                                            VerticalAlignment="Center" />
                                                 <TextBlock Text="{Binding IpAddress, TargetNullValue='—'}" FontSize="11"
                                                            Foreground="{DynamicResource TextMutedBrush}" Margin="6,0,0,0"

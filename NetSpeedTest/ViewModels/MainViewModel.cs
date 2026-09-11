@@ -319,6 +319,7 @@ public partial class MainViewModel : ObservableObject
         };
         _profileService.ProfilesChanged += OnProfilesChanged;
         _networkMonitorService.NetworkChanged += OnNetworkChanged;
+        _options.AdapterFilterChanged += OnAdapterFilterChanged;
 
         DownloadChartSeries.Add(new LineSeries<ObservablePoint>
         {
@@ -389,7 +390,7 @@ public partial class MainViewModel : ObservableObject
             var adapters = await Task.Run(() =>
             {
                 _networkInfoService.InvalidateCache();
-                return _networkInfoService.GetPhysicalAdapters();
+                return _networkInfoService.GetAdapters(_options.IncludeVirtualAdapters);
             });
 
             if (IsTesting)
@@ -430,7 +431,10 @@ public partial class MainViewModel : ObservableObject
         // 首次加载、或原选中网卡都消失时，自动回退到有网关的网卡，避免测速无网卡可选。
         if (selectedIds.Count == 0 && adapters.Count > 0 && (!_adapterSelectionInitialized || removedSelection))
         {
-            var fallback = adapters.FirstOrDefault(a => !string.IsNullOrEmpty(a.Gateway)) ?? adapters[0];
+            var fallback = adapters.FirstOrDefault(a => a.IsPhysical && !string.IsNullOrEmpty(a.Gateway))
+                ?? adapters.FirstOrDefault(a => !string.IsNullOrEmpty(a.Gateway))
+                ?? adapters.FirstOrDefault(a => a.IsPhysical)
+                ?? adapters[0];
             autoSwitched = true;
             selectedIds.Add(fallback.Id);
         }
@@ -481,6 +485,12 @@ public partial class MainViewModel : ObservableObject
         dispatcher.InvokeAsync(RefreshProfiles);
     }
 
+    private void OnAdapterFilterChanged()
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.HasShutdownStarted) return;
+        dispatcher.InvokeAsync(() => _ = RefreshAdaptersAsync());
+    }
     private void OnNetworkChanged()
     {
         var dispatcher = Application.Current?.Dispatcher;
@@ -846,7 +856,7 @@ public partial class MainViewModel : ObservableObject
             ChartAdapterOptions.Add(a.Name);
             _downloadPointsByNic[a.Name] = new ObservableCollection<ObservablePoint>();
             _uploadPointsByNic[a.Name] = new ObservableCollection<ObservablePoint>();
-            AllAdapterRates.Add(new AdapterRateItem { AdapterId = a.Id, Name = a.Name, IpAddress = a.IPAddress, StatusText = "测速中..." });
+            AllAdapterRates.Add(new AdapterRateItem { AdapterId = a.Id, Name = a.Name, IpAddress = a.IPAddress, IsVirtual = a.IsVirtual, StatusText = "测速中..." });
         }
         SelectedChartAdapter = "合计";
         }
@@ -1527,6 +1537,10 @@ public partial class AdapterSelectionItem : ObservableObject
 
     public string? IPAddress => Adapter.IPAddress;
 
+    public bool IsVirtual => Adapter.IsVirtual;
+
+    public string KindText => IsVirtual ? "虚拟" : "物理";
+
     [ObservableProperty]
     private bool _isSelected = true;
 }
@@ -1538,6 +1552,10 @@ public partial class AdapterRateItem : ObservableObject
     public string AdapterId { get; set; } = "";
 
     public string Name { get; set; } = "";
+
+    public bool IsVirtual { get; set; }
+
+    public string KindText => IsVirtual ? "虚拟" : "物理";
 
     [ObservableProperty] private double? _latencyMs;
 

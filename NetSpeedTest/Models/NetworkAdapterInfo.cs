@@ -63,6 +63,16 @@ public class NetworkAdapterInfo
     public bool IsPhysical { get; set; }
 
     /// <summary>
+    /// 是否为虚拟网卡。
+    /// </summary>
+    public bool IsVirtual { get; set; }
+
+    /// <summary>
+    /// 网卡类型。
+    /// </summary>
+    public AdapterKind Kind { get; set; } = AdapterKind.Unknown;
+
+    /// <summary>
     /// 是否 WiFi
     /// </summary>
     public bool IsWifi { get; set; }

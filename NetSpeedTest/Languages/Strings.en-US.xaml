@@ -45,6 +45,7 @@
     <sys:String x:Key="Set_AvgDelay">Average Delay (s)</sys:String>
     <sys:String x:Key="Set_RateWindow">Smooth Window (s)</sys:String>
     <sys:String x:Key="Set_NicPoll">NIC Poll (ms)</sys:String>
+    <sys:String x:Key="Set_IncludeVirtualAdapters">Allow virtual adapters in speed test</sys:String>
     <sys:String x:Key="Set_LatencyPoll">Latency Poll (ms)</sys:String>
     <sys:String x:Key="Set_JitterPoll">Jitter Poll (ms)</sys:String>
     <sys:String x:Key="Set_JitterHost">Jitter Host</sys:String>

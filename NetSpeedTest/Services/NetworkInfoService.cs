@@ -15,15 +15,20 @@ public class NetworkInfoService
     /// 清空网卡对象缓存，用于网络变化后重新获取 NetworkInterface。
     /// </summary>
     public void InvalidateCache() => _niCache.Clear();
-    private static readonly string[] ExcludeKeywords = { "Virtual", "VMware", "VirtualBox", "Hyper-V", "Bluetooth", "VPN", "Docker", "Loopback", "Tunnel", "Pseudo" };
+    private static readonly string[] VirtualKeywords =
+    {
+        "Virtual", "VMware", "VirtualBox", "Hyper-V", "vEthernet", "WSL",
+        "Docker", "VPN", "TAP", "TUN", "Tailscale", "ZeroTier", "WireGuard",
+        "OpenVPN", "Bluetooth", "Loopback", "Tunnel", "Pseudo", "Npcap",
+        "Microsoft KM-TEST"
+    };
 
     /// <summary>
-    /// 获取所有已连接的物理网卡
+    /// 获取网卡列表。
     /// </summary>
-    public List<NetworkAdapterInfo> GetPhysicalAdapters()
+    /// <param name="includeVirtual">是否包含虚拟网卡。</param>
+    public List<NetworkAdapterInfo> GetAdapters(bool includeVirtual)
     {
-        var adapters = new List<NetworkAdapterInfo>();
-
         NetworkInterface[] allInterfaces;
         try
         {
@@ -31,9 +36,28 @@ public class NetworkInfoService
         }
         catch
         {
-            return adapters;
+            return new List<NetworkAdapterInfo>();
         }
 
+        var adapters = CollectAdapters(allInterfaces, includeVirtual);
+
+        // 没有物理网卡时自动降级，避免列表为空。
+        if (adapters.Count == 0 && !includeVirtual)
+        {
+            adapters = CollectAdapters(allInterfaces, includeVirtual: true);
+        }
+
+        return adapters;
+    }
+
+    /// <summary>
+    /// 获取所有已连接的物理网卡。
+    /// </summary>
+    public List<NetworkAdapterInfo> GetPhysicalAdapters() => GetAdapters(includeVirtual: false);
+
+    private List<NetworkAdapterInfo> CollectAdapters(NetworkInterface[] allInterfaces, bool includeVirtual)
+    {
+        var adapters = new List<NetworkAdapterInfo>();
         foreach (var ni in allInterfaces)
         {
             try
@@ -42,40 +66,22 @@ public class NetworkInfoService
                 if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
                     ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel) continue;
 
-                var desc = ni.Description ?? string.Empty;
-                var name = ni.Name ?? string.Empty;
-                if (ExcludeKeywords.Any(k => desc.Contains(k, StringComparison.OrdinalIgnoreCase) ||
-                                              name.Contains(k, StringComparison.OrdinalIgnoreCase)))
-                    continue;
-
                 var adapter = CreateAdapter(ni);
-                if (adapter != null) adapters.Add(adapter);
+                if (adapter == null) continue;
+                if (!includeVirtual && adapter.IsVirtual) continue;
+                adapters.Add(adapter);
             }
             catch { }
         }
-
-        // 严格过滤后如果一张网卡都没识别到，降级为宽松模式，避免部分机器上误过滤导致无网卡
-        if (adapters.Count == 0)
-        {
-            foreach (var ni in allInterfaces)
-            {
-                if (ni.NetworkInterfaceType == NetworkInterfaceType.Loopback ||
-                    ni.NetworkInterfaceType == NetworkInterfaceType.Tunnel) continue;
-
-                var adapter = CreateAdapter(ni);
-                if (adapter != null) adapters.Add(adapter);
-            }
-        }
-
         return adapters;
     }
-
     private NetworkAdapterInfo? CreateAdapter(NetworkInterface ni)
     {
         try
         {
             var desc = ni.Description ?? string.Empty;
             var name = ni.Name ?? string.Empty;
+            var isVirtual = IsVirtualAdapter(ni, name, desc);
             var ipProps = ni.GetIPProperties();
             var ipv4 = ipProps.UnicastAddresses
                 .FirstOrDefault(a => a.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
@@ -116,7 +122,9 @@ public class NetworkInfoService
                 Mtu = mtu,
                 TypeName = typeName,
                 StatusText = statusText,
-                IsPhysical = true,
+                IsPhysical = !isVirtual,
+                IsVirtual = isVirtual,
+                Kind = isVirtual ? AdapterKind.Virtual : AdapterKind.Physical,
                 IsWifi = ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211,
                 IsOperational = ni.OperationalStatus == OperationalStatus.Up
             };
@@ -127,6 +135,16 @@ public class NetworkInfoService
         }
     }
 
+    private static bool IsVirtualAdapter(NetworkInterface ni, string name, string desc)
+    {
+        if (ni.NetworkInterfaceType is NetworkInterfaceType.Loopback
+            or NetworkInterfaceType.Tunnel
+            or NetworkInterfaceType.Ppp)
+            return true;
+
+        var text = $"{name} {desc}";
+        return VirtualKeywords.Any(k => text.Contains(k, StringComparison.OrdinalIgnoreCase));
+    }
     /// <summary>
     /// 获取指定网卡当前累计收/发字节数（系统级计数器）
     /// </summary>

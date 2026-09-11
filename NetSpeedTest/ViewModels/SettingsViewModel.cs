@@ -33,6 +33,8 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private int _compensationConfirmSec;
     [ObservableProperty] private bool _adaptiveThreadsEnabled;
 
+    [ObservableProperty] private bool _includeVirtualAdapters;
+
     [ObservableProperty] private int _selectedCategoryIndex;
 
     [ObservableProperty] private ObservableCollection<string> _categories = new();
@@ -167,6 +169,7 @@ public partial class SettingsViewModel : ObservableObject
         CompensationThreshold = options.CompensationThreshold;
         CompensationConfirmSec = options.CompensationConfirmSec;
         AdaptiveThreadsEnabled = options.AdaptiveThreadsEnabled;
+        IncludeVirtualAdapters = options.IncludeVirtualAdapters;
         ThemeIndex = ThemeService.Current == ThemeMode.Dark ? 0 : 1;
         LanguageIndex = LocalizationService.Current == LanguageMode.ZhCN ? 0 : 1;
         RefreshAdStatus();
@@ -223,6 +226,7 @@ public partial class SettingsViewModel : ObservableObject
         _options.CompensationThreshold = CompensationThreshold;
         _options.CompensationConfirmSec = CompensationConfirmSec;
         _options.AdaptiveThreadsEnabled = AdaptiveThreadsEnabled;
+        _options.IncludeVirtualAdapters = IncludeVirtualAdapters;
         ThemeService.Save(ThemeIndex == 0 ? ThemeMode.Dark : ThemeMode.Light);
         var languageMode = LanguageIndex switch
         {
@@ -280,6 +284,7 @@ public partial class SettingsViewModel : ObservableObject
             speed["CompensationThreshold"] = CompensationThreshold;
             speed["CompensationConfirmSec"] = CompensationConfirmSec;
             speed["AdaptiveThreadsEnabled"] = AdaptiveThreadsEnabled;
+            speed["IncludeVirtualAdapters"] = IncludeVirtualAdapters;
             root["SpeedTest"] = speed;
 
             File.WriteAllText(path, root.ToJsonString(new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));

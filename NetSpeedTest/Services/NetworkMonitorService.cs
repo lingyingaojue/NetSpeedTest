@@ -30,7 +30,7 @@ public sealed class NetworkMonitorService : IDisposable
     {
         _networkInfoService = networkInfoService;
 
-        _lastFingerprint = BuildFingerprint(_networkInfoService.GetPhysicalAdapters());
+        _lastFingerprint = BuildFingerprint(_networkInfoService.GetAdapters(includeVirtual: true));
 
         _debounceTimer = new Timer(_ => _ = RefreshAsync(), null, Timeout.Infinite, Timeout.Infinite);
         _pollTimer = new Timer(_ => _ = RefreshAsync(), null, PollInterval, PollInterval);
@@ -66,7 +66,7 @@ public sealed class NetworkMonitorService : IDisposable
             if (_disposed) return;
 
             _networkInfoService.InvalidateCache();
-            var adapters = _networkInfoService.GetPhysicalAdapters();
+            var adapters = _networkInfoService.GetAdapters(includeVirtual: true);
             var fingerprint = BuildFingerprint(adapters);
 
             var changed = false;

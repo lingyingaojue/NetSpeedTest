@@ -987,6 +987,7 @@ public void Stop()
             options.CompensationThreshold,
             options.CompensationConfirmSec,
             options.AdaptiveThreadsEnabled,
+            options.IncludeVirtualAdapters,
             theme = ThemeService.Current.ToString(),
             language = LocalizationService.Current.ToString(),
             webServerEnabled = Enabled
@@ -1017,6 +1018,7 @@ public void Stop()
             if (root.TryGetProperty("compensationThreshold", out var compensationThreshold)) options.CompensationThreshold = Math.Clamp(compensationThreshold.GetDouble(), 0.3, 0.8);
             if (root.TryGetProperty("compensationConfirmSec", out var compensationConfirmSec)) options.CompensationConfirmSec = Math.Clamp(compensationConfirmSec.GetInt32(), 1, 10);
             if (root.TryGetProperty("adaptiveThreadsEnabled", out var adaptiveThreadsEnabled)) options.AdaptiveThreadsEnabled = adaptiveThreadsEnabled.GetBoolean();
+            if (root.TryGetProperty("includeVirtualAdapters", out var includeVirtualAdapters)) options.IncludeVirtualAdapters = includeVirtualAdapters.GetBoolean();
 
             if (root.TryGetProperty("theme", out var theme))
             {
@@ -1093,6 +1095,7 @@ public void Stop()
             speed["CompensationThreshold"] = options.CompensationThreshold;
             speed["CompensationConfirmSec"] = options.CompensationConfirmSec;
             speed["AdaptiveThreadsEnabled"] = options.AdaptiveThreadsEnabled;
+            speed["IncludeVirtualAdapters"] = options.IncludeVirtualAdapters;
             speed["AdaptiveStartThreads"] = options.AdaptiveStartThreads;
             root["SpeedTest"] = speed;
 

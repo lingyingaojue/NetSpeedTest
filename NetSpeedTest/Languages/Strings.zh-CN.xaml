@@ -45,6 +45,7 @@
     <sys:String x:Key="Set_AvgDelay">平均计量延迟 (秒)</sys:String>
     <sys:String x:Key="Set_RateWindow">速率平滑窗口 (秒)</sys:String>
     <sys:String x:Key="Set_NicPoll">网卡轮询间隔 (毫秒)</sys:String>
+    <sys:String x:Key="Set_IncludeVirtualAdapters">允许虚拟网卡参与测速</sys:String>
     <sys:String x:Key="Set_LatencyPoll">延迟轮询间隔 (毫秒)</sys:String>
     <sys:String x:Key="Set_JitterPoll">抖动采样间隔 (毫秒)</sys:String>
     <sys:String x:Key="Set_JitterHost">抖动探测主机</sys:String>

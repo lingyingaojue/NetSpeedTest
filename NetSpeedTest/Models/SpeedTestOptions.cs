@@ -19,4 +19,25 @@ public class SpeedTestOptions
     public int CompensationConfirmSec { get; set; } = 3;
     public bool AdaptiveThreadsEnabled { get; set; } = true;
     public int AdaptiveStartThreads { get; set; } = 2;
+
+    private bool _includeVirtualAdapters;
+
+    /// <summary>
+    /// 是否允许虚拟网卡参与测速。
+    /// </summary>
+    public bool IncludeVirtualAdapters
+    {
+        get => _includeVirtualAdapters;
+        set
+        {
+            if (_includeVirtualAdapters == value) return;
+            _includeVirtualAdapters = value;
+            AdapterFilterChanged?.Invoke();
+        }
+    }
+
+    /// <summary>
+    /// 虚拟网卡过滤条件发生变化。
+    /// </summary>
+    public event Action? AdapterFilterChanged;
 }
