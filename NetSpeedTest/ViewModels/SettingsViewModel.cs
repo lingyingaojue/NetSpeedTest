@@ -159,7 +159,7 @@ public partial class SettingsViewModel : ObservableObject
 
     private void RefreshWebStatus()
     {
-        WebServerStatusText = _webServer.Enabled ? "运行中 · http://127.0.0.1:8080" : "未启动";
+        WebServerStatusText = _webServer.Enabled ? $"运行中 · http://127.0.0.1:{_webServer.CurrentPort}" : "未启动";
     }
     private void RefreshAdStatus()
     {

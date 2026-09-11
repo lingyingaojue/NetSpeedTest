@@ -452,6 +452,21 @@
                                                     <Run Text="{Binding UploadMbps, Converter={StaticResource RateDisplayConverter}}" />
                                                 </TextBlock>
                                             </StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                                           Text="{DynamicResource Metric_Lan}" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource SuccessBrush}" Margin="2,0,8,0"
+                                                           Text="{Binding LatencyMs, Converter={StaticResource LatencyDisplayConverter}}" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                                           Text="{DynamicResource Metric_Wan}" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource WarningBrush}" Margin="2,0,8,0"
+                                                           Text="{Binding WanLatencyMs, Converter={StaticResource LatencyDisplayConverter}}" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                                                           Text="{DynamicResource Metric_Jitter}" />
+                                                <TextBlock FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="2,0,0,0"
+                                                           Text="{Binding JitterMs, Converter={StaticResource LatencyDisplayConverter}}" />
+                                            </StackPanel>
+
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>

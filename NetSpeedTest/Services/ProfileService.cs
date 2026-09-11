@@ -14,6 +14,11 @@ public class ProfileService
 {
     private readonly string _connectionString;
 
+    /// <summary>
+    /// 配置在数据库层面发生变化后触发。ImportFromFile 会合并为一次通知。
+    /// </summary>
+    public event Action? ProfilesChanged;
+
     public ProfileService(string connectionString, IConfiguration? config = null)
     {
         _connectionString = connectionString;
@@ -131,6 +136,12 @@ public class ProfileService
     /// </summary>
     public void SaveProfile(SpeedTestProfile profile)
     {
+        SaveProfileCore(profile);
+        ProfilesChanged?.Invoke();
+    }
+
+    private void SaveProfileCore(SpeedTestProfile profile)
+    {
         profile.UpdatedAt = DateTime.Now;
         using var conn = new SqliteConnection(_connectionString);
         conn.Open();
@@ -153,6 +164,12 @@ public class ProfileService
     /// 删除配置
     /// </summary>
     public void DeleteProfile(string id)
+    {
+        DeleteProfileCore(id);
+        ProfilesChanged?.Invoke();
+    }
+
+    private void DeleteProfileCore(string id)
     {
         using var conn = new SqliteConnection(_connectionString);
         conn.Open();
@@ -193,10 +210,11 @@ public class ProfileService
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
-            SaveProfile(profile);
+            SaveProfileCore(profile);
             imported.Add(profile);
         }
 
+        ProfilesChanged?.Invoke();
         return imported;
     }
 

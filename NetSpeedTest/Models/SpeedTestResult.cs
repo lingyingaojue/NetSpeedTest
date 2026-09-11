@@ -68,6 +68,11 @@ public class SpeedTestResult
     public string NetworkAdapterName { get; set; } = string.Empty;
 
     /// <summary>
+    /// 网卡唯一标识（仅内存使用，用于多网卡质量指标归属）
+    /// </summary>
+    public string? NetworkAdapterId { get; set; }
+
+    /// <summary>
     /// 下载字节数
     /// </summary>
     public long BytesDownloaded { get; set; }

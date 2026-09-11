@@ -108,11 +108,12 @@ public class SpeedTestService
             onAverageDownload, onAverageUpload, onAverageTotal, onAverageSpeed,
             totalBytesDownloaded, onTotalBytes, tc: threadCount, adaptive: adaptive, throughputMode: 1);
 
-        var gwTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss);
+        var sourceIp = client != null ? GetAdapterSourceIp(adapters) : null;
+        var gwTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, client);
 
-        var urlBalancer = new UrlBalancer(urls);
+        var urlBalancer = new UrlBalancer(urls, useFastestAfterProbe: true);
 
-        // 单次下载迭代：按 worker 均衡分配 URL，超时/失败自动切换最优 URL
+        // 单次下载迭代：先轮转探测所有 URL，之后自动选择最优 URL；超时/失败自动避让
         async Task RunOneDownloadAsync(int workerId, CancellationToken requestCt, CancellationToken globalCt)
         {
             var url = urlBalancer.GetUrlForWorker(workerId);
@@ -179,7 +180,8 @@ public class SpeedTestService
         else
         {
             for (int i = 0; i < threadCount; i++)
-            { var idx = i; var url = urls[idx % urls.Count];
+            {
+                var idx = i;
                 if (ct.IsCancellationRequested) break;
 
                 tasks.Add(Task.Run(async () =>
@@ -345,6 +347,14 @@ public class SpeedTestService
         catch { return url; }
     }
 
+    private static IPAddress? GetAdapterSourceIp(List<NetworkAdapterInfo> adapters)
+    {
+        if (adapters == null || adapters.Count == 0) return null;
+        var ipText = adapters[0].IPAddress;
+        return IPAddress.TryParse(ipText, out var ip) && ip.AddressFamily == AddressFamily.InterNetwork ? ip : null;
+    }
+
+
     private static IPAddress? ResolveHost(string host)
     {
         if (IPAddress.TryParse(host, out var ip)) return ip;
@@ -355,7 +365,7 @@ public class SpeedTestService
     /// <summary>
     /// 延迟测试：UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD 五层回退
     /// </summary>
-    private async Task<double> TestGatewayLatencyAsync(string host, CancellationToken ct, IPAddress? ip = null)
+    private async Task<double> TestGatewayLatencyAsync(string host, CancellationToken ct, IPAddress? ip = null, IPAddress? sourceIp = null, HttpClient? probeClient = null)
     {
         var latencies = new List<double>();
 
@@ -365,7 +375,7 @@ public class SpeedTestService
             var ipv4 = ip ?? (await Dns.GetHostAddressesAsync(host, ct)).FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork);
             if (ipv4 != null)
             {
-                using var udp = new UdpClient();
+                using var udp = sourceIp != null ? new UdpClient(new IPEndPoint(sourceIp, 0)) : new UdpClient();
                 udp.Connect(ipv4, 33434);
                 udp.Client.SendTimeout = 1000;
                 udp.Client.ReceiveTimeout = 1000;
@@ -397,6 +407,8 @@ public class SpeedTestService
         if (latencies.Count > 0) { Logger.Log($"延迟({host}): UDP={latencies.Average():F1}ms"); return latencies.Average(); }
 
         // 第二层：ICMP Ping
+        if (sourceIp == null)
+        {
         const int count = 10;
         using var ping = new Ping();
         for (int i = 0; i < count; i++)
@@ -413,6 +425,7 @@ public class SpeedTestService
                 try { await Task.Delay(100, ct); } catch { break; }
         }
         if (latencies.Count > 0) { Logger.Log($"延迟({host}): ICMP={latencies.Average():F1}ms"); return latencies.Average(); }
+        }
 
         // 第三层：TCP 连接 443
         for (int i = 0; i < 5; i++)
@@ -420,7 +433,7 @@ public class SpeedTestService
             ct.ThrowIfCancellationRequested();
             try
             {
-                using var tcp = new TcpClient();
+                using var tcp = sourceIp != null ? new TcpClient(new IPEndPoint(sourceIp, 0)) : new TcpClient();
                 var sw = Stopwatch.StartNew();
                 await tcp.ConnectAsync(host, 443, ct);
                 latencies.Add(sw.Elapsed.TotalMilliseconds);
@@ -439,7 +452,7 @@ public class SpeedTestService
             {
                 using var req = new HttpRequestMessage(HttpMethod.Head, "https://" + host);
                 var sw = Stopwatch.StartNew();
-                using var resp = await _httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+                using var resp = await (probeClient ?? _httpClient).SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
                 resp.EnsureSuccessStatusCode();
                 latencies.Add(sw.Elapsed.TotalMilliseconds);
             }
@@ -457,7 +470,7 @@ public class SpeedTestService
             {
                 using var req = new HttpRequestMessage(HttpMethod.Head, "http://" + host);
                 var sw = Stopwatch.StartNew();
-                using var resp = await _httpClient.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+                using var resp = await (probeClient ?? _httpClient).SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
                 resp.EnsureSuccessStatusCode();
                 latencies.Add(sw.Elapsed.TotalMilliseconds);
             }
@@ -563,12 +576,14 @@ public class SpeedTestService
     }
 
     /// <summary>
-    /// URL 负载均衡器：worker 均分 URL；不健康 URL 的线程自动切到最优 URL。
+    /// URL 负载均衡器：探索阶段 worker 轮转覆盖全部 URL；全部探测后切换到最优 URL；不健康 URL 自动避让。
     /// </summary>
     private sealed class UrlBalancer
     {
         private sealed class UrlHealth
         {
+            public bool Attempted;
+            public bool Assigned;
             public int Success;
             public int Fail;
             public int ConsecutiveFail;
@@ -580,9 +595,12 @@ public class SpeedTestService
         private readonly object _sync = new();
         private readonly List<string> _urls;
         private readonly Dictionary<string, UrlHealth> _health = new(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<int, int> _nextUrlIndex = new();
+        private readonly bool _useFastestAfterProbe;
 
-        public UrlBalancer(IEnumerable<string> urls)
+        public UrlBalancer(IEnumerable<string> urls, bool useFastestAfterProbe)
         {
+            _useFastestAfterProbe = useFastestAfterProbe;
             _urls = urls.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             foreach (var u in _urls) _health[u] = new UrlHealth();
         }
@@ -592,8 +610,29 @@ public class SpeedTestService
             lock (_sync)
             {
                 if (_urls.Count == 0) return string.Empty;
-                var preferred = _urls[Math.Abs(workerId) % _urls.Count];
-                if (IsHealthy(preferred)) return preferred;
+                if (!_nextUrlIndex.TryGetValue(workerId, out var cursor))
+                    cursor = Math.Abs(workerId) % _urls.Count;
+
+                // 探索阶段：每个 URL 至少被测一次后再进入“选择最快节点”阶段。
+                var allAttempted = _useFastestAfterProbe && _urls.All(u => _health[u].Attempted);
+                if (_useFastestAfterProbe && !allAttempted)
+                {
+                    var unvisited = _urls.Where(u => !_health[u].Assigned).ToList();
+                    if (unvisited.Count > 0)
+                    {
+                        var nextUnvisited = unvisited
+                            .OrderBy(u => (_urls.IndexOf(u) - cursor + _urls.Count) % _urls.Count)
+                            .First();
+                        _health[nextUnvisited].Assigned = true;
+                        _nextUrlIndex[workerId] = (cursor + 1) % _urls.Count;
+                        return nextUnvisited;
+                    }
+                }
+
+                // 每个 worker 每次取完后前进到下一条 URL，避免 worker 数少于 URL 数时某些 URL 永远分不到线程。
+                var preferred = _urls[cursor % _urls.Count];
+                _nextUrlIndex[workerId] = (cursor + 1) % _urls.Count;
+                if (!allAttempted && IsHealthy(preferred)) return preferred;
 
                 var healthy = _urls.Where(IsHealthy).ToList();
                 if (healthy.Count > 0)
@@ -610,6 +649,8 @@ public class SpeedTestService
             lock (_sync)
             {
                 if (!_health.TryGetValue(url, out var h)) return;
+                h.Assigned = true;
+                h.Attempted = true;
                 h.Success++;
                 h.ConsecutiveFail = 0;
                 h.Timeouts = 0;
@@ -623,6 +664,8 @@ public class SpeedTestService
             lock (_sync)
             {
                 if (!_health.TryGetValue(url, out var h)) return;
+                h.Assigned = true;
+                h.Attempted = true;
                 h.Fail++;
                 h.ConsecutiveFail++;
                 if (h.ConsecutiveFail >= 2) h.CooldownUntilUtc = DateTime.UtcNow.AddSeconds(10);
@@ -634,6 +677,8 @@ public class SpeedTestService
             lock (_sync)
             {
                 if (!_health.TryGetValue(url, out var h)) return;
+                h.Assigned = true;
+                h.Attempted = true;
                 h.Timeouts++;
                 h.ConsecutiveFail++;
                 h.CooldownUntilUtc = DateTime.UtcNow.AddSeconds(10);
@@ -682,7 +727,7 @@ public class SpeedTestService
         private Func<int, CancellationToken, Task>? _body;
         private CancellationTokenSource? _workerCts;
         private Task? _pulseTask;
-        private int _workerSeq;
+        private int _workerSeq = -1;
 
         private int _current;
         private int _target;
@@ -1125,16 +1170,16 @@ public class SpeedTestService
         return nicTask;
     }
 
-    private (Task? gatewayTask, Task wanTask, Task jitterTask, Task lossTask) StartGatewayAndWanLatency(string? gateway, CancellationToken ctLinked, Action<double>? onLatency, Action<double>? onWanLatency, Action<double>? onJitter, Action<PacketLossSample>? onPacketLoss)
+    private (Task? gatewayTask, Task wanTask, Task jitterTask, Task lossTask) StartGatewayAndWanLatency(string? gateway, CancellationToken ctLinked, Action<double>? onLatency, Action<double>? onWanLatency, Action<double>? onJitter, Action<PacketLossSample>? onPacketLoss, IPAddress? sourceIp = null, HttpClient? probeClient = null)
     {
         Task? gt = null;
         if (!string.IsNullOrEmpty(gateway))
         {
             Logger.Log($"网关延迟测试启动: gateway={gateway}");
-            gt = Task.Run(async () => { try { while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(gateway, ctLinked); if (v > 0) onLatency?.Invoke(v); } catch { break; } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } } catch { } });
+            gt = Task.Run(async () => { try { while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(gateway, ctLinked, sourceIp: sourceIp, probeClient: probeClient); if (v > 0) onLatency?.Invoke(v); } catch { break; } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } } catch { } });
         }
-        var wt = Task.Run(async () => { try { var wHost = "8.8.8.8"; while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(wHost, ctLinked); if (v > 0) onWanLatency?.Invoke(v); } catch { } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } } catch { } });
-        var jt = Task.Run(async () => { try { try { await Task.Delay(TimeSpan.FromSeconds(_options.AverageDelaySec), ctLinked); } catch { return; } var jHost = string.IsNullOrEmpty(_options.JitterTargetHost) ? "8.8.8.8" : _options.JitterTargetHost; var jInterval = Math.Max(500, _options.JitterPollIntervalMs); while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(jHost, ctLinked); if (v > 0) onJitter?.Invoke(v); } catch { } try { await Task.Delay(jInterval, ctLinked); } catch { break; } } } catch { } });
+        var wt = Task.Run(async () => { try { var wHost = "8.8.8.8"; while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(wHost, ctLinked, sourceIp: sourceIp, probeClient: probeClient); if (v > 0) onWanLatency?.Invoke(v); } catch { } try { await Task.Delay(_options.LatencyPollIntervalMs, ctLinked); } catch { break; } } } catch { } });
+        var jt = Task.Run(async () => { try { try { await Task.Delay(TimeSpan.FromSeconds(_options.AverageDelaySec), ctLinked); } catch { return; } var jHost = string.IsNullOrEmpty(_options.JitterTargetHost) ? "8.8.8.8" : _options.JitterTargetHost; var jInterval = Math.Max(500, _options.JitterPollIntervalMs); while (!ctLinked.IsCancellationRequested) { try { var v = await TestGatewayLatencyAsync(jHost, ctLinked, sourceIp: sourceIp, probeClient: probeClient); if (v > 0) onJitter?.Invoke(v); } catch { } try { await Task.Delay(jInterval, ctLinked); } catch { break; } } } catch { } });
         var lossTask = onPacketLoss == null ? Task.CompletedTask : StartPacketLossMonitor(_options.PacketLossTargetHost, ctLinked, onPacketLoss);
         return (gt, wt, jt, lossTask);
     }
@@ -1270,10 +1315,12 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         using var semaphore = new SemaphoreSlim(workerCount, workerCount);
 
         var nicMonitorUpload = StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, dummy, onTotalBytes, tc: threadCount, adaptive: adaptive, throughputMode: 2);
-        var gwUploadTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss);
+        var sourceIp = client != null ? GetAdapterSourceIp(adapters) : null;
+        var gwUploadTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, client);
 
         var rng = new Random(Guid.NewGuid().GetHashCode()); var buf = new byte[64 * 1024]; rng.NextBytes(buf);
-        var urlBalancer = new UrlBalancer(urls);
+        var urlBalancer = new UrlBalancer(urls, useFastestAfterProbe: false);
+
 
         async Task RunOneUploadAsync(int workerId, CancellationToken requestCt, CancellationToken globalCt)
         {
@@ -1317,7 +1364,8 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         else
         {
             for (int i = 0; i < threadCount; i++)
-            { var idx = i; var url = urls[idx % urls.Count];
+            {
+                var idx = i;
                 if (ct.IsCancellationRequested) break;
 
                 tasks.Add(Task.Run(async () =>
@@ -1389,18 +1437,19 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
             : 0;
         var useAdaptive = adaptiveMaxBase > 0;
         var workerCount = useAdaptive ? adaptiveMaxBase : threadCount;
-        var startThreads = useAdaptive ? Math.Clamp(_options.AdaptiveStartThreads, 1, adaptiveMaxBase) : 0;
+        var startThreads = useAdaptive ? Math.Clamp(_options.AdaptiveStartThreads, 2, adaptiveMaxBase) : 0;
         AdaptiveController? adaptive = useAdaptive
             ? new AdaptiveController(adaptiveMaxBase, startThreads, _options.TestTimeoutSec, onActiveThreadCount)
             : null;
         using var semaphore = new SemaphoreSlim(workerCount, workerCount);
 
         var nicMonitorFull = StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, bytesDl, onTotalBytes, tc: threadCount, adaptive: adaptive, throughputMode: 0);
-        var gwFullTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss);
+        var sourceIp = client != null ? GetAdapterSourceIp(adapters) : null;
+        var gwFullTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, client);
 
         var rng = new Random(Guid.NewGuid().GetHashCode()); var buf = new byte[64 * 1024]; rng.NextBytes(buf);
-        var dlBalancer = new UrlBalancer(dlUrls);
-        var ulBalancer = new UrlBalancer(ulUrls);
+        var dlBalancer = new UrlBalancer(dlUrls, useFastestAfterProbe: true);
+        var ulBalancer = new UrlBalancer(ulUrls, useFastestAfterProbe: false);
         async Task RunOneFullAsync(bool isDl, string url, CancellationToken requestCt)
         {
             try
@@ -1474,7 +1523,7 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
                     int idx = i + j;
                     if (idx >= threadCount) break;
                     bool isDl = j == 0;
-                    var url = isDl ? dlUrls[(idx / 2) % dlUrls.Count] : ulUrls[(idx / 2) % ulUrls.Count];
+
                     tasks.Add(Task.Run(async () =>
                     {
                         try { await semaphore.WaitAsync(ctLinked); } catch { return; }
@@ -1599,7 +1648,8 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         Action<long>? onTotalBytes = null,
         Action<PacketLossSample>? onPacketLoss = null,
         CancellationToken ct = default,
-        List<NetworkAdapterInfo>? monitorAdapters = null)
+        List<NetworkAdapterInfo>? monitorAdapters = null,
+        MultiNicMetricCallbacks? metricCallbacks = null)
     {
         bool hasDl = dlUrls.Count > 0, hasUl = ulUrls.Count > 0;
         if (!hasDl && !hasUl) throw new ArgumentException("无可用测速地址");
@@ -1630,21 +1680,28 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
                 onAdapterRates?.Invoke(name, dl, ul);
             };
 
-            SpeedTestResult singleResult;
+            Action<double>? singleLatency = onLatency;
+        Action<double>? singleWanLatency = onWanLatency;
+        Action<double>? singleJitter = onJitter;
+        if (metricCallbacks?.OnLatency != null) singleLatency = v => metricCallbacks!.OnLatency!(single, v);
+        if (metricCallbacks?.OnWanLatency != null) singleWanLatency = v => metricCallbacks!.OnWanLatency!(single, v);
+        if (metricCallbacks?.OnJitterRtt != null) singleJitter = v => metricCallbacks!.OnJitterRtt!(single, v);
+
+        SpeedTestResult singleResult;
             if (hasDl && hasUl)
                 singleResult = await RunFullTestAsync(dlUrls, ulUrls, threadCount, monitor, profileName, nicGw,
                     singleDl, singleUl, singleAr, onActiveThreadCount,
-                    onLatency, onWanLatency, onJitter,
+                    singleLatency, singleWanLatency, singleJitter,
                     onAverageDownload, onAverageUpload, onAverageTotal, onTotalBytes, onPacketLoss, 0, ct);
             else if (hasDl)
                 singleResult = await RunMultiUrlTestAsync(dlUrls, threadCount, monitor, profileName, nicGw,
                     null, singleDl, singleUl, singleAr, onActiveThreadCount,
-                    onLatency, onWanLatency, onJitter,
+                    singleLatency, singleWanLatency, singleJitter,
                     onAverageSpeed, onAverageDownload, onAverageUpload, onAverageTotal, onTotalBytes, onPacketLoss, 0, ct);
             else
                 singleResult = await RunUploadTestAsync(ulUrls, threadCount, monitor, profileName, nicGw,
                     singleDl, singleUl, singleAr, onActiveThreadCount,
-                    onLatency, onWanLatency, onJitter,
+                    singleLatency, singleWanLatency, singleJitter,
                     onAverageDownload, onAverageUpload, onAverageTotal, onTotalBytes, onPacketLoss, 0, ct);
 
             return new List<SpeedTestResult> { singleResult };
@@ -1725,20 +1782,23 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
                 var client = nicClients[i].client;
                 var nicOnly = new List<NetworkAdapterInfo> { adapter };
                 var nicGw = !string.IsNullOrEmpty(adapter.Gateway) ? adapter.Gateway : gateway;
+                Action<double>? nicLatency = metricCallbacks?.OnLatency == null ? onLatency : v => metricCallbacks!.OnLatency!(adapter, v);
+                Action<double>? nicWanLatency = metricCallbacks?.OnWanLatency == null ? onWanLatency : v => metricCallbacks!.OnWanLatency!(adapter, v);
+                Action<double>? nicJitter = metricCallbacks?.OnJitterRtt == null ? onJitter : v => metricCallbacks!.OnJitterRtt!(adapter, v);
 
                 Task<SpeedTestResult> t;
                 if (hasDl && hasUl)
                     t = RunFullTestAsync(dlUrls, ulUrls, perNicThreads, nicOnly, profileName, nicGw,
                         WrapDl(idx, adapter), WrapUl(idx, adapter), WrapAdapterRates(adapter), WrapAct(idx),
-                        onLatency, onWanLatency, onJitter, WrapAvgDl(idx), WrapAvgUl(idx), WrapAvgTot(idx), WrapBytes(idx), null, perNicAdaptiveCap, ct, client);
+                        nicLatency, nicWanLatency, nicJitter, WrapAvgDl(idx), WrapAvgUl(idx), WrapAvgTot(idx), WrapBytes(idx), null, perNicAdaptiveCap, ct, client);
                 else if (hasDl)
                     t = RunMultiUrlTestAsync(dlUrls, perNicThreads, nicOnly, profileName, nicGw,
                         null, WrapDl(idx, adapter), WrapUl(idx, adapter), WrapAdapterRates(adapter), WrapAct(idx),
-                        onLatency, onWanLatency, onJitter, WrapAvgSpd(idx), WrapAvgDl(idx), WrapAvgUl(idx), WrapAvgTot(idx), WrapBytes(idx), null, perNicAdaptiveCap, ct, client);
+                        nicLatency, nicWanLatency, nicJitter, WrapAvgSpd(idx), WrapAvgDl(idx), WrapAvgUl(idx), WrapAvgTot(idx), WrapBytes(idx), null, perNicAdaptiveCap, ct, client);
                 else
                     t = RunUploadTestAsync(ulUrls, perNicThreads, nicOnly, profileName, nicGw,
                         WrapDl(idx, adapter), WrapUl(idx, adapter), WrapAdapterRates(adapter), WrapAct(idx),
-                        onLatency, onWanLatency, onJitter, WrapAvgDl(idx), WrapAvgUl(idx), WrapAvgTot(idx), WrapBytes(idx), null, perNicAdaptiveCap, ct, client);
+                        nicLatency, nicWanLatency, nicJitter, WrapAvgDl(idx), WrapAvgUl(idx), WrapAvgTot(idx), WrapBytes(idx), null, perNicAdaptiveCap, ct, client);
                 var task = t;
                 tasks.Add(Task.Run(async () =>
                 {
@@ -1763,6 +1823,8 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
             }
 
             var results = (await Task.WhenAll(tasks)).ToList();
+            for (var i = 0; i < results.Count && i < nicClients.Count; i++)
+                results[i].NetworkAdapterId = nicClients[i].adapter.Id;
             foreach (var a in failedAdapters)
             {
                 results.Add(new SpeedTestResult

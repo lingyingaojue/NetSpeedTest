@@ -10,6 +10,11 @@ namespace NetSpeedTest.Services;
 public class NetworkInfoService
 {
     private readonly ConcurrentDictionary<string, NetworkInterface> _niCache = new();
+
+    /// <summary>
+    /// 清空网卡对象缓存，用于网络变化后重新获取 NetworkInterface。
+    /// </summary>
+    public void InvalidateCache() => _niCache.Clear();
     private static readonly string[] ExcludeKeywords = { "Virtual", "VMware", "VirtualBox", "Hyper-V", "Bluetooth", "VPN", "Docker", "Loopback", "Tunnel", "Pseudo" };
 
     /// <summary>

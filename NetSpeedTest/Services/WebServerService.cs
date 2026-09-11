@@ -22,7 +22,10 @@ namespace NetSpeedTest.Services;
 /// </summary>
 public class WebServerService
 {
-    public const int Port = 8080;
+    public int CurrentPort { get; private set; } = 8080;
+    public WebServerPortMode PortMode { get; private set; } = WebServerPortMode.Auto;
+    public int CustomPort { get; private set; } = 8080;
+
 
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -34,6 +37,8 @@ public class WebServerService
     private static readonly SemaphoreSlim RequestGate = new(64, 64);
 
     private readonly IServiceProvider _serviceProvider;
+    private readonly NetworkMonitorService _networkMonitor;
+    private bool _usingWildcardListener;
     private readonly object _gate = new();
     private readonly List<HttpListener> _listeners = new();
     private CancellationTokenSource? _cts;
@@ -71,10 +76,22 @@ public class WebServerService
 
     public event Action? StateChanged;
 
-    public WebServerService(IServiceProvider serviceProvider)
+    /// <summary>
+    /// 局域网绑定列表发生变化时触发。
+    /// </summary>
+    public event Action? BindingsChanged;
+
+    public WebServerService(IServiceProvider serviceProvider, NetworkMonitorService networkMonitorService)
     {
         _serviceProvider = serviceProvider;
-        _bindings = BuildAdapterBindings();
+        _networkMonitor = networkMonitorService;
+        _networkMonitor.NetworkChanged += OnNetworkChanged;
+        var settings = LoadSettings();
+        _allowLanAccess = settings.AllowLanAccess;
+        PortMode = settings.PortMode;
+        CustomPort = settings.CustomPort;
+        CurrentPort = settings.LastActualPort;
+        _bindings = BuildAdapterBindings(CurrentPort);
         _bindingsBuiltAtUtc = DateTime.UtcNow;
     }
 
@@ -100,40 +117,74 @@ public class WebServerService
         SaveSettings();
     }
 
-    public void Start()
+    public void SetPortMode(WebServerPortMode mode, int customPort)
+    {
+        var oldMode = PortMode;
+        var oldCustomPort = CustomPort;
+        var oldCurrentPort = CurrentPort;
+        var wasEnabled = _enabled;
+
+        if (mode == WebServerPortMode.Custom && !PortHelper.IsValidPort(customPort))
+            throw new ArgumentOutOfRangeException(nameof(customPort), "端口范围必须在 1024~65535");
+
+        PortMode = mode;
+        CustomPort = customPort;
+        SaveSettings();
+
+        if (!wasEnabled)
+        {
+            StateChanged?.Invoke();
+            return;
+        }
+
+        Stop();
+        Start();
+
+        if (!_enabled)
+        {
+            var error = LastError;
+            PortMode = oldMode;
+            CustomPort = oldCustomPort;
+            CurrentPort = oldCurrentPort;
+            SaveSettings();
+            Start();
+            throw new InvalidOperationException(string.IsNullOrWhiteSpace(error) ? "端口启动失败" : error);
+        }
+    }
+        public void Start()
     {
         lock (_gate)
         {
             if (_listeners.Count > 0) return;
+
             try
             {
-                // Web 文件已嵌入 exe；若 exe 同目录存在 wwwroot，则作为自定义覆盖
-                _bindings = BuildAdapterBindings();
-                _bindingsBuiltAtUtc = DateTime.UtcNow;
                 _aclReady = false;
                 _firewallReady = false;
                 _lanReady = false;
                 _lanError = "";
 
-                var loopback = StartListener("http://127.0.0.1:8080/", "http://localhost:8080/");
-                if (loopback == null) throw new InvalidOperationException("无法监听 127.0.0.1:8080");
-                _listeners.Add(loopback);
+                Exception? lastError = null;
+                var startedPort = -1;
 
-                if (_allowLanAccess)
-                    StartLanListeners();
-
-                _enabled = true;
-                _cts = new CancellationTokenSource();
-                var ct = _cts.Token;
-                foreach (var listener in _listeners.ToArray())
+                foreach (var port in GetPortCandidates())
                 {
-                    var current = listener;
-                    _ = Task.Run(() => ListenLoopAsync(current, ct));
+                    if (TryStartAtPort(port, out lastError))
+                    {
+                        startedPort = port;
+                        break;
+                    }
                 }
+
+                if (startedPort < 0)
+                    throw new InvalidOperationException(lastError?.Message ?? "没有可用端口");
+
+                CurrentPort = startedPort;
+                SaveSettings();
                 LastError = "";
                 Logger.Log(_lanReady
-                    ? $"Web server started on http://127.0.0.1:{Port} with LAN subnet mapping"
-                    : $"Web server started loopback-only on http://127.0.0.1:{Port}");
+                    ? $"Web server started on http://127.0.0.1:{CurrentPort} with LAN subnet mapping"
+                    : $"Web server started loopback-only on http://127.0.0.1:{CurrentPort}");
             }
             catch (Exception ex)
             {
@@ -146,8 +197,63 @@ public class WebServerService
         }
         StateChanged?.Invoke();
     }
+    private IEnumerable<int> GetPortCandidates()
+    {
+        var seen = new HashSet<int>();
+        if (PortMode == WebServerPortMode.Custom)
+        {
+            if (PortHelper.IsValidPort(CustomPort)) yield return CustomPort;
+            yield break;
+        }
 
-    public void Stop()
+        var preferred = PortHelper.IsValidPort(CurrentPort) ? CurrentPort : PortHelper.DefaultPort;
+        foreach (var port in PortHelper.GetCandidates(preferred))
+        {
+            if (seen.Add(port)) yield return port;
+        }
+    }
+
+    private bool TryStartAtPort(int port, out Exception? error)
+    {
+        error = null;
+        try
+        {
+            _bindings = BuildAdapterBindings(port);
+            _bindingsBuiltAtUtc = DateTime.UtcNow;
+
+            var loopback = StartListener($"http://127.0.0.1:{port}/", $"http://localhost:{port}/");
+            if (loopback == null)
+            {
+                error = new InvalidOperationException($"无法监听 127.0.0.1:{port}");
+                return false;
+            }
+
+            _listeners.Add(loopback);
+
+            if (_allowLanAccess)
+                StartLanListeners(port);
+
+            _enabled = true;
+            _cts = new CancellationTokenSource();
+            var ct = _cts.Token;
+            foreach (var listener in _listeners.ToArray())
+            {
+                var current = listener;
+                _ = Task.Run(() => ListenLoopAsync(current, ct));
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex;
+            CleanupListeners();
+            _enabled = false;
+            _lanReady = false;
+            return false;
+        }
+    }
+public void Stop()
     {
         lock (_gate)
         {
@@ -163,11 +269,13 @@ public class WebServerService
 
     public void ApplySavedState()
     {
-        var (enabled, allowLan) = LoadSettings();
-        _allowLanAccess = allowLan;
-        if (enabled) Start();
+        var settings = LoadSettings();
+        _allowLanAccess = settings.AllowLanAccess;
+        PortMode = settings.PortMode;
+        CustomPort = settings.CustomPort;
+        CurrentPort = settings.LastActualPort;
+        if (settings.Enabled) Start();
     }
-
     public void SaveEnabled(bool enabled)
     {
         // 保存实际生效状态：Start 失败时不会把 Enabled=true 持久化
@@ -186,17 +294,18 @@ public class WebServerService
         _cts = null;
     }
 
-    private void StartLanListeners()
+    private void StartLanListeners(int port)
     {
         if (_bindings.Count == 0)
         {
             _lanError = LocalizationService.Get("WebServer_NoBindings");
             return;
         }
+        _usingWildcardListener = false;
 
         try
         {
-            EnsureUrlAcl();
+            EnsureUrlAcl(port);
         }
         catch (Exception ex)
         {
@@ -206,7 +315,7 @@ public class WebServerService
 
         try
         {
-            EnsureFirewallRule();
+            EnsureFirewallRule(port);
             _firewallReady = true;
         }
         catch (Exception ex)
@@ -217,10 +326,11 @@ public class WebServerService
         }
 
         // 优先通配符监听：网卡/网段变化后无需重设 ACL
-        var wildcard = StartListener("http://+:8080/");
+        var wildcard = StartListener($"http://+:{port}/");
         if (wildcard != null)
         {
             _listeners.Add(wildcard);
+            _usingWildcardListener = true;
             _lanReady = true;
             _aclReady = true;
             _lanError = "";
@@ -231,7 +341,7 @@ public class WebServerService
         var lanCount = 0;
         foreach (var binding in _bindings)
         {
-            var listener = StartListener($"http://{binding.IPAddress}:8080/");
+            var listener = StartListener($"http://{binding.IPAddress}:{port}/");
             if (listener == null) continue;
             _listeners.Add(listener);
             lanCount++;
@@ -259,23 +369,23 @@ public class WebServerService
         }
     }
 
-    private void EnsureUrlAcl()
+    private void EnsureUrlAcl(int port)
     {
         var user = $"{Environment.UserDomainName}\\{Environment.UserName}";
-        RunNetsh($"http add urlacl url=http://+:8080/ user=\"{user}\"");
+        RunNetsh($"http add urlacl url=http://+:{port}/ user=\"{user}\"");
     }
 
-    private void EnsureFirewallRule()
+    private void EnsureFirewallRule(int port)
     {
-        const string ruleName = "NetSpeedTest Web Server 8080";
+        const string ruleName = "NetSpeedTest Web Server";
         try
         {
-            RunNetsh($"advfirewall firewall show rule name=\"{ruleName}\"");
+            try { RunNetsh($"advfirewall firewall delete rule name=\"{ruleName}\""); } catch { }
             return;
         }
         catch { }
 
-        RunNetsh($"advfirewall firewall add rule name=\"{ruleName}\" dir=in action=allow protocol=TCP localport={Port} profile=any");
+        RunNetsh($"advfirewall firewall add rule name=\"{ruleName}\" dir=in action=allow protocol=TCP localport={port} profile=any");
     }
 
     private static void RunNetsh(string arguments)
@@ -297,25 +407,51 @@ public class WebServerService
             throw new InvalidOperationException(string.IsNullOrWhiteSpace(error) ? output.Trim() : error.Trim());
     }
 
-    private (bool Enabled, bool AllowLanAccess) LoadSettings()
+    private sealed class WebServerSettings
     {
+        public bool Enabled { get; set; }
+        public bool AllowLanAccess { get; set; } = true;
+        public WebServerPortMode PortMode { get; set; } = WebServerPortMode.Auto;
+        public int CustomPort { get; set; } = PortHelper.DefaultPort;
+        public int LastActualPort { get; set; } = PortHelper.DefaultPort;
+    }
+
+    private WebServerSettings LoadSettings()
+    {
+        var result = new WebServerSettings();
         try
         {
             var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NetSpeedTest");
             var path = Path.Combine(dir, "web.json");
-            if (!File.Exists(path)) return (false, true);
+            if (!File.Exists(path)) return result;
 
             var json = File.ReadAllText(path);
             using var doc = JsonDocument.Parse(json);
-            var enabled = doc.RootElement.TryGetProperty("Enabled", out var e) && e.GetBoolean();
-            var allow = !doc.RootElement.TryGetProperty("AllowLanAccess", out var a) || a.GetBoolean();
-            return (enabled, allow);
+            var root = doc.RootElement;
+
+            result.Enabled = root.TryGetProperty("Enabled", out var e) && e.GetBoolean();
+            result.AllowLanAccess = !root.TryGetProperty("AllowLanAccess", out var a) || a.GetBoolean();
+
+            var modeText = root.TryGetProperty("PortMode", out var pm) ? pm.GetString() : null;
+            if (!Enum.TryParse<WebServerPortMode>(modeText, true, out var mode))
+                mode = WebServerPortMode.Auto;
+            result.PortMode = mode;
+
+            var customPort = root.TryGetProperty("CustomPort", out var cp) && cp.TryGetInt32(out var c)
+                ? c
+                : PortHelper.DefaultPort;
+            result.CustomPort = PortHelper.ClampPort(customPort);
+
+            var lastPort = root.TryGetProperty("LastActualPort", out var lp) && lp.TryGetInt32(out var l)
+                ? l
+                : PortHelper.DefaultPort;
+            result.LastActualPort = PortHelper.ClampPort(lastPort);
         }
         catch (Exception ex)
         {
             Logger.Log($"Web state load failed: {ex.Message}");
-            return (false, true);
         }
+        return result;
     }
 
     private void SaveSettings(bool? enabled = null)
@@ -326,12 +462,21 @@ public class WebServerService
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir, "web.json");
             var target = enabled ?? _enabled;
-            File.WriteAllText(path, JsonSerializer.Serialize(new { Enabled = target, AllowLanAccess = _allowLanAccess }));
+            File.WriteAllText(path, JsonSerializer.Serialize(new
+            {
+                Enabled = target,
+                AllowLanAccess = _allowLanAccess,
+                PortMode = PortMode.ToString(),
+                CustomPort = CustomPort,
+                LastActualPort = CurrentPort
+            }));
         }
-        catch (Exception ex) { Logger.Log($"Web state save failed: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Logger.Log($"Web state save failed: {ex.Message}");
+        }
     }
-
-    private List<AdapterAccessBinding> BuildAdapterBindings()
+    private List<AdapterAccessBinding> BuildAdapterBindings(int port)
     {
         var result = new List<AdapterAccessBinding>();
         try
@@ -372,7 +517,7 @@ public class WebServerService
                         SubnetMask = mask.ToString(),
                         PrefixLength = prefixLength,
                         Subnet = $"{subnet}/{prefixLength}",
-                        Url = $"http://{unicast.Address}:{Port}/"
+                        Url = $"http://{unicast.Address}:{port}/"
                     });
                 }
             }
@@ -395,15 +540,52 @@ public class WebServerService
     }
 
 
-    private void RefreshBindingsIfStale()
+    private void RefreshBindingsIfStale(bool force = false)
     {
         lock (_bindingsGate)
         {
-            if ((DateTime.UtcNow - _bindingsBuiltAtUtc).TotalSeconds < 5) return;
-            _bindings = BuildAdapterBindings();
+            var oldSignature = string.Join("|", _bindings.Select(b => $"{b.IPAddress}/{b.Subnet}"));
+            if (!force && (DateTime.UtcNow - _bindingsBuiltAtUtc).TotalSeconds < 5) return;
+            _bindings = BuildAdapterBindings(CurrentPort);
+            var newSignature = string.Join("|", _bindings.Select(b => $"{b.IPAddress}/{b.Subnet}"));
             _bindingsBuiltAtUtc = DateTime.UtcNow;
+            if (!string.Equals(oldSignature, newSignature, StringComparison.Ordinal))
+                BindingsChanged?.Invoke();
+
+
         }
     }
+
+    private void OnNetworkChanged()
+    {
+        try
+        {
+            RefreshBindingsIfStale(force: true);
+
+            // 通配符监听不依赖具体 IP；回退逐 IP 模式需要重新建立监听器。
+            if (_enabled && _allowLanAccess && !_usingWildcardListener)
+            {
+                try
+                {
+                    Stop();
+                    Start();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Web server rebind failed: {ex.Message}");
+                }
+            }
+            else
+            {
+                StateChanged?.Invoke();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Web server network refresh failed: {ex.Message}");
+        }
+    }
+
 
     private bool IsRemoteAllowed(IPEndPoint? endpoint)
     {
@@ -533,8 +715,10 @@ public class WebServerService
         return new
         {
             enabled = Enabled,
-            port = Port,
-            url = "http://127.0.0.1:8080",
+            portMode = PortMode.ToString(),
+            customPort = CustomPort,
+            port = CurrentPort,
+            url = $"http://127.0.0.1:{CurrentPort}",
             lanAccess = AllowLanAccess,
             lanReady = LanReady,
             aclReady = AclReady,
@@ -610,6 +794,10 @@ public class WebServerService
             packetLossReceived = vm.PacketLossReceived,
             totalBytes = vm.TotalBytes,
             activeThreads = vm.ActiveThreadCount,
+            adapterMetrics = GetAdapterMetricsSnapshot(vm),
+            packetLossScope = "global",
+            serverPort = CurrentPort,
+            serverUrl = $"http://127.0.0.1:{CurrentPort}",
             selectedAdapters = vm.AdapterSelectionItems.Where(x => x.IsSelected).Select(x => x.Adapter.Id).ToList(),
             currentProfile = vm.SelectedProfile?.Name,
             recentResult = vm.HasRecentResult ? new
@@ -618,8 +806,24 @@ public class WebServerService
                 uploadMbps = vm.RecentUploadMbps,
                 latencyMs = vm.RecentLatencyMs
             } : null
+
         };
     }
+
+    private static object[] GetAdapterMetricsSnapshot(MainViewModel vm)
+    {
+        return Application.Current.Dispatcher.Invoke(() =>
+            vm.AllAdapterRates.Select(r => new
+            {
+                adapterId = r.AdapterId,
+                adapterName = r.Name,
+                ipAddress = r.IpAddress,
+                latencyMs = r.LatencyMs,
+                wanLatencyMs = r.WanLatencyMs,
+                jitterMs = r.JitterMs
+            }).Cast<object>().ToArray());
+    }
+
 
     private object GetAdapters()
     {
@@ -681,8 +885,8 @@ public class WebServerService
             }
 
             service.SaveProfile(profile);
-            var vm = GetMainViewModel();
-            Application.Current.Dispatcher.Invoke(vm.RefreshProfilesForWeb);
+
+
             await WriteJsonAsync(ctx, 200, new { ok = true, id = profile.Id });
         }
         catch (Exception ex)

@@ -87,6 +87,13 @@
                                            FontSize="12" Foreground="{DynamicResource DownloadChartStroke}" MinWidth="100" />
                                 <TextBlock Text="{Binding UploadMbps, StringFormat={}{0:F1} Mbps, TargetNullValue=--}"
                                            FontSize="12" Foreground="{DynamicResource UploadChartStroke}" MinWidth="100" />
+                                <TextBlock Text="{Binding LatencyMs, StringFormat={}{0:F0} ms, TargetNullValue=--}"
+                                           FontSize="12" Foreground="{DynamicResource SuccessBrush}" MinWidth="72" />
+                                <TextBlock Text="{Binding WanLatencyMs, StringFormat={}{0:F0} ms, TargetNullValue=--}"
+                                           FontSize="12" Foreground="{DynamicResource WarningBrush}" MinWidth="72" />
+                                <TextBlock Text="{Binding JitterMs, StringFormat={}{0:F1} ms, TargetNullValue=--}"
+                                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" MinWidth="72" />
+
                                 <TextBlock Text="{Binding ErrorMessage, TargetNullValue=''}"
                                            FontSize="12" Foreground="{DynamicResource ErrorBrush}" />
                             </StackPanel>

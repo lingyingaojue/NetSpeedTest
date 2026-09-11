@@ -86,6 +86,7 @@ namespace NetSpeedTest;
         services.AddTransient<SpeedTestService>();
         services.AddSingleton<WebServerService>();
         services.AddTransient<NetworkInfoService>();
+        services.AddSingleton<NetworkMonitorService>();
 
         // 注册 ViewModel
         services.AddSingleton<MainViewModel>();
@@ -218,6 +219,12 @@ namespace NetSpeedTest;
             }
         }
         catch (Exception ex) { System.Windows.MessageBox.Show($"版本检查失败: {ex.Message}", "NetSpeedTest"); }
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        try { _serviceProvider.GetRequiredService<NetworkMonitorService>().Dispose(); } catch { }
+        base.OnExit(e);
     }
 
     public T GetService<T>() where T : notnull => _serviceProvider.GetRequiredService<T>();

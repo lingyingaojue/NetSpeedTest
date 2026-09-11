@@ -37,9 +37,16 @@ public partial class WebServerViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<AdapterAccessBinding> _lanBindings = new();
 
-    public const int Port = 8080;
+    [ObservableProperty]
+    private int _currentPort = 8080;
 
-    public string Url => "http://127.0.0.1:8080";
+    [ObservableProperty]
+    private int _portModeIndex;
+
+    [ObservableProperty]
+    private int _customPort = 8080;
+
+    public string Url => $"http://127.0.0.1:{CurrentPort}";
 
     public string WwwRootPath => Path.Combine(AppContext.BaseDirectory, "wwwroot", "index.html");
 
@@ -64,10 +71,14 @@ public partial class WebServerViewModel : ObservableObject
         _webServer = webServer;
         _enabled = webServer.Enabled;
         _allowLanAccess = webServer.AllowLanAccess;
+        _currentPort = webServer.CurrentPort;
+        _portModeIndex = webServer.PortMode == WebServerPortMode.Custom ? 1 : 0;
+        _customPort = webServer.CustomPort;
         RefreshBindings();
         RefreshStatus();
         RefreshLanStatus();
         _webServer.StateChanged += OnServerStateChanged;
+        _webServer.BindingsChanged += OnBindingsChanged;
         LocalizationService.LanguageChanged += OnLanguageChanged;
     }
 
@@ -89,10 +100,21 @@ public partial class WebServerViewModel : ObservableObject
 
     private void OnServerStateChanged()
     {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.HasShutdownStarted) return;
+        if (!dispatcher.CheckAccess())
+        {
+            dispatcher.InvokeAsync(OnServerStateChanged);
+            return;
+        }
+
         _syncingEnabled = true;
         _syncingLanAccess = true;
         Enabled = _webServer.Enabled;
         AllowLanAccess = _webServer.AllowLanAccess;
+        CurrentPort = _webServer.CurrentPort;
+        PortModeIndex = _webServer.PortMode == WebServerPortMode.Custom ? 1 : 0;
+        CustomPort = _webServer.CustomPort;
         _syncingEnabled = false;
         _syncingLanAccess = false;
         RefreshBindings();
@@ -100,12 +122,43 @@ public partial class WebServerViewModel : ObservableObject
         RefreshLanStatus();
     }
 
+    private void OnBindingsChanged()
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.HasShutdownStarted) return;
+        dispatcher.InvokeAsync(() =>
+        {
+            RefreshBindings();
+            RefreshLanStatus();
+        });
+    }
+
+
     private void OnLanguageChanged()
     {
         RefreshStatus();
         RefreshLanStatus();
     }
 
+    [RelayCommand]
+    private void ApplyPort()
+    {
+        try
+        {
+            var mode = PortModeIndex == 1 ? WebServerPortMode.Custom : WebServerPortMode.Auto;
+            _webServer.SetPortMode(mode, CustomPort);
+        }
+        catch (Exception ex)
+        {
+            CopyResultText = $"{LocalizationService.Get("WebServer_StartFailed")}: {ex.Message}";
+        }
+        finally
+        {
+            RefreshStatus();
+            RefreshBindings();
+            RefreshLanStatus();
+        }
+    }
     private void RefreshBindings()
     {
         LanBindings.Clear();

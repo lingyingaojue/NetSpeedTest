@@ -7,10 +7,12 @@ using Microsoft.Extensions.DependencyInjection;
 using NetSpeedTest.Models;
 using NetSpeedTest.Services;
 using NetSpeedTest.Helpers;
+using System.Collections.Concurrent;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -26,6 +28,13 @@ public partial class MainViewModel : ObservableObject
     private readonly NetworkInfoService _networkInfoService;
     private readonly IServiceProvider _serviceProvider;
     private readonly SpeedTestOptions _options;
+    private readonly ConcurrentDictionary<string, NicQualityState> _nicQuality = new();
+    private MultiNicMetricCallbacks? _multiNicMetricCallbacks;
+    private readonly NetworkMonitorService _networkMonitorService;
+    private readonly SemaphoreSlim _adapterRefreshGate = new(1, 1);
+    private bool _pendingAdapterRefresh;
+    private bool _suppressDefaultUrlSelection;
+    private bool _adapterSelectionInitialized;
     private CancellationTokenSource? _cts;
     private DispatcherTimer? _elapsedTimer;
     private EventHandler? _elapsedTickHandler;
@@ -56,7 +65,11 @@ public partial class MainViewModel : ObservableObject
     private object? _currentPage;
 
     [RelayCommand]
-    private void ClosePage() => CurrentPage = null;
+    private void ClosePage()
+    {
+        CurrentPage = null;
+        RefreshProfiles();
+    }
 
     // ==================== 可绑定属性 ====================
 
@@ -267,6 +280,7 @@ public partial class MainViewModel : ObservableObject
     partial void OnSelectedProfileChanged(SpeedTestProfile? value)
     {
         UpdateUrlSelectionItems();
+        if (_suppressDefaultUrlSelection) return;
 
         // 默认全选
         foreach (var item in UrlSelectionItems)
@@ -289,13 +303,22 @@ public partial class MainViewModel : ObservableObject
 
     public MainViewModel(ProfileService profileService, DataService dataService,
                          NetworkInfoService networkInfoService, IServiceProvider serviceProvider,
-                         SpeedTestOptions options)
+                         SpeedTestOptions options, NetworkMonitorService networkMonitorService)
     {
         _profileService = profileService;
         _dataService = dataService;
         _networkInfoService = networkInfoService;
         _serviceProvider = serviceProvider;
         _options = options;
+        _networkMonitorService = networkMonitorService;
+        _multiNicMetricCallbacks = new MultiNicMetricCallbacks
+        {
+            OnLatency = OnNicLatency,
+            OnWanLatency = OnNicWanLatency,
+            OnJitterRtt = OnNicJitterRtt
+        };
+        _profileService.ProfilesChanged += OnProfilesChanged;
+        _networkMonitorService.NetworkChanged += OnNetworkChanged;
 
         DownloadChartSeries.Add(new LineSeries<ObservablePoint>
         {
@@ -330,11 +353,11 @@ public partial class MainViewModel : ObservableObject
     {
         try
         {
-            var adapters = _networkInfoService.GetPhysicalAdapters();
-            Adapters = new ObservableCollection<NetworkAdapterInfo>(adapters);
-            var primaryAdapter = adapters.FirstOrDefault(a => !string.IsNullOrEmpty(a.Gateway)) ?? adapters.FirstOrDefault();
-            AdapterSelectionItems = new ObservableCollection<AdapterSelectionItem>(
-                adapters.Select(a => new AdapterSelectionItem { Adapter = a, IsSelected = a.Id == primaryAdapter?.Id }));
+            await RefreshAdaptersAsync();
+
+
+
+
 
             RefreshProfiles();
             RefreshHistory();
@@ -346,6 +369,125 @@ public partial class MainViewModel : ObservableObject
             StatusText = $"初始化失败: {ex.Message}";
         }
     }
+
+    /// <summary>
+    /// 重新枚举网卡并刷新界面。测速过程中只记录待刷新标记，避免破坏测速监控。
+    /// </summary>
+    public async Task RefreshAdaptersAsync(bool userInitiated = false)
+    {
+        if (IsTesting)
+        {
+            _pendingAdapterRefresh = true;
+            return;
+        }
+
+        if (!await _adapterRefreshGate.WaitAsync(0))
+            return;
+
+        try
+        {
+            var adapters = await Task.Run(() =>
+            {
+                _networkInfoService.InvalidateCache();
+                return _networkInfoService.GetPhysicalAdapters();
+            });
+
+            if (IsTesting)
+            {
+                _pendingAdapterRefresh = true;
+                return;
+            }
+
+            if (Application.Current.Dispatcher.CheckAccess())
+                ApplyAdapters(adapters, userInitiated);
+            else
+                await Application.Current.Dispatcher.InvokeAsync(() => ApplyAdapters(adapters, userInitiated));
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"[NIC] refresh failed: {ex.Message}");
+            if (userInitiated) StatusText = $"刷新网卡失败: {ex.Message}";
+        }
+        finally
+        {
+            _adapterRefreshGate.Release();
+        }
+    }
+
+    private void ApplyAdapters(List<NetworkAdapterInfo> adapters, bool userInitiated)
+    {
+        var previousSelected = AdapterSelectionItems
+            .Where(x => x.IsSelected)
+            .Select(x => x.Adapter.Id)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var validIds = adapters.Select(a => a.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var selectedIds = previousSelected.Where(validIds.Contains).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var removedSelection = previousSelected.Count > 0 && selectedIds.Count == 0;
+        var autoSwitched = false;
+
+        // 首次加载、或原选中网卡都消失时，自动回退到有网关的网卡，避免测速无网卡可选。
+        if (selectedIds.Count == 0 && adapters.Count > 0 && (!_adapterSelectionInitialized || removedSelection))
+        {
+            var fallback = adapters.FirstOrDefault(a => !string.IsNullOrEmpty(a.Gateway)) ?? adapters[0];
+            autoSwitched = true;
+            selectedIds.Add(fallback.Id);
+        }
+
+        Adapters = new ObservableCollection<NetworkAdapterInfo>(adapters);
+        AdapterSelectionItems = new ObservableCollection<AdapterSelectionItem>(
+            adapters.Select(a => new AdapterSelectionItem { Adapter = a, IsSelected = selectedIds.Contains(a.Id) }));
+        _adapterSelectionInitialized = true;
+
+        if (!IsTesting)
+        {
+            var previousChart = SelectedChartAdapter;
+            ChartAdapterOptions.Clear();
+            ChartAdapterOptions.Add("合计");
+            foreach (var a in adapters) ChartAdapterOptions.Add(a.Name ?? "");
+            SelectedChartAdapter = ChartAdapterOptions.Contains(previousChart) ? previousChart : "合计";
+
+            var currentNames = adapters.Select(a => a.Name ?? "").ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var key in _downloadPointsByNic.Keys.Where(k => !currentNames.Contains(k)).ToList())
+                _downloadPointsByNic.Remove(key);
+            foreach (var key in _uploadPointsByNic.Keys.Where(k => !currentNames.Contains(k)).ToList())
+                _uploadPointsByNic.Remove(key);
+            foreach (var a in adapters)
+            {
+                var name = a.Name ?? "";
+                if (!_downloadPointsByNic.ContainsKey(name))
+                    _downloadPointsByNic[name] = new ObservableCollection<ObservablePoint>();
+                if (!_uploadPointsByNic.ContainsKey(name))
+                    _uploadPointsByNic[name] = new ObservableCollection<ObservablePoint>();
+            }
+        }
+
+        if (adapters.Count == 0)
+            StatusText = "未检测到可用网卡";
+        else if (userInitiated)
+            StatusText = $"网卡列表已刷新 · {adapters.Count} 张可用";
+        else if (autoSwitched)
+            StatusText = "检测到网卡变化，已自动切换到可用网卡";
+    }
+
+    [RelayCommand]
+    private async Task RefreshAdapters() => await RefreshAdaptersAsync(userInitiated: true);
+
+    private void OnProfilesChanged()
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.HasShutdownStarted) return;
+        dispatcher.InvokeAsync(RefreshProfiles);
+    }
+
+    private void OnNetworkChanged()
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null || dispatcher.HasShutdownStarted) return;
+        dispatcher.InvokeAsync(() => _ = RefreshAdaptersAsync());
+    }
+
 
     // ==================== 命令 ====================
 
@@ -410,6 +552,7 @@ public partial class MainViewModel : ObservableObject
                     onPacketLoss: OnPacketLossSample,
                     onAverageSpeed: OnAverageSpeed, onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
                     onTotalBytes: OnTotalBytes,
+                    metricCallbacks: _multiNicMetricCallbacks,
                     ct: _cts!.Token);
                 FinishMultiNicTest(results);
             }
@@ -468,6 +611,7 @@ public partial class MainViewModel : ObservableObject
                     onPacketLoss: OnPacketLossSample,
                     onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
                     onTotalBytes: OnTotalBytes,
+                    metricCallbacks: _multiNicMetricCallbacks,
                     ct: _cts!.Token);
                 FinishMultiNicTest(results);
             }
@@ -523,6 +667,7 @@ public partial class MainViewModel : ObservableObject
                         onPacketLoss: OnPacketLossSample,
                         onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
                         onTotalBytes: OnTotalBytes,
+                        metricCallbacks: _multiNicMetricCallbacks,
                         ct: _cts!.Token);
                     FinishMultiNicTest(results);
                 }
@@ -554,6 +699,7 @@ public partial class MainViewModel : ObservableObject
                         onPacketLoss: OnPacketLossSample,
                         onAverageSpeed: OnAverageSpeed, onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
                         onTotalBytes: OnTotalBytes,
+                    metricCallbacks: _multiNicMetricCallbacks,
                         ct: _cts!.Token);
                     FinishMultiNicTest(results);
                 }
@@ -582,6 +728,7 @@ public partial class MainViewModel : ObservableObject
                     onPacketLoss: OnPacketLossSample,
                     onAverageDownload: OnAverageDownload, onAverageUpload: OnAverageUpload, onAverageTotal: OnAverageTotal,
                     onTotalBytes: OnTotalBytes,
+                    metricCallbacks: _multiNicMetricCallbacks,
                     ct: _cts!.Token);
                 FinishMultiNicTest(results);
             }
@@ -691,6 +838,7 @@ public partial class MainViewModel : ObservableObject
         ChartAdapterOptions.Clear();
         ChartAdapterOptions.Add("合计");
 
+        _nicQuality.Clear();
         AllAdapterRates.Clear();
         foreach (var item in AdapterSelectionItems.Where(x => x.IsSelected))
         {
@@ -698,7 +846,7 @@ public partial class MainViewModel : ObservableObject
             ChartAdapterOptions.Add(a.Name);
             _downloadPointsByNic[a.Name] = new ObservableCollection<ObservablePoint>();
             _uploadPointsByNic[a.Name] = new ObservableCollection<ObservablePoint>();
-            AllAdapterRates.Add(new AdapterRateItem { Name = a.Name, IpAddress = a.IPAddress, StatusText = "测速中..." });
+            AllAdapterRates.Add(new AdapterRateItem { AdapterId = a.Id, Name = a.Name, IpAddress = a.IPAddress, StatusText = "测速中..." });
         }
         SelectedChartAdapter = "合计";
         }
@@ -820,10 +968,10 @@ public partial class MainViewModel : ObservableObject
             AverageTotalMbps = _currentTestMode switch { "下载" => AverageDownloadMbps ?? 0, "上传" => AverageUploadMbps ?? 0, _ => AverageTotalMbps ?? 0 },
             BatchId = batchId
         };
-        lock (_latencyLock) { if (_lanLatencies.Count > 0) { aggregate.LatencyMs = _lanLatencies.Average(); } }
-        lock (_latencyLock) { if (_wanLatencies.Count > 0) aggregate.WanLatencyMs = _wanLatencies.Average(); }
-        var j = ComputeJitter();
-        aggregate.JitterMs = double.IsNaN(j) ? null : j;
+        ApplyPerNicQuality(results, aggregate);
+
+
+
         aggregate.PacketLoss = PacketLossPercent ?? 0;
         if (_currentTestMode == "上传") aggregate.DownloadMbps = null;
         if (_currentTestMode == "下载") aggregate.UploadMbps = null;
@@ -835,9 +983,9 @@ public partial class MainViewModel : ObservableObject
             r.TestType = _currentTestMode;
             r.AverageTotalMbps = aggregate.AverageTotalMbps;
             r.TotalBytes = r.BytesDownloaded + r.BytesUploaded;
-            lock (_latencyLock) { if (_lanLatencies.Count > 0) r.LatencyMs = _lanLatencies.Average(); }
-            lock (_latencyLock) { if (_wanLatencies.Count > 0) r.WanLatencyMs = _wanLatencies.Average(); }
-            r.JitterMs = aggregate.JitterMs;
+
+
+
             r.PacketLoss = aggregate.PacketLoss;
             if (_currentTestMode == "上传") r.DownloadMbps = null;
             if (_currentTestMode == "下载") r.UploadMbps = null;
@@ -885,6 +1033,12 @@ public partial class MainViewModel : ObservableObject
         _stopwatch?.Stop();
         _stopwatch = null;
         IsTesting = false;
+        if (_pendingAdapterRefresh)
+        {
+            _pendingAdapterRefresh = false;
+            _ = RefreshAdaptersAsync();
+        }
+
         Logger.Log($"[D-END] VM final: LatencyMs={LatencyMs:F1} WanLatencyMs={WanLatencyMs:F1} JitterMs={JitterMs:F1}");
         _cts?.Cancel();
         _cts?.Dispose();
@@ -971,6 +1125,128 @@ public partial class MainViewModel : ObservableObject
             if (item != null) { item.DownloadMbps = dl; item.UploadMbps = ul; }
         });
     }
+
+    private NicQualityState GetNicQuality(NetworkAdapterInfo adapter) =>
+        _nicQuality.GetOrAdd(adapter.Id, _ => new NicQualityState { AdapterName = adapter.Name });
+
+    private void OnNicLatency(NetworkAdapterInfo adapter, double latency)
+    {
+        if (!IsTesting) return;
+        var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0;
+        var state = GetNicQuality(adapter);
+        lock (state.Sync)
+        {
+            if (elapsed >= _options.AverageDelaySec) state.LanSamples.Add(latency);
+        }
+
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var item = AllAdapterRates.FirstOrDefault(r => r.AdapterId == adapter.Id);
+            if (item == null) return;
+            item.LatencyMs = latency;
+            UpdateMultiNicAggregateQuality();
+        });
+    }
+
+    private void OnNicWanLatency(NetworkAdapterInfo adapter, double latency)
+    {
+        if (!IsTesting) return;
+        var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0;
+        var state = GetNicQuality(adapter);
+        lock (state.Sync)
+        {
+            if (elapsed >= _options.AverageDelaySec) state.WanSamples.Add(latency);
+        }
+
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var item = AllAdapterRates.FirstOrDefault(r => r.AdapterId == adapter.Id);
+            if (item == null) return;
+            item.WanLatencyMs = latency;
+            UpdateMultiNicAggregateQuality();
+        });
+    }
+
+    private void OnNicJitterRtt(NetworkAdapterInfo adapter, double rtt)
+    {
+        if (!IsTesting) return;
+        var state = GetNicQuality(adapter);
+        double jitter;
+        lock (state.Sync)
+        {
+            state.JitterRttSamples.Add(rtt);
+            if (state.JitterRttSamples.Count > 50) state.JitterRttSamples.RemoveAt(0);
+            jitter = ComputeJitterFromSamples(state.JitterRttSamples);
+        }
+
+        Application.Current.Dispatcher.InvokeAsync(() =>
+        {
+            var item = AllAdapterRates.FirstOrDefault(r => r.AdapterId == adapter.Id);
+            if (item == null) return;
+            if (!double.IsNaN(jitter)) item.JitterMs = jitter;
+            UpdateMultiNicAggregateQuality();
+        });
+    }
+
+    private void UpdateMultiNicAggregateQuality()
+    {
+        var lanValues = AllAdapterRates.Where(r => r.LatencyMs.HasValue).Select(r => r.LatencyMs!.Value).ToList();
+        if (lanValues.Count > 0) LatencyMs = lanValues.Average();
+
+        var wanValues = AllAdapterRates.Where(r => r.WanLatencyMs.HasValue).Select(r => r.WanLatencyMs!.Value).ToList();
+        if (wanValues.Count > 0) WanLatencyMs = wanValues.Average();
+
+        var jitterValues = AllAdapterRates.Where(r => r.JitterMs.HasValue).Select(r => r.JitterMs!.Value).ToList();
+        JitterMs = jitterValues.Count > 0 ? jitterValues.Max() : null;
+        if (Application.Current.MainWindow is Views.MainWindow mw)
+            mw.JitterText.Text = FormatHelper.FormatLatency(JitterMs);
+    }
+
+    private void ApplyPerNicQuality(List<SpeedTestResult> results, SpeedTestResult aggregate)
+    {
+        foreach (var r in results)
+        {
+            var state = FindNicQualityState(r);
+            if (state == null) continue;
+            lock (state.Sync)
+            {
+                if (state.LanSamples.Count > 0) r.LatencyMs = state.LanSamples.Average();
+                if (state.WanSamples.Count > 0) r.WanLatencyMs = state.WanSamples.Average();
+                var nicJitter = ComputeJitterFromSamples(state.JitterRttSamples);
+                r.JitterMs = double.IsNaN(nicJitter) ? null : nicJitter;
+            }
+        }
+
+        var valid = results.Where(r => string.IsNullOrEmpty(r.ErrorMessage)).ToList();
+        var validLan = valid.Where(r => r.LatencyMs > 0).ToList();
+        aggregate.LatencyMs = validLan.Count > 0 ? validLan.Average(r => r.LatencyMs) : 0;
+
+        var validWan = valid.Where(r => r.WanLatencyMs.HasValue && r.WanLatencyMs.Value > 0).ToList();
+        aggregate.WanLatencyMs = validWan.Count > 0 ? validWan.Average(r => r.WanLatencyMs!.Value) : null;
+
+        var validJitter = valid.Where(r => r.JitterMs.HasValue).ToList();
+        aggregate.JitterMs = validJitter.Count > 0 ? validJitter.Max(r => r.JitterMs!.Value) : null;
+
+        aggregate.PacketLoss = PacketLossPercent ?? 0;
+    }
+
+    private NicQualityState? FindNicQualityState(SpeedTestResult result)
+    {
+        if (!string.IsNullOrEmpty(result.NetworkAdapterId) &&
+            _nicQuality.TryGetValue(result.NetworkAdapterId, out var state))
+            return state;
+
+        return _nicQuality.Values.FirstOrDefault(x =>
+            string.Equals(x.AdapterName, result.NetworkAdapterName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static double ComputeJitterFromSamples(IReadOnlyList<double> samples)
+    {
+        if (samples.Count < 2) return double.NaN;
+        var avg = samples.Average();
+        return Math.Sqrt(samples.Sum(x => (x - avg) * (x - avg)) / (samples.Count - 1));
+    }
+
     private void OnActiveThreadCount(int count) { if (!IsTesting) return; if (count > _maxActiveThreadCount) _maxActiveThreadCount = count; Application.Current.Dispatcher.InvokeAsync(() => ActiveThreadCount = count); }
     private void OnLatency(double latency) { if (!IsTesting) return; var elapsed = _stopwatch?.Elapsed.TotalSeconds ?? 0; var added = elapsed >= _options.AverageDelaySec; Application.Current.Dispatcher.InvokeAsync(() => LatencyMs = latency); int lanCount; lock (_latencyLock) { if (added) _lanLatencies.Add(latency); lanCount = _lanLatencies.Count; } Logger.Log($"[D-LAN] raw={latency:F1}ms elapsed={elapsed:F1}s added={(added?"YES":"NO")} count={lanCount}"); }
 
@@ -1152,14 +1428,44 @@ public partial class MainViewModel : ObservableObject
 
     private void RefreshProfiles()
     {
+        var previousSelectedUrls = UrlSelectionItems
+            .Where(x => x.IsSelected)
+            .Select(x => x.Url)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var previousUrls = UrlSelectionItems.Select(x => x.Url).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         var profiles = _profileService.GetAllProfiles();
         var previousId = SelectedProfile?.Id;
         Profiles = new ObservableCollection<SpeedTestProfile>(profiles);
 
-        if (previousId != null)
-            SelectedProfile = Profiles.FirstOrDefault(p => p.Id == previousId);
+        var sameProfile = previousId != null
+            ? Profiles.FirstOrDefault(p => p.Id == previousId)
+            : null;
+        var target = sameProfile ?? Profiles.FirstOrDefault();
 
-        SelectedProfile ??= Profiles.FirstOrDefault();
+        _suppressDefaultUrlSelection = true;
+        try
+        {
+            SelectedProfile = target;
+        }
+        finally
+        {
+            _suppressDefaultUrlSelection = false;
+        }
+
+        if (target == null)
+        {
+            UrlSelectionItems.Clear();
+            return;
+        }
+
+        UpdateUrlSelectionItems();
+        var preserveSelection = sameProfile != null && previousUrls.Count > 0;
+        foreach (var item in UrlSelectionItems)
+            item.IsSelected = !preserveSelection || previousSelectedUrls.Contains(item.Url) || !previousUrls.Contains(item.Url);
+
+
+
     }
 
     private void RefreshHistory()
@@ -1194,6 +1500,23 @@ public partial class UrlSelectionItem : ObservableObject
 }
 
 /// <summary>
+/// 单张网卡的质量指标累计状态。
+/// </summary>
+internal sealed class NicQualityState
+{
+    public string AdapterName { get; set; } = "";
+
+    public object Sync { get; } = new();
+
+    public List<double> LanSamples { get; } = new();
+
+    public List<double> WanSamples { get; } = new();
+
+    public List<double> JitterRttSamples { get; } = new();
+}
+
+
+/// <summary>
 /// 网卡勾选项（多网卡同时测速用）
 /// </summary>
 public partial class AdapterSelectionItem : ObservableObject
@@ -1212,7 +1535,15 @@ public partial class AdapterSelectionItem : ObservableObject
 /// </summary>
 public partial class AdapterRateItem : ObservableObject
 {
+    public string AdapterId { get; set; } = "";
+
     public string Name { get; set; } = "";
+
+    [ObservableProperty] private double? _latencyMs;
+
+    [ObservableProperty] private double? _wanLatencyMs;
+
+    [ObservableProperty] private double? _jitterMs;
 
     public string? IpAddress { get; set; }
 
