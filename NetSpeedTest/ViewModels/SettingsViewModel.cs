@@ -15,6 +15,7 @@ public partial class SettingsViewModel : ObservableObject
     private readonly WebServerService _webServer;
     private bool _suppressThemeIndex;
     private bool _suppressCategoryIndex;
+    private bool _suppressLanguageIndex;
 
     [ObservableProperty] private int _threadCount;
     [ObservableProperty] private int _testTimeoutSec;
@@ -61,8 +62,14 @@ public partial class SettingsViewModel : ObservableObject
     }
     partial void OnLanguageIndexChanged(int value)
     {
+        if (_suppressLanguageIndex) return;
+        if (value < 0 || value > 1) return;
+
+        var target = value == 0 ? LanguageMode.ZhCN : LanguageMode.EnUS;
+        if (LocalizationService.Current == target) return;
+
         Logger.Log($"LanguageIndex changed to {value}");
-        LocalizationService.Apply(value == 0 ? LanguageMode.ZhCN : LanguageMode.EnUS);
+        LocalizationService.Apply(target);
     }
     partial void OnThemeIndexChanged(int value)
     {
@@ -96,12 +103,19 @@ public partial class SettingsViewModel : ObservableObject
     private void RefreshOptions()
     {
         var currentTheme = ThemeIndex;
+        var currentLanguageIndex = LanguageIndex is 0 or 1
+            ? LanguageIndex
+            : (LocalizationService.Current == LanguageMode.ZhCN ? 0 : 1);
+
         _suppressThemeIndex = true;
+        _suppressLanguageIndex = true;
+
         var themes = new[]
         {
             LocalizationService.Get("Theme_Dark"),
             LocalizationService.Get("Theme_Light")
         };
+
         if (ThemeOptions.Count == themes.Length)
         {
             ThemeOptions[0] = themes[0];
@@ -111,19 +125,23 @@ public partial class SettingsViewModel : ObservableObject
         {
             ThemeOptions = new ObservableCollection<string>(themes);
         }
-        ThemeIndex = currentTheme;
-        _suppressThemeIndex = false;
 
-        var languages = new[] { "简体中文", "English" };
-        if (LanguageOptions.Count == languages.Length)
+        ThemeIndex = currentTheme;
+
+        // 语言名称固定，不需要在每次语言切换时重建集合。
+        if (LanguageOptions.Count != 2)
         {
-            LanguageOptions[0] = languages[0];
-            LanguageOptions[1] = languages[1];
+            LanguageOptions = new ObservableCollection<string>
+            {
+                "简体中文",
+                "English"
+            };
         }
-        else
-        {
-            LanguageOptions = new ObservableCollection<string>(languages);
-        }
+
+        LanguageIndex = currentLanguageIndex;
+
+        _suppressThemeIndex = false;
+        _suppressLanguageIndex = false;
     }
     public SettingsViewModel(SpeedTestOptions options, Microsoft.Extensions.Configuration.IConfiguration config, WebServerService webServer)
     {
@@ -206,7 +224,13 @@ public partial class SettingsViewModel : ObservableObject
         _options.CompensationConfirmSec = CompensationConfirmSec;
         _options.AdaptiveThreadsEnabled = AdaptiveThreadsEnabled;
         ThemeService.Save(ThemeIndex == 0 ? ThemeMode.Dark : ThemeMode.Light);
-        LocalizationService.Save(LanguageIndex == 0 ? LanguageMode.ZhCN : LanguageMode.EnUS);
+        var languageMode = LanguageIndex switch
+        {
+            0 => LanguageMode.ZhCN,
+            1 => LanguageMode.EnUS,
+            _ => LocalizationService.Current
+        };
+        LocalizationService.Save(languageMode);
         _webServer.SetEnabled(WebServerEnabled);
         _webServer.SaveEnabled(WebServerEnabled);
 
