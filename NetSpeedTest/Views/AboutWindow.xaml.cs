@@ -195,11 +195,7 @@ public partial class AboutPage : UserControl
 
     private async void CheckUpdate_Click(object sender, RoutedEventArgs e)
     {
-        if (Helpers.UpdateChecker.IsChecking)
-        {
-            UpdateResultText.Text = "检查中...";
-            return;
-        }
+        CheckUpdateButton.IsEnabled = false;
         try
         {
             UpdateResultText.Text = "检查中...";
@@ -226,6 +222,10 @@ public partial class AboutPage : UserControl
         {
             UpdateResultText.Text = "检查更新失败";
             Logger.Log($"Check update error: {ex.Message}");
+        }
+        finally
+        {
+            CheckUpdateButton.IsEnabled = true;
         }
     }
 
