@@ -56,28 +56,41 @@ try {
     throw
   }
 
-  Check 'exe FileVersion is 1.4.2' {
+  # Derive the expected version from the source of truth (csproj) instead of
+  # hardcoding it here, so this script keeps working across releases.
+  $csproj = Join-Path $repo 'NetSpeedTest\NetSpeedTest.csproj'
+  $m = [regex]::Match((Get-Content $csproj -Raw), '<Version>\s*([^<\s]+)\s*</Version>')
+  if (-not $m.Success) { throw "<Version> not found in $csproj" }
+  $expected = $m.Groups[1].Value
+  Write-Host "expected version (from csproj): $expected"
+
+  Check "exe FileVersion matches csproj ($expected)" {
     $v = (Get-Item $exe).VersionInfo.FileVersion
-    if ($v -notlike '1.4.2*') { throw "FileVersion=$v" }
+    if ($v -notlike "$expected.*") { throw "FileVersion=$v, expected $expected.x" }
     $v
+  }
+  Check 'exe ProductVersion carries the same version' {
+    $p = (Get-Item $exe).VersionInfo.ProductVersion
+    if ($p -notlike "$expected*") { throw "ProductVersion=$p" }
+    $p
   }
   Check 'web console serves the real version, no placeholder left' {
     if ($html -match '%%NST_VERSION%%') { throw 'NST_VERSION placeholder not replaced' }
     if ($html -match '%%NST_TOKEN%%') { throw 'NST_TOKEN placeholder not replaced' }
-    $m = [regex]::Match($html, 'id="appVersion">([^<]+)<')
-    if (-not $m.Success) { throw 'appVersion element not found' }
-    if ($m.Groups[1].Value -ne 'v1.4.2') { throw "rendered '$($m.Groups[1].Value)'" }
-    "appVersion -> $($m.Groups[1].Value)"
+    $mm = [regex]::Match($html, 'id="appVersion">([^<]+)<')
+    if (-not $mm.Success) { throw 'appVersion element not found' }
+    if ($mm.Groups[1].Value -ne "v$expected") { throw "rendered '$($mm.Groups[1].Value)', expected 'v$expected'" }
+    "appVersion -> $($mm.Groups[1].Value)"
   }
-  Check 'version meta tag matches the assembly version' {
-    $m = [regex]::Match($html, '<meta name="nst-version" content="([^"]+)"')
-    if (-not $m.Success) { throw 'nst-version meta missing' }
-    if ($m.Groups[1].Value -ne '1.4.2') { throw "meta='$($m.Groups[1].Value)'" }
-    "nst-version -> $($m.Groups[1].Value)"
+  Check 'version meta tag matches the csproj version' {
+    $mm = [regex]::Match($html, '<meta name="nst-version" content="([^"]+)"')
+    if (-not $mm.Success) { throw 'nst-version meta missing' }
+    if ($mm.Groups[1].Value -ne $expected) { throw "meta='$($mm.Groups[1].Value)', expected '$expected'" }
+    "nst-version -> $($mm.Groups[1].Value)"
   }
   Check 'static web.js has no hardcoded version and no placeholder' {
     if ($js -match '%%NST') { throw 'placeholder leaked into web.js' }
-    if ($js -match 'v1\.4\.\d') { throw 'web.js still hardcodes a version' }
+    if ($js -match 'v\d+\.\d+\.\d+') { throw 'web.js still hardcodes a version' }
     'clean'
   }
   Check 'i18n key for the sidebar suffix is present' {
