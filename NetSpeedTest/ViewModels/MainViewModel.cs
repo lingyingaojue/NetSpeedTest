@@ -991,10 +991,14 @@ public partial class MainViewModel : ObservableObject
         var fail = result.UrlDetails.Count(d => d.IsFailed);
         StatusText = _currentTestMode switch
         {
+            // 上传与下载共用同一套结果语义：都要能看出失败/超时的 URL 数，
+            // 否则服务器全部拒收时仍显示“测速完成”，等同于假成功。
             "下载" => $"测速完成 · {ok}/{_startUrlCount} 成功{(fail > 0 ? $" · {fail} 失败/超时" : "")}",
-            "上传" => "测速完成",
-            "双向" => "测速完成",
-            _ => $"测速完成 · {ok} 成功"
+            "上传" => $"测速完成 · {ok}/{_startUrlCount} 成功{(fail > 0 ? $" · {fail} 失败/超时" : "")}",
+            "双向" => fail > 0
+                ? $"测速完成 · {ok} 成功 · {fail} 失败/超时"
+                : $"测速完成 · {ok} 成功",
+            _ => $"测速完成 · {ok} 成功{(fail > 0 ? $" · {fail} 失败/超时" : "")}"
         };
 
         if (showDialog)

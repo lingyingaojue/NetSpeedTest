@@ -656,7 +656,7 @@ public class SpeedTestService
     /// <summary>
     /// URL 负载均衡器：探索阶段 worker 轮转覆盖全部 URL；全部探测后切换到最优 URL；不健康 URL 自动避让。
     /// </summary>
-    private sealed class UrlBalancer
+    internal sealed class UrlBalancer
     {
         private sealed class UrlHealth
         {
@@ -774,6 +774,38 @@ public class SpeedTestService
             if (!_health.TryGetValue(url, out var h)) return -1;
             var failPenalty = h.Fail * 10 + h.Timeouts * 100;
             return h.AvgMbps * 10 - failPenalty + h.Success;
+        }
+
+        /// <summary>
+        /// 本次测速的每个 URL 结果快照。
+        /// 上传路径以字节计数器作为速率来源，本身没有逐 URL 速率，
+        /// 但必须能看出哪些 URL 被服务器拒收或超时，否则状态会退化成“测速完成”。
+        /// </summary>
+        public List<UrlTestDetail> BuildDetails()
+        {
+            lock (_sync)
+            {
+                return _urls.Select(url =>
+                {
+                    var h = _health[url];
+                    var failed = h.Assigned && h.Success == 0 && (h.Fail > 0 || h.Timeouts > 0);
+                    return new UrlTestDetail
+                    {
+                        Url = url,
+                        Host = GetHostFromUrl(url),
+                        AvgMbps = h.AvgMbps,
+                        PeakMbps = 0,
+                        BytesDownloaded = 0,
+                        DurationSeconds = 0,
+                        IsFailed = failed,
+                        ErrorMessage = failed
+                            ? h.Timeouts > 0 && h.Fail == 0
+                                ? $"Timeout x{h.Timeouts}"
+                                : $"Rejected/failed x{h.Fail + h.Timeouts}"
+                            : null
+                    };
+                }).ToList();
+            }
         }
     }
 
@@ -1542,7 +1574,7 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         if (nicState.R) { var e = Math.Max(ts - _options.AverageDelaySec, 0.1); var drop = _options.CompensationEnabled ? nicState.TotalDropDuration : 0; var adj = Math.Max(e - drop, 0.1); dl = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (adj * 1_000_000.0)); ul = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (adj * 1_000_000.0)); }
         else { dl = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts * 1_000_000.0)); ul = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts * 1_000_000.0)); }
         var ulBytes = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
-        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl, UploadMbps = ul, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = 0, BytesUploaded = ulBytes, DurationSeconds = ts, ThreadCount = adaptive != null ? Math.Max(1, adaptive.Peak) : threadCount, UrlDetails = new() };
+        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl, UploadMbps = ul, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = 0, BytesUploaded = ulBytes, DurationSeconds = ts, ThreadCount = adaptive != null ? Math.Max(1, adaptive.Peak) : threadCount, UrlDetails = urlBalancer.BuildDetails() };
     }
 
     // ====== 双向测速（下载+上传同时跑） ======
