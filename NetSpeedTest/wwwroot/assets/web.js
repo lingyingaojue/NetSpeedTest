@@ -100,7 +100,7 @@
     "连接中断": "Disconnected",
     "连接中…": "Connecting…",
     "打开新窗口 ↗": "Open in new tab ↗",
-    "v1.4.1 · 本机服务": "v1.4.1 · Local service",
+    "· 本机服务": "· Local service",
     "请至少选择一张网卡": "Please select at least one NIC",
     "网卡选择已保存": "NIC selection saved",
     "无 IP": "No IP",

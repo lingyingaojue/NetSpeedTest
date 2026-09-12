@@ -13,6 +13,11 @@ public partial class AboutPage : UserControl
 {
     public List<ChangelogEntry> Changelog { get; } = new();
 
+    /// <summary>
+    /// 版本徽标文案，取自程序集版本（NetSpeedTest.csproj 的 &lt;Version&gt;）。
+    /// </summary>
+    public string VersionBadge { get; } = NetSpeedTest.Helpers.AppVersion.Short;
+
     private DispatcherTimer? _copyToastTimer;
 
     public AboutPage()
@@ -24,6 +29,29 @@ public partial class AboutPage : UserControl
         var ad = config.GetSection("Advertising");
         SponsorNameText.Text = ad["SponsorName"] ?? "暂无";
         SponsorDetailText.Text = ad["SponsorDetail"] ?? "";
+
+        Changelog.Add(new ChangelogEntry("V1.4.2", "2026-09-12", new()
+        {
+            "✨ 优化",
+            "● URL 以及线程分配逻辑：多 URL 调度改为轮转 + 健康度评分，避免线程少的场景下部分节点永远分不到流量",
+            "● 多网卡延迟、丢包率显示：网关与外网延迟改用 UDP 五层回退，丢包按批统计，指标不再恒为 0 或 100%",
+            "● 程序响应速度：网络状态、设置读写、测速启停均不再阻塞 UI 线程，等待超时按失败返回而不是卡死",
+            "● 视觉界面美观度：统一响应头与错误文案，Web 控制台与桌面端排版对齐",
+            "🚀 新增",
+            "● 网卡独立延迟与丢包率显示：每张网卡分别呈现延迟、外网延迟、抖动与丢包",
+            "● Web 端口自动检测避让以及自定义端口：端口被占用时自动顺延，也可指定固定端口",
+            "🐛 修复",
+            "● 修复网卡、配置等变动不刷新的问题：网络变化后自动重建访问绑定并刷新界面",
+            "● 修复上传测速未校验响应状态码，4xx/5xx 被当作上传成功并计入虚假速度的问题",
+            "● 修复 ICMP Port Unreachable 被误判为丢包/无延迟，导致丢包恒 100%、网关延迟为 0 的问题",
+            "● 修复测速启动未真正生效时仍返回成功，以及准备阶段停止请求被忽略的问题",
+            "● 修复 Web API 结果弹窗占住 UI 线程，导致无人值守时接口全部超时的问题",
+            "● 修复设置写入非原子、并发保存产生半截配置的问题",
+            "● 修复目标地址校验可被重定向绕过（SSRF）以及内部错误信息外泄的问题",
+            "● 修复测速目标 URL/端口缺少白名单校验，以及写操作缺少会话令牌校验的问题",
+            "● 修复自适应线程控制器的竞态：容量与目标读写作息不一致、速率队列并发枚举崩溃",
+        }));
+
         Changelog.Add(new ChangelogEntry("V1.4.1", "2026-08-22", new()
         {
             "🚀 新功能",
@@ -99,14 +127,6 @@ public partial class AboutPage : UserControl
             "● 上传测速线程启动间隔 500ms→50ms（避免超时前线程未就绪）",
             "● 广告图片加载失败记录日志",
             "● 启动自动检查更新延迟 3 秒避免与广告窗冲突",
-        }));
-
-        Changelog.Add(new ChangelogEntry("V1.3.6", "2026-07-29", new()
-        {
-            "🐛 修复",
-            "● 修复首次启动同意 EULA 后主窗口不显示（EulaWindow 误为主窗口 → 显式指定 MainWindow）",
-            "● 修复托盘\"退出\"后进程变僵尸（OnExplicitShutdown → OnMainWindowClose + ForceClose 统一路径）",
-            "● 修复 STUN 事务 ID 永为 0（GetItems<byte> 从全零数组选元素 → RandomNumberGenerator.Fill）",
         }));
 
     }

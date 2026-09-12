@@ -74,7 +74,7 @@ namespace NetSpeedTest;
             {
                 Timeout = TimeSpan.FromSeconds(900)
             };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.4.1");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(Helpers.AppVersion.UserAgent);
             return client;
         });
 

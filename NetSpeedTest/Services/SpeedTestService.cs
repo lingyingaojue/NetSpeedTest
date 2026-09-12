@@ -1939,7 +1939,7 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
                 }
             };
             var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(900) };
-            client.DefaultRequestHeaders.UserAgent.ParseAdd("NetSpeedTest/1.4.1");
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(NetSpeedTest.Helpers.AppVersion.UserAgent);
             return client;
         }
         catch (Exception ex)

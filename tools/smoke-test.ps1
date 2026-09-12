@@ -174,8 +174,9 @@ try {
   }
   Check 'F-21 /api/server lanError sanitised' {
     $s = (Req -Method GET -Path '/api/server').Content | ConvertFrom-Json
+    # 中文会被 PS 5.1 按 ANSI 误读，因此只用 ASCII 模式断言。
     if ($s.lanError -ne '' -and $s.lanError -match 'netsh|\\\\|C:|Exception|user=') { throw "leaks: $($s.lanError)" }
-    "lanError='$($s.lanError)' port=$($s.port)"
+    "lanError length=$($s.lanError.Length) port=$($s.port)"
   }
   Check 'lanAccess/bindings exposed' {
     $s = (Req -Method GET -Path '/api/server').Content | ConvertFrom-Json

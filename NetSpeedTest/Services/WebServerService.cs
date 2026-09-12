@@ -48,6 +48,11 @@ public class WebServerService
     internal const string TokenPlaceholder = "%%NST_TOKEN%%";
 
     /// <summary>
+    /// index.html 中用于注入版本号的占位符，版本号唯一来源为程序集版本。
+    /// </summary>
+    internal const string VersionPlaceholder = "%%NST_VERSION%%";
+
+    /// <summary>
     /// 请求级超时，防止慢连接长期占用 RequestGate。
     /// </summary>
     private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
@@ -1757,13 +1762,16 @@ public void Stop()
     }
 
     /// <summary>
-    /// 将 HTML 中的令牌占位符替换为本次会话令牌。
+    /// 将 HTML 中的令牌与版本占位符替换为本次运行的实际值。
     /// </summary>
     internal static byte[] InjectSessionToken(byte[] html)
     {
         var text = Encoding.UTF8.GetString(html);
-        if (text.IndexOf(TokenPlaceholder, StringComparison.Ordinal) < 0) return html;
-        return Encoding.UTF8.GetBytes(text.Replace(TokenPlaceholder, SessionToken, StringComparison.Ordinal));
+        if (text.IndexOf(TokenPlaceholder, StringComparison.Ordinal) >= 0)
+            text = text.Replace(TokenPlaceholder, SessionToken, StringComparison.Ordinal);
+        if (text.IndexOf(VersionPlaceholder, StringComparison.Ordinal) >= 0)
+            text = text.Replace(VersionPlaceholder, Helpers.AppVersion.Short, StringComparison.Ordinal);
+        return Encoding.UTF8.GetBytes(text);
     }
 
     private static byte[]? TryReadEmbeddedFile(string relative)

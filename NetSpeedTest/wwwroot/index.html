@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- F-01：会话令牌占位符，由服务端在响应 index.html 时替换；静态文件本身不含令牌。 -->
+  <!-- F-01：会话令牌与版本号占位符，由服务端在响应时替换；静态文件本身不含令牌。 -->
   <meta name="nst-token" content="%%NST_TOKEN%%" />
+  <meta name="nst-version" content="%%NST_VERSION%%" />
   <title>NetSpeedTest Web 控制台</title>
   <link rel="icon" type="image/png" href="/assets/app.png" />
   <link rel="stylesheet" href="/assets/web.css" />
@@ -48,7 +49,8 @@
         </nav>
         <div class="sidebar-foot">
           <span class="pulse"></span>
-          <span>v1.4.1 · 本机服务</span>
+          <span id="appVersion">v%%NST_VERSION%%</span>
+          <span>· 本机服务</span>
         </div>
       </aside>
 

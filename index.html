@@ -26,7 +26,7 @@
           <strong>NetSpeedTest</strong>
           <small>Windows 网络测速</small>
         </span>
-        <span class="version-chip">v1.4.1</span>
+        <span class="version-chip">v1.4.2</span>
       </a>
 
       <button class="nav-toggle" id="navToggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="siteNav">
@@ -65,7 +65,7 @@
         <div class="hero-copy">
           <div class="hero-badge">
             <span class="pulse-dot"></span>
-            v1.4.1 已发布 · 关于页改版与联系方式
+            v1.4.2 已发布 · 端口自动避让与网卡独立指标
           </div>
           <h1>把 Windows 网络测速<br />做到<span class="gradient-text">专业级</span></h1>
           <p class="hero-subtitle">
@@ -236,12 +236,12 @@
         <div class="section-head">
           <span class="section-kicker">界面预览</span>
           <h2>暗色主题 · 侧边栏导航 · 自绘标题栏</h2>
-          <p>v1.4.1 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。</p>
+          <p>v1.4.2 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。</p>
         </div>
         <div class="screenshot-frame reveal">
-          <img src="assets/screenshot.png" alt="NetSpeedTest v1.4.1 主界面截图" width="1280" height="720" loading="lazy" />
+          <img src="assets/screenshot.png" alt="NetSpeedTest v1.4.2 主界面截图" width="1280" height="720" loading="lazy" />
           <div class="screenshot-caption">
-            <span>🖥️ v1.4.1 主界面</span>
+            <span>🖥️ v1.4.2 主界面</span>
             <span>截图由用户实机提供</span>
           </div>
         </div>
@@ -379,24 +379,54 @@
         <div class="changelog">
           <details class="changelog-item" open>
               <summary>
-                <span class="version-tag">v1.4.1</span>
-                <span class="version-date">2026-08-22</span>
-                <span class="version-title">关于页改版与联系方式</span>
+                <span class="version-tag">v1.4.2</span>
+                <span class="version-date">2026-09-12</span>
+                <span class="version-title">端口自动避让与网卡独立指标</span>
                 <span class="chevron" aria-hidden="true"></span>
               </summary>
               <div class="changelog-body">
-                <h4>🚀 新功能</h4>
+                <h4>🚀 新增</h4>
                 <ul>
-                  <li>关于页改版：开发者 / AI 协作 / GitHub / 官方网站四张信息卡，官网与 GitHub 可点击跳转</li>
-                  <li>联系方式点击复制：邮箱、微信、QQ 一键复制到剪贴板</li>
-                  <li>复制成功弹窗：「已复制」提示，2 秒自动关闭</li>
+                  <li>网卡独立延迟与丢包率显示：每张网卡分别呈现内网延迟、外网延迟、抖动与丢包</li>
+                  <li>Web 端口自动检测避让以及自定义端口：端口被占用自动顺延，也可指定固定端口</li>
                 </ul>
                 <h4>✨ 优化</h4>
                 <ul>
-                  <li>复制流程更稳定：剪贴板被占用时提示不受影响</li>
+                  <li>URL 以及线程分配逻辑：轮转分配 + 健康度评分，避免部分节点永远分不到流量</li>
+                  <li>多网卡延迟、丢包率显示逻辑：UDP 五层回退探测，指标不再恒为 0 或 100%</li>
+                  <li>程序响应速度：网络状态、设置读写、测速启停不再阻塞 UI，等待超时按失败返回</li>
+                  <li>视觉界面美观度：统一响应头与错误文案，Web 控制台与桌面端风格对齐</li>
+                </ul>
+                <h4>🛠️ 修复</h4>
+                <ul>
+                  <li>修复网卡、配置等变动不刷新的问题</li>
+                  <li>修复上传测速未校验响应状态码，4xx/5xx 被计入虚假上传速度的问题</li>
+                  <li>修复丢包率恒为 100%、网关延迟恒为 0 的探测判定问题</li>
+                  <li>修复测速启动假成功、准备阶段停止请求被忽略的问题</li>
+                  <li>修复结果弹窗占住 UI 线程导致 Web API 全部超时的问题</li>
+                  <li>修复设置写入非原子、并发保存产生半截配置的问题</li>
+                  <li>修复目标地址校验可被重定向绕过（SSRF）与内部错误信息外泄的问题</li>
+                  <li>修复写操作缺少会话令牌校验，以及测速目标缺少白名单校验的问题</li>
+                  <li>修复自适应线程控制器的竞态与速率队列并发枚举崩溃的问题</li>
                 </ul>
               </div>
             </details>
+            <details class="changelog-item">
+            <summary>
+              <span class="version-tag">v1.4.1</span>
+              <span class="version-date">2026-08-22</span>
+              <span class="version-title">关于页改版与联系方式</span>
+              <span class="chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="changelog-body">
+              <h4>🚀 新功能</h4>
+              <ul>
+                <li>关于页改版：开发者 / AI 协作 / GitHub / 官方网站四张信息卡</li>
+                <li>联系方式点击复制：邮箱、微信、QQ 一键复制到剪贴板</li>
+                <li>复制成功弹窗：「已复制」提示，2 秒自动关闭</li>
+              </ul>
+            </div>
+          </details>
             <details class="changelog-item">
             <summary>
               <span class="version-tag">v1.4.0</span>
