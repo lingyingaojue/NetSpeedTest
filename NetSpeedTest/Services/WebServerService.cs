@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -36,6 +37,129 @@ public class WebServerService
     private const int MaxRequestBodyChars = 256 * 1024;
     private static readonly SemaphoreSlim RequestGate = new(64, 64);
 
+    /// <summary>
+    /// 写操作（POST/DELETE）必须携带的会话令牌请求头名称。
+    /// </summary>
+    internal const string TokenHeaderName = "X-NST-Token";
+
+    /// <summary>
+    /// index.html 中用于注入会话令牌的占位符，避免把令牌硬编码进静态资源。
+    /// </summary>
+    internal const string TokenPlaceholder = "%%NST_TOKEN%%";
+
+    /// <summary>
+    /// 请求级超时，防止慢连接长期占用 RequestGate。
+    /// </summary>
+    private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// 等待 UI 线程完成操作的超时时间。
+    /// </summary>
+    internal static readonly TimeSpan DispatcherWaitTimeout = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// 每次启动生成的随机会话令牌。回环访问免校验，非回环写操作必须携带。
+    /// </summary>
+    internal static readonly string SessionToken = GenerateSessionToken();
+
+    private static string GenerateSessionToken()
+    {
+        Span<byte> bytes = stackalloc byte[32];
+        RandomNumberGenerator.Fill(bytes);
+        return Convert.ToHexString(bytes);
+    }
+
+    /// <summary>
+    /// 恒定时间比较，避免通过响应时间侧信道逐字节猜测令牌。
+    /// </summary>
+    internal static bool IsTokenValid(string? provided)
+    {
+        if (string.IsNullOrEmpty(provided)) return false;
+        var expected = Encoding.UTF8.GetBytes(SessionToken);
+        var actual = Encoding.UTF8.GetBytes(provided);
+        return CryptographicOperations.FixedTimeEquals(expected, actual);
+    }
+
+    /// <summary>
+    /// 在 UI 线程执行操作，带超时。返回 false 表示 UI 线程不可用或超时，
+    /// 调用方必须按失败处理，不能把未生效的操作当成功返回。
+    /// </summary>
+    internal static bool TryRunOnUiThread(Action action, TimeSpan timeout)
+    {
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher == null) return false;
+        if (dispatcher.CheckAccess())
+        {
+            action();
+            return true;
+        }
+
+        try
+        {
+            var task = dispatcher.InvokeAsync(action);
+            return task.Task.Wait(timeout) && task.Task.IsCompletedSuccessfully;
+        }
+        catch (AggregateException)
+        {
+            return false;
+        }
+        catch (TaskCanceledException)
+        {
+            return false;
+        }
+    }
+
+    internal static bool TryRunOnUiThread(Action action) => TryRunOnUiThread(action, DispatcherWaitTimeout);
+
+    /// <summary>
+    /// 在 UI 线程执行操作并取回结果，带超时；超时返回 default 而不是继续等待。
+    /// </summary>
+    internal static T? TryRunOnUiThread<T>(Func<T> func, TimeSpan timeout) where T : class
+    {
+        T? result = null;
+        var ok = TryRunOnUiThread(() => { result = func(); }, timeout);
+        return ok ? result : null;
+    }
+
+    internal static T? TryRunOnUiThread<T>(Func<T> func) where T : class
+        => TryRunOnUiThread(func, DispatcherWaitTimeout);
+
+    /// <summary>
+    /// 统一的错误响应文案：对外只暴露分类信息，细节写入日志，避免泄露内部实现。
+    /// </summary>
+    internal static object ErrorPayload(int statusCode) => statusCode switch
+    {
+        400 => new { error = "Bad Request", message = "The request could not be processed" },
+        401 => new { error = "Unauthorized", message = "A valid session token is required" },
+        403 => new { error = "Forbidden", message = "Remote IP is not in a local subnet" },
+        500 => new { error = "Internal Server Error", message = "The request could not be completed" },
+        _ => new { error = "Request Failed", message = "The request could not be processed" }
+    };
+
+    /// <summary>
+    /// 请求级取消：超时后中止本次响应，避免不再需要的连接继续占用资源。
+    /// </summary>
+    private static void AbortOnCancellation(HttpListenerContext ctx, CancellationToken ct)
+    {
+        if (!ct.CanBeCanceled) return;
+        ct.Register(static state =>
+        {
+            var context = (HttpListenerContext)state!;
+            try { context.Response.Abort(); } catch { }
+        }, ctx);
+    }
+
+    /// <summary>
+    /// 判断请求是否来自回环地址。
+    /// </summary>
+    internal static bool IsLoopbackRequest(IPEndPoint? endpoint)
+    {
+        if (endpoint == null) return false;
+        var address = endpoint.Address;
+        if (address.IsIPv4MappedToIPv6) address = address.MapToIPv4();
+        return IPAddress.IsLoopback(address);
+    }
+
     private readonly IServiceProvider _serviceProvider;
     private readonly NetworkMonitorService _networkMonitor;
     private bool _usingWildcardListener;
@@ -50,6 +174,7 @@ public class WebServerService
     private string _lanError = "";
     private List<AdapterAccessBinding> _bindings = new();
     private readonly object _bindingsGate = new();
+    private readonly object _optionsGate = new();
     private DateTime _bindingsBuiltAtUtc;
 
     public bool Enabled => _enabled;
@@ -67,7 +192,7 @@ public class WebServerService
 
     public string LanError => _lanError;
 
-    public IReadOnlyList<AdapterAccessBinding> Bindings => _bindings;
+    public IReadOnlyList<AdapterAccessBinding> Bindings => BindingsSnapshot();
 
     /// <summary>
     /// 最近一次启动失败信息；成功启动或停止后清空。
@@ -539,6 +664,14 @@ public void Stop()
         return count;
     }
 
+    /// <summary>
+    /// 取绑定列表快照。集合会被网络变化事件整体替换，读取方必须在锁内取快照再使用。
+    /// </summary>
+    private List<AdapterAccessBinding> BindingsSnapshot()
+    {
+        lock (_bindingsGate) { return _bindings.ToList(); }
+    }
+
 
     private void RefreshBindingsIfStale(bool force = false)
     {
@@ -637,75 +770,118 @@ public void Stop()
 
     private async Task HandleContextAsync(HttpListenerContext ctx)
     {
+        // F-12：请求级超时，避免慢连接长期占用 RequestGate。
+        using var requestCts = new CancellationTokenSource(RequestTimeout);
         try
         {
+            ApplySecurityHeaders(ctx);
+            AbortOnCancellation(ctx, requestCts.Token);
+
             if (!IsRemoteAllowed(ctx.Request.RemoteEndPoint))
             {
-                await WriteJsonAsync(ctx, 403, new { error = "Forbidden", message = "Remote IP is not in a local subnet" });
+                await WriteJsonAsync(ctx, 403, ErrorPayload(403), requestCts.Token);
                 return;
             }
 
             var path = ctx.Request.Url?.AbsolutePath ?? "/";
             var method = ctx.Request.HttpMethod;
 
+            // F-01：非回环的写操作必须携带会话令牌，防止局域网/浏览器跨源静默触发测速或删数据。
+            if (!IsLoopbackRequest(ctx.Request.RemoteEndPoint) && IsStateChangingMethod(method))
+            {
+                var provided = ctx.Request.Headers[TokenHeaderName];
+                if (!IsTokenValid(provided))
+                {
+                    Logger.Log($"Web request rejected: missing or invalid {TokenHeaderName} from {ctx.Request.RemoteEndPoint}");
+                    await WriteJsonAsync(ctx, 403, ErrorPayload(403), requestCts.Token);
+                    return;
+                }
+            }
+
             if (method == "GET" && (path == "/" || path == "/index.html" || path.StartsWith("/assets/")))
             {
-                await ServeStaticAsync(ctx, path);
+                await ServeStaticAsync(ctx, path, requestCts.Token);
                 return;
             }
 
             if (path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase))
             {
-                await HandleApiAsync(ctx, method, path);
+                await HandleApiAsync(ctx, method, path, requestCts.Token);
                 return;
             }
 
-            await WriteJsonAsync(ctx, 404, new { error = "Not Found" });
+            await WriteJsonAsync(ctx, 404, new { error = "Not Found" }, requestCts.Token);
         }
         catch (Exception ex)
         {
             Logger.Log($"Web request failed: {ex.Message}");
-            try { await WriteJsonAsync(ctx, 500, new { error = ex.Message }); } catch { }
+            try { await WriteJsonAsync(ctx, 500, ErrorPayload(500), CancellationToken.None); } catch { }
         }
     }
 
-    private async Task HandleApiAsync(HttpListenerContext ctx, string method, string path)
+    /// <summary>
+    /// 需要令牌校验的写操作。
+    /// </summary>
+    internal static bool IsStateChangingMethod(string? method)
+        => string.Equals(method, "POST", StringComparison.OrdinalIgnoreCase)
+           || string.Equals(method, "DELETE", StringComparison.OrdinalIgnoreCase)
+           || string.Equals(method, "PUT", StringComparison.OrdinalIgnoreCase)
+           || string.Equals(method, "PATCH", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// FN-06：对所有响应统一追加安全响应头。
+    /// </summary>
+    private static void ApplySecurityHeaders(HttpListenerContext ctx)
+    {
+        try
+        {
+            ctx.Response.Headers["X-Content-Type-Options"] = "nosniff";
+            ctx.Response.Headers["X-Frame-Options"] = "DENY";
+            ctx.Response.Headers["Referrer-Policy"] = "no-referrer";
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Security header apply failed: {ex.Message}");
+        }
+    }
+
+    private async Task HandleApiAsync(HttpListenerContext ctx, string method, string path, CancellationToken ct)
     {
         switch (path.ToLowerInvariant())
         {
             case "/api/status":
-                await WriteJsonAsync(ctx, 200, GetStatus());
+                await WriteJsonAsync(ctx, 200, GetStatus(), ct);
                 return;
             case "/api/adapters":
-                await WriteJsonAsync(ctx, 200, GetAdapters());
+                await WriteJsonAsync(ctx, 200, GetAdapters(), ct);
                 return;
             case "/api/adapters/select":
-                if (method == "POST") { await HandleAdaptersSelectAsync(ctx); return; }
+                if (method == "POST") { await HandleAdaptersSelectAsync(ctx, ct); return; }
                 break;
             case "/api/profiles":
-                if (method == "GET") { await WriteJsonAsync(ctx, 200, GetProfiles()); return; }
-                if (method == "POST") { await HandleProfilesPostAsync(ctx); return; }
+                if (method == "GET") { await WriteJsonAsync(ctx, 200, GetProfiles(), ct); return; }
+                if (method == "POST") { await HandleProfilesPostAsync(ctx, ct); return; }
                 break;
             case "/api/history":
-                if (method == "GET") { await HandleHistoryAsync(ctx); return; }
-                if (method == "DELETE") { await HandleHistoryDeleteAsync(ctx); return; }
+                if (method == "GET") { await HandleHistoryAsync(ctx, ct); return; }
+                if (method == "DELETE") { await HandleHistoryDeleteAsync(ctx, ct); return; }
                 break;
             case "/api/settings":
-                if (method == "GET") { await WriteJsonAsync(ctx, 200, GetSettings()); return; }
-                if (method == "POST") { await HandleSettingsPostAsync(ctx); return; }
+                if (method == "GET") { await WriteJsonAsync(ctx, 200, GetSettings(), ct); return; }
+                if (method == "POST") { await HandleSettingsPostAsync(ctx, ct); return; }
                 break;
             case "/api/test/start":
-                if (method == "POST") { await HandleTestStartAsync(ctx); return; }
+                if (method == "POST") { await HandleTestStartAsync(ctx, ct); return; }
                 break;
             case "/api/test/stop":
-                if (method == "POST") { await HandleTestStopAsync(ctx); return; }
+                if (method == "POST") { await HandleTestStopAsync(ctx, ct); return; }
                 break;
             case "/api/server":
-                if (method == "GET") { await WriteJsonAsync(ctx, 200, GetServerInfo()); return; }
+                if (method == "GET") { await WriteJsonAsync(ctx, 200, GetServerInfo(), ct); return; }
                 break;
         }
 
-        await WriteJsonAsync(ctx, 404, new { error = "Not Found" });
+        await WriteJsonAsync(ctx, 404, new { error = "Not Found" }, ct);
     }
 
 
@@ -723,8 +899,9 @@ public void Stop()
             lanReady = LanReady,
             aclReady = AclReady,
             firewallReady = FirewallReady,
-            lanError = LanError,
-            bindings = _bindings.Select(b => new
+            // F-21：lanError 原始文本可能包含 netsh 输出、用户/域与 ACL 细节，对外脱敏。
+            lanError = string.IsNullOrWhiteSpace(LanError) ? "" : "LAN setup incomplete; see application log",
+            bindings = BindingsSnapshot().Select(b => new
             {
                 adapterName = b.AdapterName,
                 description = b.Description,
@@ -738,11 +915,11 @@ public void Stop()
     }
     private MainViewModel GetMainViewModel() => _serviceProvider.GetRequiredService<MainViewModel>();
 
-    private async Task HandleAdaptersSelectAsync(HttpListenerContext ctx)
+    private async Task HandleAdaptersSelectAsync(HttpListenerContext ctx, CancellationToken ct)
     {
         try
         {
-            var body = await ReadBodyAsync(ctx.Request);
+            var body = await ReadBodyAsync(ctx.Request, ct);
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
             var ids = ReadStringList(root, "adapterIds");
@@ -752,28 +929,40 @@ public void Stop()
             var selected = ids.Where(validIds.Contains).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             if (selected.Count == 0)
             {
-                await WriteJsonAsync(ctx, 400, new { error = "At least one valid adapter id is required" });
+                await WriteJsonAsync(ctx, 400, new { error = "At least one valid adapter id is required" }, ct);
                 return;
             }
 
-            Application.Current.Dispatcher.Invoke(() =>
+            var applied = TryRunOnUiThread(() =>
             {
                 foreach (var item in vm.AdapterSelectionItems)
                     item.IsSelected = selected.Contains(item.Adapter.Id);
             });
 
-            await WriteJsonAsync(ctx, 200, new { ok = true, selectedAdapterIds = selected });
+            if (!applied)
+            {
+                await WriteJsonAsync(ctx, 503, new { error = "UI unavailable", message = "Adapter selection could not be applied" }, ct);
+                return;
+            }
+
+            await WriteJsonAsync(ctx, 200, new { ok = true, selectedAdapterIds = selected }, ct);
         }
         catch (Exception ex)
         {
-            await WriteJsonAsync(ctx, 400, new { error = ex.Message });
+            Logger.Log($"Adapter select failed: {ex}");
+            await WriteJsonAsync(ctx, 400, ErrorPayload(400), ct);
         }
     }
 
-    private object GetStatus()
+    /// <summary>
+    /// F-09：状态快照。所有 ViewModel 集合（AllAdapterRates / AdapterSelectionItems）
+    /// 必须在 UI 线程内一次性投影为普通数组，避免与 UI 线程并发枚举 ObservableCollection。
+    /// </summary>
+    internal object GetStatus()
     {
         var vm = GetMainViewModel();
-        return new
+
+        var payload = TryRunOnUiThread<object>(() => new
         {
             running = vm.IsTesting,
             status = vm.StatusText,
@@ -798,7 +987,7 @@ public void Stop()
             packetLossScope = "global",
             serverPort = CurrentPort,
             serverUrl = $"http://127.0.0.1:{CurrentPort}",
-            selectedAdapters = vm.AdapterSelectionItems.Where(x => x.IsSelected).Select(x => x.Adapter.Id).ToList(),
+            selectedAdapters = GetSelectedAdapterIds(),
             currentProfile = vm.SelectedProfile?.Name,
             recentResult = vm.HasRecentResult ? new
             {
@@ -807,27 +996,50 @@ public void Stop()
                 latencyMs = vm.RecentLatencyMs
             } : null
 
+        });
+
+        if (payload != null) return payload;
+
+        Logger.Log("Status snapshot timed out on the UI thread; returning minimal status");
+        return new
+        {
+            running = false,
+            status = "unavailable",
+            adapterMetrics = Array.Empty<object>(),
+            selectedAdapters = Array.Empty<string>()
         };
     }
 
-    private static object[] GetAdapterMetricsSnapshot(MainViewModel vm)
+    private object[] GetAdapterMetricsSnapshot(MainViewModel vm)
     {
-        return Application.Current.Dispatcher.Invoke(() =>
-            vm.AllAdapterRates.Select(r => new
-            {
-                adapterId = r.AdapterId,
-                adapterName = r.Name,
-                ipAddress = r.IpAddress,
-                latencyMs = r.LatencyMs,
-                wanLatencyMs = r.WanLatencyMs,
-                jitterMs = r.JitterMs
-            }).Cast<object>().ToArray());
+        return vm.AllAdapterRates.Select(r => new
+        {
+            adapterId = r.AdapterId,
+            adapterName = r.Name,
+            ipAddress = r.IpAddress,
+            latencyMs = r.LatencyMs,
+            wanLatencyMs = r.WanLatencyMs,
+            jitterMs = r.JitterMs
+        }).Cast<object>().ToArray();
     }
 
+    /// <summary>
+    /// F-09：已选网卡 ID 快照。必须在 UI 线程内投影，避免并发枚举 ObservableCollection。
+    /// </summary>
+    private List<string> GetSelectedAdapterIds()
+    {
+        var vm = GetMainViewModel();
+        var ids = TryRunOnUiThread(() => vm.AdapterSelectionItems
+            .Where(x => x.IsSelected)
+            .Select(x => x.Adapter.Id)
+            .ToList());
+        return ids ?? new List<string>();
+    }
 
     private object GetAdapters()
     {
         var vm = GetMainViewModel();
+        var selectedIds = GetSelectedAdapterIds().ToHashSet(StringComparer.OrdinalIgnoreCase);
         return vm.Adapters.Select(a => new
         {
             id = a.Id,
@@ -839,7 +1051,7 @@ public void Stop()
             type = a.TypeName,
             status = a.StatusText,
             linkSpeedBps = a.LinkSpeedBps,
-            selected = vm.AdapterSelectionItems.FirstOrDefault(x => x.Adapter.Id == a.Id)?.IsSelected ?? false
+            selected = selectedIds.Contains(a.Id)
         });
     }
 
@@ -849,11 +1061,11 @@ public void Stop()
         return service.GetAllProfiles();
     }
 
-    private async Task HandleProfilesPostAsync(HttpListenerContext ctx)
+    private async Task HandleProfilesPostAsync(HttpListenerContext ctx, CancellationToken ct)
     {
         try
         {
-            var body = await ReadBodyAsync(ctx.Request);
+            var body = await ReadBodyAsync(ctx.Request, ct);
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
 
@@ -872,7 +1084,7 @@ public void Stop()
             {
                 service.DeleteProfile(profile.Id);
 
-                await WriteJsonAsync(ctx, 200, new { ok = true });
+                await WriteJsonAsync(ctx, 200, new { ok = true }, ct);
                 return;
             }
 
@@ -887,45 +1099,98 @@ public void Stop()
             service.SaveProfile(profile);
 
 
-            await WriteJsonAsync(ctx, 200, new { ok = true, id = profile.Id });
+            await WriteJsonAsync(ctx, 200, new { ok = true, id = profile.Id }, ct);
         }
         catch (Exception ex)
         {
-            await WriteJsonAsync(ctx, 400, new { error = ex.Message });
+            Logger.Log($"Profile save failed: {ex}");
+            await WriteJsonAsync(ctx, 400, ErrorPayload(400), ct);
         }
     }
 
+    /// <summary>
+    /// 允许测速使用的目标端口白名单。
+    /// </summary>
+    internal static readonly int[] AllowedSpeedTestPorts = { 80, 443 };
+
+    /// <summary>
+    /// 目标主机是否为外网地址。
+    /// </summary>
     private static async Task<bool> IsPublicHttpUrlAsync(string url)
     {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return false;
-        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return false;
-        if (uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase) || uri.Host.EndsWith(".local", StringComparison.OrdinalIgnoreCase)) return false;
-        if (IPAddress.TryParse(uri.Host, out var literal)) return !IsPrivateIp(literal);
-        try
-        {
-            using var dnsCts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-            var addrs = await Dns.GetHostAddressesAsync(uri.Host, dnsCts.Token);
-            foreach (var addr in addrs)
-                if (IsPrivateIp(addr)) return false;
-        }
-        catch { return false; }
-        return true;
+        return (await ResolvePublicHttpTargetAsync(url, CancellationToken.None)).IsAllowed;
     }
 
-    private static bool IsPrivateIp(IPAddress ip)
+    /// <summary>
+    /// F-05：解析并校验测速目标。要求 http/https、端口在白名单内、主机名解析出的
+    /// 所有地址都是公网地址。解析失败的地址按拒绝处理。
+    /// </summary>
+    internal static async Task<(bool IsAllowed, IPAddress[] Addresses)> ResolvePublicHttpTargetAsync(string url, CancellationToken ct)
     {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return (false, Array.Empty<IPAddress>());
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return (false, Array.Empty<IPAddress>());
+        if (Array.IndexOf(AllowedSpeedTestPorts, uri.Port) < 0) return (false, Array.Empty<IPAddress>());
+        if (uri.Host.Equals("localhost", StringComparison.OrdinalIgnoreCase)
+            || uri.Host.EndsWith(".local", StringComparison.OrdinalIgnoreCase)
+            || uri.Host.EndsWith(".internal", StringComparison.OrdinalIgnoreCase))
+            return (false, Array.Empty<IPAddress>());
+
+        if (IPAddress.TryParse(uri.Host, out var literal))
+            return (!IsPrivateIp(literal), new[] { literal });
+
+        IPAddress[] addrs;
+        try
+        {
+            using var dnsCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            dnsCts.CancelAfter(TimeSpan.FromSeconds(3));
+            addrs = await Dns.GetHostAddressesAsync(uri.Host, dnsCts.Token);
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"DNS resolve for speed test target failed ({uri.Host}): {ex.Message}");
+            return (false, Array.Empty<IPAddress>());
+        }
+
+        if (addrs.Length == 0) return (false, Array.Empty<IPAddress>());
+        foreach (var addr in addrs)
+            if (IsPrivateIp(addr)) return (false, addrs);
+
+        return (true, addrs);
+    }
+
+    /// <summary>
+    /// F-05：SSRF 黑名单。覆盖回环、RFC1918、链路本地、CGNAT、IETF 协议分配、
+    /// 基准测试、文档与组播/保留段，以及 IPv6 唯一本地、链路本地与组播。
+    /// </summary>
+    internal static bool IsPrivateIp(IPAddress ip)
+    {
+        if (ip == null) return true;
         if (IPAddress.IsLoopback(ip)) return true;
+        if (ip.IsIPv4MappedToIPv6) return IsPrivateIp(ip.MapToIPv4());
+
         var b = ip.GetAddressBytes();
         if (b.Length == 4)
         {
-            return (b[0] == 10)
-                || (b[0] == 172 && b[1] >= 16 && b[1] <= 31)
-                || (b[0] == 192 && b[1] == 168)
-                || (b[0] == 169 && b[1] == 254)
-                || (b[0] == 127);
+            return b[0] == 0                                   // 0.0.0.0/8    "this network"
+                || b[0] == 10                                  // 10.0.0.0/8
+                || (b[0] == 100 && b[1] >= 64 && b[1] <= 127)   // 100.64.0.0/10 CGNAT
+                || (b[0] == 127)                               // 127.0.0.0/8
+                || (b[0] == 169 && b[1] == 254)                // 169.254.0.0/16
+                || (b[0] == 172 && b[1] >= 16 && b[1] <= 31)   // 172.16.0.0/12
+                || (b[0] == 192 && b[1] == 0 && b[2] == 0)     // 192.0.0.0/24
+                || (b[0] == 192 && b[1] == 168)                // 192.168.0.0/16
+                || (b[0] == 198 && (b[1] == 18 || b[1] == 19)) // 198.18.0.0/15
+                || b[0] >= 224;                                // 224.0.0.0/4 组播 + 240.0.0.0/4 保留
         }
-        if (ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal) return true;
-        return ip.IsIPv4MappedToIPv6 && IsPrivateIp(ip.MapToIPv4());
+
+        if (b.Length == 16)
+        {
+            if (ip.IsIPv6LinkLocal || ip.IsIPv6SiteLocal || ip.IsIPv6Multicast) return true;
+            if (b[0] == 0xfc || b[0] == 0xfd) return true;    // fc00::/7 唯一本地地址
+            if (b[0] == 0xfe && (b[1] & 0xc0) == 0x80) return true; // fe80::/10（兜底）
+        }
+
+        return false;
     }
     private static List<string> ReadStringList(JsonElement root, string property)
     {
@@ -933,7 +1198,7 @@ public void Stop()
         return arr.EnumerateArray().Where(x => x.ValueKind == JsonValueKind.String).Select(x => x.GetString() ?? "").Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
     }
 
-    private async Task HandleHistoryAsync(HttpListenerContext ctx)
+    private async Task HandleHistoryAsync(HttpListenerContext ctx, CancellationToken ct)
     {
         var page = int.TryParse(ctx.Request.QueryString["page"], out var p) ? Math.Max(1, p) : 1;
         var pageSize = int.TryParse(ctx.Request.QueryString["pageSize"], out var ps) ? Math.Clamp(ps, 1, 500) : 50;
@@ -944,10 +1209,10 @@ public void Stop()
             page,
             pageSize,
             records = service.GetRecords(page, pageSize)
-        });
+        }, ct);
     }
 
-    private async Task HandleHistoryDeleteAsync(HttpListenerContext ctx)
+    private async Task HandleHistoryDeleteAsync(HttpListenerContext ctx, CancellationToken ct)
     {
         var id = int.TryParse(ctx.Request.QueryString["id"], out var v) ? v : -1;
         var service = _serviceProvider.GetRequiredService<DataService>();
@@ -961,10 +1226,10 @@ public void Stop()
         }
         else
         {
-            await WriteJsonAsync(ctx, 400, new { error = "A valid id or all=true is required" });
+            await WriteJsonAsync(ctx, 400, new { error = "A valid id or all=true is required" }, ct);
             return;
         }
-        await WriteJsonAsync(ctx, 200, new { ok = true });
+        await WriteJsonAsync(ctx, 200, new { ok = true }, ct);
     }
 
     private object GetSettings()
@@ -994,75 +1259,93 @@ public void Stop()
         };
     }
 
-    private async Task HandleSettingsPostAsync(HttpListenerContext ctx)
+    private async Task HandleSettingsPostAsync(HttpListenerContext ctx, CancellationToken ct)
     {
         try
         {
-            var body = await ReadBodyAsync(ctx.Request);
+            var body = await ReadBodyAsync(ctx.Request, ct);
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
             var options = _serviceProvider.GetRequiredService<SpeedTestOptions>();
 
-            if (root.TryGetProperty("threadCount", out var threadCount)) options.ThreadCount = Math.Clamp(threadCount.GetInt32(), 2, 1024);
-            if (root.TryGetProperty("testTimeoutSec", out var testTimeoutSec)) options.TestTimeoutSec = Math.Clamp(testTimeoutSec.GetInt32(), 5, 600);
-            if (root.TryGetProperty("averageDelaySec", out var averageDelaySec)) options.AverageDelaySec = Math.Clamp(averageDelaySec.GetInt32(), 1, 30);
-            if (root.TryGetProperty("rateWindowSec", out var rateWindowSec)) options.RateWindowSec = Math.Clamp(rateWindowSec.GetDouble(), 0.5, 10);
-            if (root.TryGetProperty("nicPollIntervalMs", out var nicPollIntervalMs)) options.NicPollIntervalMs = Math.Clamp(nicPollIntervalMs.GetInt32(), 200, 5000);
-            if (root.TryGetProperty("threadRampUpMs", out var threadRampUpMs)) options.ThreadRampUpMs = Math.Clamp(threadRampUpMs.GetInt32(), 0, 5000);
-            if (root.TryGetProperty("latencyPollIntervalMs", out var latencyPollIntervalMs)) options.LatencyPollIntervalMs = Math.Clamp(latencyPollIntervalMs.GetInt32(), 500, 10000);
-            if (root.TryGetProperty("jitterTargetHost", out var jitterTargetHost)) options.JitterTargetHost = jitterTargetHost.GetString() ?? options.JitterTargetHost;
-            if (root.TryGetProperty("jitterPollIntervalMs", out var jitterPollIntervalMs)) options.JitterPollIntervalMs = Math.Clamp(jitterPollIntervalMs.GetInt32(), 500, 5000);
-              if (root.TryGetProperty("packetLossTargetHost", out var packetLossTargetHost)) options.PacketLossTargetHost = packetLossTargetHost.GetString() ?? options.PacketLossTargetHost;
-              if (root.TryGetProperty("packetLossPollIntervalMs", out var packetLossPollIntervalMs)) options.PacketLossPollIntervalMs = Math.Clamp(packetLossPollIntervalMs.GetInt32(), 500, 5000);
-            if (root.TryGetProperty("compensationEnabled", out var compensationEnabled)) options.CompensationEnabled = compensationEnabled.GetBoolean();
-            if (root.TryGetProperty("compensationThreshold", out var compensationThreshold)) options.CompensationThreshold = Math.Clamp(compensationThreshold.GetDouble(), 0.3, 0.8);
-            if (root.TryGetProperty("compensationConfirmSec", out var compensationConfirmSec)) options.CompensationConfirmSec = Math.Clamp(compensationConfirmSec.GetInt32(), 1, 10);
-            if (root.TryGetProperty("adaptiveThreadsEnabled", out var adaptiveThreadsEnabled)) options.AdaptiveThreadsEnabled = adaptiveThreadsEnabled.GetBoolean();
-            if (root.TryGetProperty("includeVirtualAdapters", out var includeVirtualAdapters)) options.IncludeVirtualAdapters = includeVirtualAdapters.GetBoolean();
-
-            if (root.TryGetProperty("theme", out var theme))
+            // F-10：设置写入与持久化互斥，避免并发 POST 产生交错的半套配置。
+            lock (_optionsGate)
             {
-                var t = theme.GetString();
-                var mode = t == nameof(ThemeMode.Light) ? ThemeMode.Light : ThemeMode.Dark;
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    ThemeService.Apply(mode);
-                    ThemeService.Save(mode);
-                });
-            }
-
-            if (root.TryGetProperty("language", out var language))
-            {
-                var l = language.GetString();
-                var mode = l == nameof(LanguageMode.EnUS) ? LanguageMode.EnUS : LanguageMode.ZhCN;
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    LocalizationService.Apply(mode);
-                    LocalizationService.Save(mode);
-                });
-            }
-
-            if (root.TryGetProperty("webServerEnabled", out var webServerEnabled))
-            {
-                var enabled = webServerEnabled.GetBoolean();
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    SetEnabled(enabled);
-                    SaveEnabled(enabled);
-                });
+                ApplySettingsCore(root, options);
             }
 
             PersistSpeedOptions(options);
-            await WriteJsonAsync(ctx, 200, new { ok = true });
+            await WriteJsonAsync(ctx, 200, new { ok = true }, ct);
         }
         catch (Exception ex)
         {
-            await WriteJsonAsync(ctx, 400, new { error = ex.Message });
+            Logger.Log($"Settings update failed: {ex}");
+            await WriteJsonAsync(ctx, 400, ErrorPayload(400), ct);
         }
     }
 
+    /// <summary>
+    /// F-10：设置应用逻辑。调用方必须持有 <see cref="_optionsGate"/>。
+    /// </summary>
+    private void ApplySettingsCore(JsonElement root, SpeedTestOptions options)
+    {
+        if (root.TryGetProperty("threadCount", out var threadCount)) options.ThreadCount = Math.Clamp(threadCount.GetInt32(), 2, 1024);
+        if (root.TryGetProperty("testTimeoutSec", out var testTimeoutSec)) options.TestTimeoutSec = Math.Clamp(testTimeoutSec.GetInt32(), 5, 600);
+        if (root.TryGetProperty("averageDelaySec", out var averageDelaySec)) options.AverageDelaySec = Math.Clamp(averageDelaySec.GetInt32(), 1, 30);
+        if (root.TryGetProperty("rateWindowSec", out var rateWindowSec)) options.RateWindowSec = Math.Clamp(rateWindowSec.GetDouble(), 0.5, 10);
+        if (root.TryGetProperty("nicPollIntervalMs", out var nicPollIntervalMs)) options.NicPollIntervalMs = Math.Clamp(nicPollIntervalMs.GetInt32(), 200, 5000);
+        if (root.TryGetProperty("threadRampUpMs", out var threadRampUpMs)) options.ThreadRampUpMs = Math.Clamp(threadRampUpMs.GetInt32(), 0, 5000);
+        if (root.TryGetProperty("latencyPollIntervalMs", out var latencyPollIntervalMs)) options.LatencyPollIntervalMs = Math.Clamp(latencyPollIntervalMs.GetInt32(), 500, 10000);
+        if (root.TryGetProperty("jitterTargetHost", out var jitterTargetHost)) options.JitterTargetHost = jitterTargetHost.GetString() ?? options.JitterTargetHost;
+        if (root.TryGetProperty("jitterPollIntervalMs", out var jitterPollIntervalMs)) options.JitterPollIntervalMs = Math.Clamp(jitterPollIntervalMs.GetInt32(), 500, 5000);
+        if (root.TryGetProperty("packetLossTargetHost", out var packetLossTargetHost)) options.PacketLossTargetHost = packetLossTargetHost.GetString() ?? options.PacketLossTargetHost;
+        if (root.TryGetProperty("packetLossPollIntervalMs", out var packetLossPollIntervalMs)) options.PacketLossPollIntervalMs = Math.Clamp(packetLossPollIntervalMs.GetInt32(), 500, 5000);
+        if (root.TryGetProperty("compensationEnabled", out var compensationEnabled)) options.CompensationEnabled = compensationEnabled.GetBoolean();
+        if (root.TryGetProperty("compensationThreshold", out var compensationThreshold)) options.CompensationThreshold = Math.Clamp(compensationThreshold.GetDouble(), 0.3, 0.8);
+        if (root.TryGetProperty("compensationConfirmSec", out var compensationConfirmSec)) options.CompensationConfirmSec = Math.Clamp(compensationConfirmSec.GetInt32(), 1, 10);
+        if (root.TryGetProperty("adaptiveThreadsEnabled", out var adaptiveThreadsEnabled)) options.AdaptiveThreadsEnabled = adaptiveThreadsEnabled.GetBoolean();
+        if (root.TryGetProperty("includeVirtualAdapters", out var includeVirtualAdapters)) options.IncludeVirtualAdapters = includeVirtualAdapters.GetBoolean();
+
+        if (root.TryGetProperty("theme", out var theme))
+        {
+            var t = theme.GetString();
+            var mode = t == nameof(ThemeMode.Light) ? ThemeMode.Light : ThemeMode.Dark;
+            TryRunOnUiThread(() =>
+            {
+                ThemeService.Apply(mode);
+                ThemeService.Save(mode);
+            });
+        }
+
+        if (root.TryGetProperty("language", out var language))
+        {
+            var l = language.GetString();
+            var mode = l == nameof(LanguageMode.EnUS) ? LanguageMode.EnUS : LanguageMode.ZhCN;
+            TryRunOnUiThread(() =>
+            {
+                LocalizationService.Apply(mode);
+                LocalizationService.Save(mode);
+            });
+        }
+
+        if (root.TryGetProperty("webServerEnabled", out var webServerEnabled))
+        {
+            var enabled = webServerEnabled.GetBoolean();
+            TryRunOnUiThread(() =>
+            {
+                SetEnabled(enabled);
+                SaveEnabled(enabled);
+            });
+        }
+    }
+
+    /// <summary>
+    /// F-10：设置持久化。调用方必须持有 <see cref="_optionsGate"/>。
+    /// 先写临时文件再原子替换，避免进程中断留下半截 JSON 导致下次启动配置丢失。
+    /// </summary>
     private static void PersistSpeedOptions(SpeedTestOptions options)
     {
+        string? tempPath = null;
         try
         {
             var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NetSpeedTest");
@@ -1072,7 +1355,16 @@ public void Stop()
             JsonObject root;
             if (File.Exists(path))
             {
-                root = JsonNode.Parse(File.ReadAllText(path)) as JsonObject ?? new JsonObject();
+                try
+                {
+                    root = JsonNode.Parse(File.ReadAllText(path)) as JsonObject ?? new JsonObject();
+                }
+                catch (JsonException ex)
+                {
+                    // 旧文件损坏时不要放弃写入，否则设置永远无法恢复。
+                    Logger.Log($"Existing appsettings.json is not valid JSON, rewriting: {ex.Message}");
+                    root = new JsonObject();
+                }
             }
             else
             {
@@ -1099,21 +1391,40 @@ public void Stop()
             speed["AdaptiveStartThreads"] = options.AdaptiveStartThreads;
             root["SpeedTest"] = speed;
 
-            File.WriteAllText(path, root.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+            var payload = root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
+            tempPath = path + ".tmp";
+            File.WriteAllText(tempPath, payload);
+
+            if (File.Exists(path))
+            {
+                File.Replace(tempPath, path, destinationBackupFileName: null, ignoreMetadataErrors: true);
+            }
+            else
+            {
+                File.Move(tempPath, path);
+            }
+            tempPath = null;
         }
         catch (Exception ex)
         {
             Logger.Log($"PersistSpeedOptions failed: {ex.Message}");
         }
+        finally
+        {
+            if (tempPath != null)
+            {
+                try { File.Delete(tempPath); } catch { }
+            }
+        }
     }
 
 
-    private async Task HandleTestStartAsync(HttpListenerContext ctx)
+    private async Task HandleTestStartAsync(HttpListenerContext ctx, CancellationToken ct)
     {
         var started = false;
         try
         {
-            var body = await ReadBodyAsync(ctx.Request);
+            var body = await ReadBodyAsync(ctx.Request, ct);
             using var doc = JsonDocument.Parse(body);
             var root = doc.RootElement;
             var mode = root.TryGetProperty("mode", out var m) ? m.GetString() : "download";
@@ -1128,11 +1439,11 @@ public void Stop()
             var vm = GetMainViewModel();
             if (vm.IsTesting)
             {
-                await WriteJsonAsync(ctx, 409, new { error = "already testing" });
+                await WriteJsonAsync(ctx, 409, new { error = "already testing" }, ct);
                 return;
             }
 
-            Application.Current.Dispatcher.Invoke(() =>
+            var applied = TryRunOnUiThread(() =>
             {
                 if (adapterIds.Count > 0)
                 {
@@ -1167,32 +1478,49 @@ public void Stop()
                 }
             });
 
-            // FN-01：命令未真正执行时必须报 409，不能谎报 200 让调用方以为测速已启动。
-            if (!started)
+            // F-09：UI 线程不可用/超时按 503 处理，不能继续往下当成功返回。
+            if (!applied)
             {
-                await WriteJsonAsync(ctx, 409, new { error = "test did not start", message = "Command could not be executed" });
+                Logger.Log("Test start aborted: UI thread did not complete the command within the timeout");
+                await WriteJsonAsync(ctx, 503, new { error = "UI unavailable", message = "The UI thread did not respond in time" }, ct);
                 return;
             }
 
-            await WriteJsonAsync(ctx, 200, new { ok = true });
+            // FN-01：命令未真正执行时必须报 409，不能谎报 200 让调用方以为测速已启动。
+            if (!started)
+            {
+                await WriteJsonAsync(ctx, 409, new { error = "test did not start", message = "Command could not be executed" }, ct);
+                return;
+            }
+
+            await WriteJsonAsync(ctx, 200, new { ok = true }, ct);
         }
         catch (Exception ex)
         {
-            await WriteJsonAsync(ctx, 400, new { error = ex.Message });
+            Logger.Log($"Test start failed: {ex}");
+            await WriteJsonAsync(ctx, 400, ErrorPayload(400), ct);
         }
     }
 
-    private async Task HandleTestStopAsync(HttpListenerContext ctx)
+    private async Task HandleTestStopAsync(HttpListenerContext ctx, CancellationToken ct)
     {
         var vm = GetMainViewModel();
-        Application.Current.Dispatcher.Invoke(() =>
+        var applied = TryRunOnUiThread(() =>
         {
             if (vm.CancelTestCommand.CanExecute(null)) vm.CancelTestCommand.Execute(null);
         });
-        await WriteJsonAsync(ctx, 200, new { ok = true });
+
+        if (!applied)
+        {
+            Logger.Log("Test stop aborted: UI thread did not complete the command within the timeout");
+            await WriteJsonAsync(ctx, 503, new { error = "UI unavailable", message = "The UI thread did not respond in time" }, ct);
+            return;
+        }
+
+        await WriteJsonAsync(ctx, 200, new { ok = true }, ct);
     }
 
-    private static async Task<string> ReadBodyAsync(HttpListenerRequest request)
+    private static async Task<string> ReadBodyAsync(HttpListenerRequest request, CancellationToken ct)
     {
         if (request.ContentLength64 > MaxRequestBodyChars)
             throw new InvalidDataException("Request body too large");
@@ -1203,7 +1531,8 @@ public void Stop()
         var total = 0;
         while (true)
         {
-            var read = await reader.ReadAsync(buffer, 0, buffer.Length);
+            // F-12：读取受请求级超时约束，慢速上传不能永久占住连接。
+            var read = await reader.ReadAsync(buffer.AsMemory(0, buffer.Length), ct);
             if (read == 0) break;
             total += read;
             if (total > MaxRequestBodyChars)
@@ -1213,17 +1542,17 @@ public void Stop()
         return sb.ToString();
     }
 
-    private static async Task WriteJsonAsync(HttpListenerContext ctx, int statusCode, object payload)
+    private static async Task WriteJsonAsync(HttpListenerContext ctx, int statusCode, object payload, CancellationToken ct)
     {
         var bytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(payload, JsonOptions));
         ctx.Response.StatusCode = statusCode;
         ctx.Response.ContentType = "application/json; charset=utf-8";
         ctx.Response.ContentLength64 = bytes.Length;
-        await ctx.Response.OutputStream.WriteAsync(bytes);
+        await ctx.Response.OutputStream.WriteAsync(bytes, ct);
         ctx.Response.OutputStream.Close();
     }
 
-    private async Task ServeStaticAsync(HttpListenerContext ctx, string path)
+    private async Task ServeStaticAsync(HttpListenerContext ctx, string path, CancellationToken ct)
     {
         var root = Path.Combine(AppContext.BaseDirectory, "wwwroot");
         if (path == "/") path = "/index.html";
@@ -1240,11 +1569,16 @@ public void Stop()
             bytes = TryReadEmbeddedFile(relative);
             if (bytes == null)
             {
-                await WriteJsonAsync(ctx, 404, new { error = "Not Found" });
+                await WriteJsonAsync(ctx, 404, new { error = "Not Found" }, ct);
                 return;
             }
         }
         var ext = Path.GetExtension(file).ToLowerInvariant();
+
+        // F-01：把会话令牌注入 HTML 占位符，静态资源本身不含任何秘密。
+        if (ext == ".html")
+            bytes = InjectSessionToken(bytes);
+
         var contentType = ext switch
         {
             ".html" => "text/html; charset=utf-8",
@@ -1258,8 +1592,18 @@ public void Stop()
         ctx.Response.StatusCode = 200;
         ctx.Response.ContentType = contentType;
         ctx.Response.ContentLength64 = bytes!.Length;
-        await ctx.Response.OutputStream.WriteAsync(bytes);
+        await ctx.Response.OutputStream.WriteAsync(bytes, ct);
         ctx.Response.OutputStream.Close();
+    }
+
+    /// <summary>
+    /// 将 HTML 中的令牌占位符替换为本次会话令牌。
+    /// </summary>
+    internal static byte[] InjectSessionToken(byte[] html)
+    {
+        var text = Encoding.UTF8.GetString(html);
+        if (text.IndexOf(TokenPlaceholder, StringComparison.Ordinal) < 0) return html;
+        return Encoding.UTF8.GetBytes(text.Replace(TokenPlaceholder, SessionToken, StringComparison.Ordinal));
     }
 
     private static byte[]? TryReadEmbeddedFile(string relative)
@@ -1329,6 +1673,7 @@ public void Stop()
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="nst-token" content="%%NST_TOKEN%%" />
   <title>NetSpeedTest Web</title>
   <style>
     body { font-family: Segoe UI, Microsoft YaHei, sans-serif; background:#0d1117; color:#e6edf3; margin:0; padding:24px; }

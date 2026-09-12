@@ -415,7 +415,6 @@ public class SpeedTestService
     internal static async Task<UdpProbeOutcome> SendUdpProbeAsync(UdpClient udp, byte[] probe, int timeoutMs, CancellationToken ct)
     {
         await udp.SendAsync(probe, probe.Length);
-
         var receiveTask = udp.ReceiveAsync();
         using var probeCts = new CancellationTokenSource(timeoutMs);
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, probeCts.Token);
@@ -581,8 +580,9 @@ public class SpeedTestService
 
         using var headerCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         headerCts.CancelAfter(TimeSpan.FromSeconds(10));
-        using var response = await (client ?? _httpClient).GetAsync(url,
-            HttpCompletionOption.ResponseHeadersRead, headerCts.Token);
+        // F-05：手动跟随重定向，逐跳校验目标为公网地址。
+        using var response = await SendWithValidatedRedirectsAsync(
+            client ?? _httpClient, url, TimeSpan.FromSeconds(10), headerCts.Token);
         response.EnsureSuccessStatusCode();
 
         await using var stream = await response.Content.ReadAsStreamAsync(ct);
@@ -1542,7 +1542,9 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
                 {
                     using var headerCts = CancellationTokenSource.CreateLinkedTokenSource(requestCt);
                     headerCts.CancelAfter(TimeSpan.FromSeconds(10));
-                    using var resp = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, headerCts.Token);
+                    // F-05：手动跟随重定向，逐跳校验目标为公网地址。
+                    using var resp = await SendWithValidatedRedirectsAsync(
+                        http, url, TimeSpan.FromSeconds(10), headerCts.Token);
                     resp.EnsureSuccessStatusCode();
                     await using var s = await resp.Content.ReadAsStreamAsync(requestCt);
                     var b = ArrayPool<byte>.Shared.Rent(64 * 1024);
@@ -1684,6 +1686,75 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
     }
 
     /// <summary>
+    /// F-05：允许的最大重定向跳数。
+    /// </summary>
+    internal const int MaxSpeedTestRedirects = 3;
+
+    /// <summary>
+    /// F-05：解析重定向目标。相对 Location 按当前请求 URI 解析，非 http/https 一律拒绝。
+    /// </summary>
+    internal static bool TryResolveRedirect(Uri current, string? location, out Uri next)
+    {
+        next = null!;
+        if (string.IsNullOrWhiteSpace(location)) return false;
+        if (!Uri.TryCreate(current, location, out var resolved)) return false;
+        if (resolved.Scheme != Uri.UriSchemeHttp && resolved.Scheme != Uri.UriSchemeHttps) return false;
+        next = resolved;
+        return true;
+    }
+
+    /// <summary>
+    /// F-05：手动逐跳跟随重定向，每一跳都用公网校验（HTTP 状态码 + 地址 + 端口白名单）。
+    /// 自动重定向已关闭，否则一次 302 就能跳到 127.0.0.1 / 169.254.169.254 绕过校验。
+    /// </summary>
+    internal static async Task<HttpResponseMessage> SendWithValidatedRedirectsAsync(
+        HttpClient client, string url, TimeSpan perRequestTimeout, CancellationToken ct)
+    {
+        for (var hop = 0; ; hop++)
+        {
+            ct.ThrowIfCancellationRequested();
+
+            using var hopCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            hopCts.CancelAfter(perRequestTimeout);
+
+            var request = new HttpRequestMessage(HttpMethod.Get, url);
+            var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, hopCts.Token);
+
+            if (!IsRedirectStatusCode(response.StatusCode)) return response;
+
+            var location = response.Headers.Location?.ToString();
+            response.Dispose();
+
+            if (hop >= MaxSpeedTestRedirects)
+                throw new HttpRequestException($"Too many redirects (limit {MaxSpeedTestRedirects})");
+
+            if (!TryResolveRedirect(new Uri(url), location, out var next))
+                throw new HttpRequestException("Redirect target is missing or not a valid http/https URL");
+
+            var allowed = await TargetValidator(next.ToString(), ct);
+            if (!allowed)
+                throw new HttpRequestException($"Redirect target rejected: {next}");
+
+            url = next.ToString();
+        }
+    }
+
+    /// <summary>
+    /// 重定向目标的公网校验器，默认使用 WebServerService 的 SSRF 校验，可在测试中替换。
+    /// </summary>
+    internal static Func<string, CancellationToken, Task<bool>> TargetValidator { get; set; } =
+        async (url, ct) => (await WebServerService.ResolvePublicHttpTargetAsync(url, ct)).IsAllowed;
+
+    internal static bool IsRedirectStatusCode(HttpStatusCode status)
+        => status == HttpStatusCode.MovedPermanently
+           || status == HttpStatusCode.Found
+           || status == HttpStatusCode.SeeOther
+           || status == HttpStatusCode.TemporaryRedirect
+           || status == HttpStatusCode.PermanentRedirect
+           || (int)status == 300
+           || (int)status == 305;
+
+    /// <summary>
     /// 出口客户端解析核心逻辑（无网络依赖，供单测覆盖）。
     /// </summary>
     internal static (HttpClient Client, bool IsAdapterBound, bool OwnsClient, bool BindFailed)
@@ -1738,6 +1809,8 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
             var handler = new SocketsHttpHandler
             {
                 UseProxy = false,
+                // F-05：禁止自动跟随重定向，逐跳改用经校验的跟随逻辑。
+                AllowAutoRedirect = false,
                 SslOptions = new System.Net.Security.SslClientAuthenticationOptions
                 {
                     EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13

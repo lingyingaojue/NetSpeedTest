@@ -62,6 +62,9 @@ namespace NetSpeedTest;
         {
             var handler = new System.Net.Http.SocketsHttpHandler
             {
+                // F-05：禁止自动跟随重定向，避免通过 302 跳到内网地址绕过 SSRF 校验。
+                AllowAutoRedirect = false,
+                UseProxy = false,
                 SslOptions = new System.Net.Security.SslClientAuthenticationOptions
                 {
                     EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13

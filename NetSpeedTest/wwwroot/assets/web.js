@@ -237,10 +237,19 @@
     el._timer = setTimeout(function () { el.hidden = true; }, 2600);
   }
 
+  /* ---------------- API ---------------- */
+
+  // F-01：会话令牌由服务端注入 index.html，非回环写操作必须回传。
+  var NST_TOKEN = (function () {
+    var meta = document.querySelector('meta[name="nst-token"]');
+    return meta ? (meta.getAttribute("content") || "") : "";
+  })();
+
   async function api(path, options) {
     var opts = options || {};
     var headers = Object.assign({}, opts.headers || {});
     if (opts.body) headers["Content-Type"] = "application/json";
+    if (NST_TOKEN) headers["X-NST-Token"] = NST_TOKEN;
     var res = await fetch(API_BASE + path, Object.assign({}, opts, { headers: headers }));
     var text = await res.text();
     var data = null;
