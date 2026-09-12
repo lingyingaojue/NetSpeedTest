@@ -121,6 +121,9 @@ namespace NetSpeedTest;
     {
         base.OnStartup(e);
 
+        // F-22：注册全局异常处理，避免后台任务/UI 异常无声终止进程。
+        RegisterGlobalExceptionHandlers();
+
         // 应用上次保存的主题
         ThemeService.ApplySavedTheme();
         LocalizationService.ApplySavedLanguage();
@@ -228,6 +231,43 @@ namespace NetSpeedTest;
     {
         try { _serviceProvider.GetRequiredService<NetworkMonitorService>().Dispose(); } catch { }
         base.OnExit(e);
+    }
+
+    /// <summary>
+    /// F-22：注册三类未处理异常处理。
+    /// UI 线程异常记录后标记为已处理，避免单个回调异常直接终止应用；
+    /// 后台线程与未观察任务异常只记录，不改变既有语义。
+    /// </summary>
+    private void RegisterGlobalExceptionHandlers()
+    {
+        DispatcherUnhandledException += (_, args) =>
+        {
+            LogFatal("[FATAL-UI]", args.Exception);
+            args.Handled = true;
+        };
+
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            var ex = args.ExceptionObject as Exception;
+            LogFatal($"[FATAL-APPDOMAIN] terminating={args.IsTerminating}", ex);
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            LogFatal("[FATAL-TASK]", args.Exception);
+            // 已观察，避免升级为进程级失败。
+            args.SetObserved();
+        };
+    }
+
+    /// <summary>
+    /// 崩溃级日志必须落盘，即使常规日志处于关闭状态。
+    /// </summary>
+    private static void LogFatal(string prefix, Exception? exception)
+    {
+        // Logger.Log 在 Enabled=false 时静默丢弃，崩溃信息不能丢。
+        Logger.Enabled = true;
+        Logger.Log($"{prefix} {exception}");
     }
 
     public T GetService<T>() where T : notnull => _serviceProvider.GetRequiredService<T>();

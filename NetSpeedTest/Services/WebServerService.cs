@@ -541,6 +541,53 @@ public void Stop()
         public int LastActualPort { get; set; } = PortHelper.DefaultPort;
     }
 
+    /// <summary>
+    /// F-10：原子写入文本文件（临时文件 + 替换），避免中断留下半截内容。
+    /// </summary>
+    internal static void AtomicWriteAllText(string path, string content)
+    {
+        var tempPath = path + ".tmp";
+        try
+        {
+            File.WriteAllText(tempPath, content);
+            if (File.Exists(path))
+            {
+                File.Replace(tempPath, path, destinationBackupFileName: null, ignoreMetadataErrors: true);
+            }
+            else
+            {
+                File.Move(tempPath, path);
+            }
+            tempPath = null;
+        }
+        finally
+        {
+            if (tempPath != null)
+            {
+                try { File.Delete(tempPath); } catch { }
+            }
+        }
+    }
+
+    /// <summary>
+    /// F-10：读取文本文件，容忍替换瞬间的共享冲突重试。
+    /// 若直接放弃，用户设置会被静默丢弃（App 启动时尤其危险）。
+    /// </summary>
+    internal static string? TryReadAllTextWithRetry(string path, int attempts = 4)
+    {
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                return File.ReadAllText(path);
+            }
+            catch (IOException) when (attempt < attempts - 1)
+            {
+                Thread.Sleep(25 * (attempt + 1));
+            }
+        }
+    }
+
     private WebServerSettings LoadSettings()
     {
         var result = new WebServerSettings();
@@ -550,7 +597,8 @@ public void Stop()
             var path = Path.Combine(dir, "web.json");
             if (!File.Exists(path)) return result;
 
-            var json = File.ReadAllText(path);
+            var json = TryReadAllTextWithRetry(path);
+            if (string.IsNullOrWhiteSpace(json)) return result;
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
@@ -587,7 +635,7 @@ public void Stop()
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir, "web.json");
             var target = enabled ?? _enabled;
-            File.WriteAllText(path, JsonSerializer.Serialize(new
+            AtomicWriteAllText(path, JsonSerializer.Serialize(new
             {
                 Enabled = target,
                 AllowLanAccess = _allowLanAccess,
@@ -731,7 +779,7 @@ public void Stop()
         RefreshBindingsIfStale();
 
         var remoteBytes = remote.GetAddressBytes();
-        foreach (var binding in _bindings)
+        foreach (var binding in BindingsSnapshot())
         {
             if (!IPAddress.TryParse(binding.IPAddress, out var local)) continue;
             if (!IPAddress.TryParse(binding.SubnetMask, out var mask)) continue;
@@ -761,25 +809,38 @@ public void Stop()
 
             _ = Task.Run(async () =>
             {
-                await RequestGate.WaitAsync(ct);
-                try { await HandleContextAsync(ctx); }
-                finally { RequestGate.Release(); }
-            }, ct);
+                // F-12：请求级超时与服务器生命周期解耦，关闭服务不会直接掐断在途响应。
+                using var requestCts = new CancellationTokenSource(RequestTimeout);
+                var entered = false;
+                try
+                {
+                    await RequestGate.WaitAsync(requestCts.Token);
+                    entered = true;
+                    await HandleContextAsync(ctx, requestCts.Token);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    Logger.Log($"Unhandled web request error: {ex}");
+                }
+                finally
+                {
+                    if (entered) RequestGate.Release();
+                }
+            });
         }
     }
 
-    private async Task HandleContextAsync(HttpListenerContext ctx)
+    private async Task HandleContextAsync(HttpListenerContext ctx, CancellationToken requestCt)
     {
-        // F-12：请求级超时，避免慢连接长期占用 RequestGate。
-        using var requestCts = new CancellationTokenSource(RequestTimeout);
         try
         {
             ApplySecurityHeaders(ctx);
-            AbortOnCancellation(ctx, requestCts.Token);
+            AbortOnCancellation(ctx, requestCt);
 
             if (!IsRemoteAllowed(ctx.Request.RemoteEndPoint))
             {
-                await WriteJsonAsync(ctx, 403, ErrorPayload(403), requestCts.Token);
+                await WriteJsonAsync(ctx, 403, ErrorPayload(403), requestCt);
                 return;
             }
 
@@ -793,29 +854,29 @@ public void Stop()
                 if (!IsTokenValid(provided))
                 {
                     Logger.Log($"Web request rejected: missing or invalid {TokenHeaderName} from {ctx.Request.RemoteEndPoint}");
-                    await WriteJsonAsync(ctx, 403, ErrorPayload(403), requestCts.Token);
+                    await WriteJsonAsync(ctx, 403, ErrorPayload(403), requestCt);
                     return;
                 }
             }
 
             if (method == "GET" && (path == "/" || path == "/index.html" || path.StartsWith("/assets/")))
             {
-                await ServeStaticAsync(ctx, path, requestCts.Token);
+                await ServeStaticAsync(ctx, path, requestCt);
                 return;
             }
 
             if (path.StartsWith("/api/", StringComparison.OrdinalIgnoreCase))
             {
-                await HandleApiAsync(ctx, method, path, requestCts.Token);
+                await HandleApiAsync(ctx, method, path, requestCt);
                 return;
             }
 
-            await WriteJsonAsync(ctx, 404, new { error = "Not Found" }, requestCts.Token);
+            await WriteJsonAsync(ctx, 404, new { error = "Not Found" }, requestCt);
         }
         catch (Exception ex)
         {
             Logger.Log($"Web request failed: {ex.Message}");
-            try { await WriteJsonAsync(ctx, 500, ErrorPayload(500), CancellationToken.None); } catch { }
+            await SafeWriteErrorAsync(ctx, 500, CancellationToken.None);
         }
     }
 
@@ -950,7 +1011,7 @@ public void Stop()
         catch (Exception ex)
         {
             Logger.Log($"Adapter select failed: {ex}");
-            await WriteJsonAsync(ctx, 400, ErrorPayload(400), ct);
+            await SafeWriteErrorAsync(ctx, 400, ct);
         }
     }
 
@@ -1104,7 +1165,7 @@ public void Stop()
         catch (Exception ex)
         {
             Logger.Log($"Profile save failed: {ex}");
-            await WriteJsonAsync(ctx, 400, ErrorPayload(400), ct);
+            await SafeWriteErrorAsync(ctx, 400, ct);
         }
     }
 
@@ -1268,26 +1329,82 @@ public void Stop()
             var root = doc.RootElement;
             var options = _serviceProvider.GetRequiredService<SpeedTestOptions>();
 
+            bool? requestedWebServerEnabled = null;
+
             // F-10：设置写入与持久化互斥，避免并发 POST 产生交错的半套配置。
             lock (_optionsGate)
             {
-                ApplySettingsCore(root, options);
+                requestedWebServerEnabled = ApplySettingsCore(root, options);
             }
 
             PersistSpeedOptions(options);
+
+            // F-11：关闭 Web 服务器必须先回响应再停止，否则客户端拿到的是连接被重置。
+            var stopAfterResponse = requestedWebServerEnabled == false && Enabled;
+            if (requestedWebServerEnabled == true && !Enabled)
+            {
+                // 启动仍同步执行，失败要能回报给调用方。
+                if (!TryRunOnUiThread(() => { SetEnabled(true); SaveEnabled(true); }))
+                {
+                    await WriteJsonAsync(ctx, 503, new { error = "UI unavailable", message = "Web server could not be started" }, ct);
+                    return;
+                }
+            }
+
             await WriteJsonAsync(ctx, 200, new { ok = true }, ct);
+
+            if (stopAfterResponse) DeferStop();
         }
         catch (Exception ex)
         {
             Logger.Log($"Settings update failed: {ex}");
-            await WriteJsonAsync(ctx, 400, ErrorPayload(400), ct);
+            await SafeWriteErrorAsync(ctx, 400, ct);
+        }
+    }
+
+    /// <summary>
+    /// F-11：先让响应完成写出，再在后台停止服务器。
+    /// 立即 Stop() 会关闭 HttpListener，导致调用方收到连接重置而不是 200。
+    /// </summary>
+    private void DeferStop()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                // 200ms 是响应 flush 的宽限窗口，不是超时。
+                await Task.Delay(200).ConfigureAwait(false);
+                TryRunOnUiThread(() => { SetEnabled(false); SaveEnabled(false); });
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Deferred web server stop failed: {ex.Message}");
+            }
+        });
+    }
+
+    /// <summary>
+    /// FN-09：错误响应自身也要容错，避免在已中止的连接上再次抛出。
+    /// </summary>
+    private static async Task SafeWriteErrorAsync(HttpListenerContext ctx, int statusCode, CancellationToken ct)
+    {
+        try
+        {
+            await WriteJsonAsync(ctx, statusCode, ErrorPayload(statusCode), ct);
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Failed to write error response {statusCode}: {ex.Message}");
+            try { ctx.Response.Abort(); } catch { }
         }
     }
 
     /// <summary>
     /// F-10：设置应用逻辑。调用方必须持有 <see cref="_optionsGate"/>。
+    /// 返回请求中显式指定的 webServerEnabled 值（未指定为 null），
+    /// 由调用方在响应之后决定启停时机（F-11）。
     /// </summary>
-    private void ApplySettingsCore(JsonElement root, SpeedTestOptions options)
+    private bool? ApplySettingsCore(JsonElement root, SpeedTestOptions options)
     {
         if (root.TryGetProperty("threadCount", out var threadCount)) options.ThreadCount = Math.Clamp(threadCount.GetInt32(), 2, 1024);
         if (root.TryGetProperty("testTimeoutSec", out var testTimeoutSec)) options.TestTimeoutSec = Math.Clamp(testTimeoutSec.GetInt32(), 5, 600);
@@ -1329,14 +1446,9 @@ public void Stop()
         }
 
         if (root.TryGetProperty("webServerEnabled", out var webServerEnabled))
-        {
-            var enabled = webServerEnabled.GetBoolean();
-            TryRunOnUiThread(() =>
-            {
-                SetEnabled(enabled);
-                SaveEnabled(enabled);
-            });
-        }
+            return webServerEnabled.GetBoolean();
+
+        return null;
     }
 
     /// <summary>
@@ -1345,10 +1457,17 @@ public void Stop()
     /// </summary>
     private static void PersistSpeedOptions(SpeedTestOptions options)
     {
-        string? tempPath = null;
+        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NetSpeedTest");
+        PersistSpeedOptions(options, dir);
+    }
+
+    /// <summary>
+    /// F-10 的可测实现：显式指定目标目录。
+    /// </summary>
+    internal static void PersistSpeedOptions(SpeedTestOptions options, string dir)
+    {
         try
         {
-            var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "NetSpeedTest");
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir, "appsettings.json");
 
@@ -1357,7 +1476,9 @@ public void Stop()
             {
                 try
                 {
-                    root = JsonNode.Parse(File.ReadAllText(path)) as JsonObject ?? new JsonObject();
+                    var existing = TryReadAllTextWithRetry(path);
+                    root = (string.IsNullOrWhiteSpace(existing) ? null : JsonNode.Parse(existing) as JsonObject)
+                        ?? new JsonObject();
                 }
                 catch (JsonException ex)
                 {
@@ -1392,29 +1513,11 @@ public void Stop()
             root["SpeedTest"] = speed;
 
             var payload = root.ToJsonString(new JsonSerializerOptions { WriteIndented = true });
-            tempPath = path + ".tmp";
-            File.WriteAllText(tempPath, payload);
-
-            if (File.Exists(path))
-            {
-                File.Replace(tempPath, path, destinationBackupFileName: null, ignoreMetadataErrors: true);
-            }
-            else
-            {
-                File.Move(tempPath, path);
-            }
-            tempPath = null;
+            AtomicWriteAllText(path, payload);
         }
         catch (Exception ex)
         {
             Logger.Log($"PersistSpeedOptions failed: {ex.Message}");
-        }
-        finally
-        {
-            if (tempPath != null)
-            {
-                try { File.Delete(tempPath); } catch { }
-            }
         }
     }
 
@@ -1498,7 +1601,7 @@ public void Stop()
         catch (Exception ex)
         {
             Logger.Log($"Test start failed: {ex}");
-            await WriteJsonAsync(ctx, 400, ErrorPayload(400), ct);
+            await SafeWriteErrorAsync(ctx, 400, ct);
         }
     }
 

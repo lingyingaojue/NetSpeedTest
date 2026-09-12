@@ -790,7 +790,7 @@ public class SpeedTestService
     /// 容量阶梯：128 / 256 / 512 / 1024（多网卡时按份额折算）。
     /// 实际线程每次 +2，脉冲间隔 100~2000ms 动态调整。
     /// </summary>
-    private sealed class AdaptiveController
+    internal sealed class AdaptiveController
     {
         private readonly object _sync = new();
         private readonly SemaphoreSlim _wake;
@@ -817,7 +817,8 @@ public class SpeedTestService
         private int _evalCount;
         private int _noGainCount;
         private int _declineCount;
-        private bool _increaseAllowed = true;
+        // F-07：PulseLoop 与 UI 观察线程并发访问，必须保证可见性。
+        private volatile bool _increaseAllowed = true;
         private DateTime _nextCapacityEvalUtc;
         private DateTime _nextReevaluateUtc;
         private DateTime _cooldownUntilUtc;
@@ -932,8 +933,9 @@ public class SpeedTestService
                 }
                 catch (OperationCanceledException) { break; }
 
+                // F-07：volatile 读取，避免看到过期的允许位与容量。
                 if (!_increaseAllowed) continue;
-                SetTarget(Math.Min(_target + 2, _capacity));
+                SetTarget(Math.Min(Volatile.Read(ref _target) + 2, Volatile.Read(ref _capacity)));
             }
         }
 
@@ -983,12 +985,12 @@ public class SpeedTestService
 
         public void SetTarget(int target)
         {
-            target = Math.Clamp(target, 1, _capacity);
             List<int>? trimSlots = null;
             var wakeCount = 0;
             lock (_sync)
             {
-                _target = target;
+                // F-07：容量与目标必须在同一临界区内读取，保证裁剪决策自洽。
+                _target = Math.Clamp(target, 1, _capacity);
                 if (_target > _current) wakeCount = _target - _current;
                 else if (_target < _current)
                 {
@@ -1037,14 +1039,23 @@ public class SpeedTestService
         public void Observe(double throughput, bool compensating, double elapsed)
         {
             var now = DateTime.UtcNow;
-            _recentRates.Enqueue(throughput);
-            while (_recentRates.Count > 10) _recentRates.Dequeue();
+            // F-07：_recentRates 会被 NIC 监控线程写入、被 PulseLoop/裁剪路径读取，
+            // 队列的入队出队与快照都必须在 _sync 内完成，否则并发枚举会抛
+            // "Collection was modified"。
+            lock (_sync)
+            {
+                _recentRates.Enqueue(throughput);
+                while (_recentRates.Count > 10) _recentRates.Dequeue();
+            }
 
             if (compensating)
             {
                 _increaseAllowed = false;
                 _evalCount = 0;
-                SetTarget(Math.Min(_bestTarget, _capacity));
+                // F-07：_bestTarget/_capacity 的读写统一在 _sync 内。
+                int bestTarget, capacity;
+                lock (_sync) { bestTarget = _bestTarget; capacity = _capacity; }
+                SetTarget(Math.Min(bestTarget, capacity));
                 return;
             }
 
@@ -1054,7 +1065,10 @@ public class SpeedTestService
             if (throughput > _bestRate)
             {
                 _bestRate = throughput;
-                _bestTarget = Math.Min(_target, _capacity);
+                lock (_sync)
+                {
+                    _bestTarget = Math.Min(Volatile.Read(ref _target), _capacity);
+                }
             }
 
             var cv = ComputeCv();
@@ -1076,7 +1090,9 @@ public class SpeedTestService
                 if (_noGainCount >= 2)
                 {
                     _increaseAllowed = false;
-                    SetTarget(_bestTarget);
+                    int bestTarget, capacity;
+                    lock (_sync) { bestTarget = _bestTarget; capacity = _capacity; }
+                    SetTarget(Math.Min(bestTarget, capacity));
                     _nextReevaluateUtc = now.AddSeconds(30);
                     _noGainCount = 0;
                 }
@@ -1107,14 +1123,24 @@ public class SpeedTestService
 
         private void EvaluateCapacity(DateTime now, double gain, double previousBest, double requiredGain)
         {
-            if (_capacityIndex >= _capacities.Count - 1) return;
+            // F-07：容量相关字段快照，避免与 ExpandCapacity/DowngradeCapacity 竞争。
+            int capacityIndex, capacity, bestTarget, target;
+            lock (_sync)
+            {
+                capacityIndex = _capacityIndex;
+                capacity = _capacity;
+                bestTarget = _bestTarget;
+                target = Volatile.Read(ref _target);
+            }
+
+            if (capacityIndex >= _capacities.Count - 1) return;
             if (!_increaseAllowed) return;
             if (now < _nextCapacityEvalUtc) return;
-            if (_target < _capacity * 0.9 && _current < _capacity * 0.9) return;
+            if (target < capacity * 0.9 && _current < capacity * 0.9) return;
 
-            var latestRate = _recentRates.Count > 0 ? _recentRates.Last() : 0;
-            var newEff = latestRate / Math.Max(1, _target);
-            var oldEff = _bestRate / Math.Max(1, _bestTarget);
+            var latestRate = LatestRecentRate();
+            var newEff = latestRate / Math.Max(1, target);
+            var oldEff = _bestRate / Math.Max(1, bestTarget);
             var efficiencyOk = oldEff <= 0 || newEff >= oldEff * 0.7;
 
             if (gain >= requiredGain && previousBest > 0 && efficiencyOk)
@@ -1129,7 +1155,7 @@ public class SpeedTestService
             {
                 _evalCount = 0;
                 _increaseAllowed = false;
-                SetTarget(_bestTarget);
+                SetTarget(bestTarget);
                 _nextCapacityEvalUtc = now.AddSeconds(7);
                 _nextReevaluateUtc = now.AddSeconds(7);
             }
@@ -1137,25 +1163,45 @@ public class SpeedTestService
 
         private void ExpandCapacity()
         {
-            if (_capacityIndex >= _capacities.Count - 1) return;
-            var oldCapacity = _capacity;
-            _capacityIndex++;
-            _capacity = _capacities[_capacityIndex];
-            _evalCount = 0;
-            _pulseIntervalMs = 200;
-            _increaseAllowed = true;
-            StartWorkerBatch(_capacity - oldCapacity);
+            // F-07：容量阶梯推进在 _sync 内完成，防止并发扩展导致容量翻倍。
+            var newWorkers = 0;
+            lock (_sync)
+            {
+                if (_capacityIndex < _capacities.Count - 1)
+                {
+                    var oldCapacity = _capacity;
+                    _capacityIndex++;
+                    _capacity = _capacities[_capacityIndex];
+                    _evalCount = 0;
+                    _pulseIntervalMs = 200;
+                    _increaseAllowed = true;
+                    newWorkers = _capacity - oldCapacity;
+                }
+            }
+
+            // 在锁外启动 worker，避免在持锁期间调度任务。
+            if (newWorkers <= 0) return;
+            StartWorkerBatch(newWorkers);
+            Logger.Log($"Adaptive capacity expanded to {Volatile.Read(ref _capacity)} (+{newWorkers} workers)");
         }
 
         private void DowngradeCapacity(DateTime now)
         {
-            if (_capacityIndex <= 0) return;
-            _capacityIndex--;
-            _capacity = _capacities[_capacityIndex];
+            int bestTarget, capacity;
+            lock (_sync)
+            {
+                if (_capacityIndex <= 0) return;
+                _capacityIndex--;
+                _capacity = _capacities[_capacityIndex];
+                _evalCount = 0;
+                _declineCount = 0;
+                _bestTarget = Math.Min(_bestTarget, _capacity);
+                bestTarget = _bestTarget;
+                capacity = _capacity;
+            }
+
             _increaseAllowed = false;
-            _evalCount = 0;
-            _declineCount = 0;
-            SetTarget(Math.Min(_bestTarget, _capacity));
+            SetTarget(Math.Min(bestTarget, capacity));
             _cooldownUntilUtc = now.AddSeconds(20);
             _nextReevaluateUtc = now.AddSeconds(30);
             _nextCapacityEvalUtc = now.AddSeconds(20);
@@ -1163,12 +1209,23 @@ public class SpeedTestService
 
         private double ComputeCv()
         {
-            if (_recentRates.Count < 3) return 0;
-            var values = _recentRates.ToList();
+            // F-07：在锁内取快照，避免与 Observe 的入队/出队并发。
+            double[] values;
+            lock (_sync) { values = _recentRates.ToArray(); }
+
+            if (values.Length < 3) return 0;
             var mean = values.Average();
             if (mean <= 0) return 0;
             var variance = values.Average(x => (x - mean) * (x - mean));
             return Math.Sqrt(variance) / mean;
+        }
+
+        /// <summary>
+        /// F-07：读取最近一次速率样本，必须加锁。
+        /// </summary>
+        private double LatestRecentRate()
+        {
+            lock (_sync) { return _recentRates.Count > 0 ? _recentRates.Last() : 0; }
         }
 
         private void ReportActiveLocked()
