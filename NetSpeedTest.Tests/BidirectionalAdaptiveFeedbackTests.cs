@@ -4,8 +4,8 @@ using Xunit;
 namespace NetSpeedTest.Tests;
 
 /// <summary>
-/// 双向测速上传速度低回归测试：旧实现双向自适应反馈取 sr + ur_，
-/// 下载吞吐远高于上传时上传加压增益被稀释，控制器提前停止扩容。
+/// 双向测速上传速度低回归测试：双向模式必须让下载/上传各自独立自适应，
+/// 避免下载吞吐掩盖上传增益或占用上传的并发预算。
 /// </summary>
 public class BidirectionalAdaptiveFeedbackTests
 {
@@ -49,5 +49,20 @@ public class BidirectionalAdaptiveFeedbackTests
         Assert.False(SpeedTestService.ShouldObserveAdaptiveValue(0, true, false));
         Assert.False(SpeedTestService.ShouldObserveAdaptiveValue(0, false, true));
         Assert.True(SpeedTestService.ShouldObserveAdaptiveValue(0, true, true));
+    }
+
+    [Fact]
+    public void Adaptive_start_threads_are_split_between_directions()
+    {
+        var even = SpeedTestService.SplitAdaptiveStartThreads(2, 1024);
+        Assert.Equal(1, even.Download);
+        Assert.Equal(1, even.Upload);
+
+        var total = SpeedTestService.SplitAdaptiveStartThreads(10, 1024);
+        Assert.Equal(10, total.Download + total.Upload);
+        Assert.True(total.Download >= 1 && total.Upload >= 1);
+
+        var clamped = SpeedTestService.SplitAdaptiveStartThreads(1, 64);
+        Assert.Equal(2, clamped.Download + clamped.Upload);
     }
 }

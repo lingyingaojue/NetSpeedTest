@@ -109,7 +109,7 @@ public class SpeedTestService
         var nicMonitorTask = StartNicMonitor(overall, ctLinked, adapters, nicState,
             onDownloadProgress, onUploadProgress, onAdapterRates,
             onAverageDownload, onAverageUpload, onAverageTotal, onAverageSpeed,
-            totalBytesDownloaded, onTotalBytes, tc: threadCount, adaptive: adaptive, throughputMode: 1);
+            totalBytesDownloaded, onTotalBytes, tc: threadCount, downloadAdaptive: adaptive);
 
         var sourceIp = isAdapterBound ? GetAdapterSourceIp(adapters) : null;
         var gwTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, http);
@@ -1273,7 +1273,7 @@ public class SpeedTestService
     private Task StartNicMonitor(Stopwatch overall, CancellationToken c, List<NetworkAdapterInfo> ad, NicState st,
         Action<double, double, long>? dl, Action<double, double, long>? ul, Action<string, double, double>? ar,
         Action<double>? adl, Action<double>? aul, Action<double>? atl, Action<double>? as_, LongRef tbd,
-        Action<long>? tb = null, int tc = 128, AdaptiveController? adaptive = null, int initialDelayMs = 0, int throughputMode = 0)
+        Action<long>? tb = null, int tc = 128, AdaptiveController? downloadAdaptive = null, AdaptiveController? uploadAdaptive = null, int initialDelayMs = 0)
     {
         var nicTask = Task.Run(async () =>
         {
@@ -1283,9 +1283,10 @@ public class SpeedTestService
                 var dh = new List<(double, double)>(); var uh = new List<(double, double)>();
                 var ws = _options.RateWindowSec; bool as2 = false; long asb = 0; double ast = 0;
                 var totalBytes = tbd;
-                // 双向模式启动预热：下载、上传都产生过流量后才开始喂自适应控制器。
-                var fullWarmupDownloadSeen = false;
-                var fullWarmupUploadSeen = false;
+                // 方向级启动预热：某方向尚未产生流量前不让对应控制器观察，
+                // 避免首个 0 样本把 _bestRate 锁死或把后续起量误判为掉速。
+                var downloadAdaptiveSeen = false;
+                var uploadAdaptiveSeen = false;
                 while (!c.IsCancellationRequested)
                 {
                     try { await Task.Delay(initialDelayMs > 0 ? initialDelayMs : _options.NicPollIntervalMs, c); } catch { break; }
@@ -1323,20 +1324,18 @@ public class SpeedTestService
                         }
                         else if (!st.IsCompensating) { st.BelowThresholdSec = 0; }
                     }
-                    if (adaptive != null)
+                    if (downloadAdaptive != null)
                     {
-                        if (throughputMode == 0 && !(fullWarmupDownloadSeen && fullWarmupUploadSeen))
+                        if (downloadAdaptiveSeen || (downloadAdaptiveSeen = sr > 0))
                         {
-                            if (sr > 0) fullWarmupDownloadSeen = true;
-                            if (ur_ > 0) fullWarmupUploadSeen = true;
+                            downloadAdaptive.Observe(sr, st.IsCompensating, overall.Elapsed.TotalSeconds);
                         }
-
-                        if (ShouldObserveAdaptiveValue(throughputMode, fullWarmupDownloadSeen, fullWarmupUploadSeen))
+                    }
+                    if (uploadAdaptive != null)
+                    {
+                        if (uploadAdaptiveSeen || (uploadAdaptiveSeen = ur_ > 0))
                         {
-                            adaptive.Observe(
-                                SelectAdaptiveObserveValue(throughputMode, sr, ur_),
-                                st.IsCompensating,
-                                overall.Elapsed.TotalSeconds);
+                            uploadAdaptive.Observe(ur_, st.IsCompensating, overall.Elapsed.TotalSeconds);
                         }
                     }
                     lt = e;
@@ -1367,6 +1366,17 @@ public class SpeedTestService
     internal static bool ShouldObserveAdaptiveValue(int throughputMode, bool downloadSeen, bool uploadSeen)
         => throughputMode != 0 || (downloadSeen && uploadSeen);
 
+    /// <summary>
+    /// 双向自适应模式下把起始线程数拆到下载/上传两个独立控制器，各自至少 1 个。
+    /// </summary>
+    internal static (int Download, int Upload) SplitAdaptiveStartThreads(int startThreads, int adaptiveMaxBase)
+    {
+        var max = Math.Max(2, adaptiveMaxBase);
+        var total = Math.Clamp(startThreads, 2, max);
+        var download = Math.Max(1, total / 2);
+        var upload = Math.Max(1, total - download);
+        return (download, upload);
+    }
     private (Task? gatewayTask, Task wanTask, Task jitterTask, Task lossTask) StartGatewayAndWanLatency(string? gateway, CancellationToken ctLinked, Action<double>? onLatency, Action<double>? onWanLatency, Action<double>? onJitter, Action<PacketLossSample>? onPacketLoss, IPAddress? sourceIp = null, HttpClient? probeClient = null)
     {
         Task? gt = null;
@@ -1518,7 +1528,7 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
             : null;
         using var semaphore = new SemaphoreSlim(workerCount, workerCount);
 
-        var nicMonitorUpload = StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, dummy, onTotalBytes, tc: threadCount, adaptive: adaptive, throughputMode: 2);
+        var nicMonitorUpload = StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, dummy, onTotalBytes, tc: threadCount, uploadAdaptive: adaptive);
         var sourceIp = isAdapterBound ? GetAdapterSourceIp(adapters) : null;
         var gwUploadTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, http);
 
@@ -1639,14 +1649,30 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
             ? (adaptiveThreadCap > 0 ? Math.Max(8, adaptiveThreadCap) : Math.Max(8, GetAutomaticAdaptiveMax()))
             : 0;
         var useAdaptive = adaptiveMaxBase > 0;
-        var workerCount = useAdaptive ? adaptiveMaxBase : threadCount;
-        var startThreads = useAdaptive ? Math.Clamp(_options.AdaptiveStartThreads, 2, adaptiveMaxBase) : 0;
-        AdaptiveController? adaptive = useAdaptive
-            ? new AdaptiveController(adaptiveMaxBase, startThreads, _options.TestTimeoutSec, onActiveThreadCount)
-            : null;
-        using var semaphore = new SemaphoreSlim(workerCount, workerCount);
+        int dlAdaptiveActive = 0, ulAdaptiveActive = 0, combinedActivePeak = 0;
+        var activeLock = new object();
+        void ReportAdaptiveActive(int direction, int count)
+        {
+            int total;
+            lock (activeLock)
+            {
+                if (direction == 0) dlAdaptiveActive = count; else ulAdaptiveActive = count;
+                total = dlAdaptiveActive + ulAdaptiveActive;
+                if (total > combinedActivePeak) combinedActivePeak = total;
+            }
+            onActiveThreadCount?.Invoke(total);
+        }
 
-        var nicMonitorFull = StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, bytesDl, onTotalBytes, tc: threadCount, adaptive: adaptive, throughputMode: 0);
+        AdaptiveController? downloadAdaptive = null, uploadAdaptive = null;
+        if (useAdaptive)
+        {
+            var (startDl, startUl) = SplitAdaptiveStartThreads(_options.AdaptiveStartThreads, adaptiveMaxBase);
+            downloadAdaptive = new AdaptiveController(adaptiveMaxBase, startDl, _options.TestTimeoutSec, c => ReportAdaptiveActive(0, c));
+            uploadAdaptive = new AdaptiveController(adaptiveMaxBase, startUl, _options.TestTimeoutSec, c => ReportAdaptiveActive(1, c));
+        }
+        using var semaphore = new SemaphoreSlim(threadCount, threadCount);
+
+        var nicMonitorFull = StartNicMonitor(overall, ctLinked, adapters, nicState, onDownloadProgress, onUploadProgress, onAdapterRates, onAverageDownload, onAverageUpload, onAverageTotal, null, bytesDl, onTotalBytes, tc: threadCount, downloadAdaptive: downloadAdaptive, uploadAdaptive: uploadAdaptive);
         var sourceIp = isAdapterBound ? GetAdapterSourceIp(adapters) : null;
         var gwFullTasks = StartGatewayAndWanLatency(gateway, ctLinked, onLatency, onWanLatency, onJitter, onPacketLoss, sourceIp, http);
 
@@ -1706,14 +1732,15 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         }
 
         var tasks = new List<Task>(); var rampBatch = Math.Max(1, threadCount / 256);
-        if (adaptive != null)
+        if (downloadAdaptive != null)
         {
-            adaptive.StartWorkers(ctLinked, async (workerId, requestCt) =>
-            {
-                var isDl = (workerId & 1) == 0;
-                var url = isDl ? dlBalancer.GetUrlForWorker(workerId) : ulBalancer.GetUrlForWorker(workerId);
-                await RunOneFullAsync(isDl, url, requestCt);
-            });
+            downloadAdaptive.StartWorkers(ctLinked, (workerId, requestCt) =>
+                RunOneFullAsync(true, dlBalancer.GetUrlForWorker(workerId), requestCt));
+        }
+        if (uploadAdaptive != null)
+        {
+            uploadAdaptive.StartWorkers(ctLinked, (workerId, requestCt) =>
+                RunOneFullAsync(false, ulBalancer.GetUrlForWorker(workerId), requestCt));
         }
         else
         {
@@ -1756,7 +1783,7 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
             }
         }
 
-        if (adaptive != null) { await adaptive.WaitAsync(); }
+        if (downloadAdaptive != null || uploadAdaptive != null) { await Task.WhenAll(downloadAdaptive?.WaitAsync() ?? Task.CompletedTask, uploadAdaptive?.WaitAsync() ?? Task.CompletedTask); }
         await Task.WhenAll(tasks); overall.Stop(); internalCts.Cancel();
         await Task.WhenAll(gwFullTasks.gatewayTask ?? Task.CompletedTask, gwFullTasks.wanTask, gwFullTasks.jitterTask, gwFullTasks.lossTask, nicMonitorFull);
         if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
@@ -1764,7 +1791,7 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         if (nicState.R) { var e = Math.Max(ts_ - _options.AverageDelaySec, 0.1); var drop = _options.CompensationEnabled ? nicState.TotalDropDuration : 0; var adj = Math.Max(e - drop, 0.1); dl_ = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (adj * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (adj * 1_000_000.0)); }
         else { dl_ = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts_ * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts_ * 1_000_000.0)); }
         long dlBytes_ = bytesDl.Value, ulBytes_ = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
-        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = adaptive != null ? Math.Max(1, adaptive.Peak) : threadCount, UrlDetails = new() };
+        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = useAdaptive ? Math.Max(1, combinedActivePeak) : threadCount, UrlDetails = new() };
     }
 
 
