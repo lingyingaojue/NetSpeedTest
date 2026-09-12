@@ -1110,6 +1110,7 @@ public void Stop()
 
     private async Task HandleTestStartAsync(HttpListenerContext ctx)
     {
+        var started = false;
         try
         {
             var body = await ReadBodyAsync(ctx.Request);
@@ -1159,8 +1160,19 @@ public void Stop()
                     "full" => vm.StartFullTestCommand,
                     _ => vm.StartDownloadTestCommand
                 };
-                if (command?.CanExecute(null) == true) command.Execute(null);
+                if (command?.CanExecute(null) == true)
+                {
+                    command.Execute(null);
+                    started = true;
+                }
             });
+
+            // FN-01：命令未真正执行时必须报 409，不能谎报 200 让调用方以为测速已启动。
+            if (!started)
+            {
+                await WriteJsonAsync(ctx, 409, new { error = "test did not start", message = "Command could not be executed" });
+                return;
+            }
 
             await WriteJsonAsync(ctx, 200, new { ok = true });
         }

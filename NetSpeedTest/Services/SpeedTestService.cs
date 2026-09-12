@@ -366,6 +366,86 @@ public class SpeedTestService
     }
 
     /// <summary>
+    /// UDP 探测单次发送的等待上限（毫秒）。
+    /// </summary>
+    private const int UdpProbeTimeoutMs = 1000;
+
+    /// <summary>
+    /// UDP 探测结果。用于区分“主机有响应”与“真的无响应”。
+    /// </summary>
+    internal enum UdpProbeOutcome
+    {
+        /// <summary>在超时前收到返回数据报。</summary>
+        Response = 0,
+
+        /// <summary>
+        /// 收到 ICMP Port Unreachable 导致连接被重置。对已连接 UDP socket 而言这是
+        /// 主机可达的确定性证据，必须计为成功，否则会误判为 100% 丢包 / 无延迟。
+        /// </summary>
+        PortUnreachable = 1,
+
+        /// <summary>超时且没有任何响应。</summary>
+        Timeout = 2
+    }
+
+    /// <summary>
+    /// 判定已完成的 UDP 接收任务的探测结果（无网络依赖，供单测覆盖）。
+    /// </summary>
+    internal static UdpProbeOutcome ClassifyUdpProbeResult(Task receiveTask)
+    {
+        if (receiveTask == null || !receiveTask.IsCompleted) return UdpProbeOutcome.Timeout;
+
+        if (receiveTask.IsCompletedSuccessfully) return UdpProbeOutcome.Response;
+
+        if (receiveTask.IsFaulted && receiveTask.Exception != null)
+        {
+            foreach (var inner in receiveTask.Exception.Flatten().InnerExceptions)
+            {
+                if (inner is SocketException se && se.SocketErrorCode == SocketError.ConnectionReset)
+                    return UdpProbeOutcome.PortUnreachable;
+            }
+        }
+
+        return UdpProbeOutcome.Timeout;
+    }
+
+    /// <summary>
+    /// 发送一次 UDP 探测并等待结果（数据报或 ICMP Port Unreachable），两者都算主机有响应。
+    /// </summary>
+    internal static async Task<UdpProbeOutcome> SendUdpProbeAsync(UdpClient udp, byte[] probe, int timeoutMs, CancellationToken ct)
+    {
+        await udp.SendAsync(probe, probe.Length);
+
+        var receiveTask = udp.ReceiveAsync();
+        using var probeCts = new CancellationTokenSource(timeoutMs);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, probeCts.Token);
+        var winner = await Task.WhenAny(receiveTask, Task.Delay(Timeout.Infinite, linkedCts.Token));
+        if (winner != receiveTask)
+        {
+            // 超时：接收任务仍可能稍后因 ICMP 而失败，挂观察者避免未观察异常。
+            _ = receiveTask.ContinueWith(static t => _ = t.Exception,
+                CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+            return UdpProbeOutcome.Timeout;
+        }
+
+        // 关键：必须 await 以观察结果。ICMP Port Unreachable 会以 ConnectionReset 形式抛出。
+        try
+        {
+            await receiveTask;
+            return UdpProbeOutcome.Response;
+        }
+        catch (SocketException ex) when (ex.SocketErrorCode == SocketError.ConnectionReset)
+        {
+            return UdpProbeOutcome.PortUnreachable;
+        }
+        catch (OperationCanceledException)
+        {
+            return UdpProbeOutcome.Timeout;
+        }
+    }
+
+    /// <summary>
     /// 延迟测试：UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD 五层回退
     /// </summary>
     private async Task<double> TestGatewayLatencyAsync(string host, CancellationToken ct, IPAddress? ip = null, IPAddress? sourceIp = null, HttpClient? probeClient = null)
@@ -389,17 +469,12 @@ public class SpeedTestService
                     try
                     {
                         var sw = Stopwatch.StartNew();
-                        await udp.SendAsync(probe, probe.Length);
-                        try
-                        {
-                            var receiveTask = udp.ReceiveAsync();
-                            using var probeCts = new CancellationTokenSource(1000);
-                            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, probeCts.Token);
-                            var winner = await Task.WhenAny(receiveTask, Task.Delay(Timeout.Infinite, linkedCts.Token));
-                            if (winner == receiveTask) latencies.Add(sw.Elapsed.TotalMilliseconds);
-                        }
-                        catch (SocketException) { }
+                        var outcome = await SendUdpProbeAsync(udp, probe, UdpProbeTimeoutMs, ct);
+                        // 数据报与 ICMP Port Unreachable 都证明主机可达，均应计入延迟。
+                        if (outcome != UdpProbeOutcome.Timeout)
+                            latencies.Add(sw.Elapsed.TotalMilliseconds);
                     }
+                    catch (OperationCanceledException) { }
                     catch { }
                     if (ct.IsCancellationRequested) break;
                     if (i < 4) try { await Task.Delay(50, ct); } catch { break; }
@@ -1241,17 +1316,9 @@ public class SpeedTestService
                     udp.Client.SendTimeout = timeoutMs;
                     udp.Client.ReceiveTimeout = timeoutMs;
                     var probe = new byte[] { 0x00 };
-                    await udp.SendAsync(probe, probe.Length);
-                    try
-                    {
-                        var receiveTask = udp.ReceiveAsync();
-                        using var probeCts = new CancellationTokenSource(timeoutMs);
-                        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, probeCts.Token);
-                        var winner = await Task.WhenAny(receiveTask, Task.Delay(Timeout.Infinite, linkedCts.Token));
-                        if (winner == receiveTask) received++;
-                    }
-                    catch (OperationCanceledException) { }
-                    catch (SocketException) { }
+                    var outcome = await SendUdpProbeAsync(udp, probe, timeoutMs, ct);
+                    // PortUnreachable 表示收到 ICMP Port Unreachable，主机可达，不能算丢包。
+                    if (outcome != UdpProbeOutcome.Timeout) received++;
                 }
             catch (OperationCanceledException) { throw; }
                 catch { }
@@ -1283,6 +1350,20 @@ public class SpeedTestService
     }
 
     // ====== 上传测速 ======
+
+    /// <summary>
+    /// 执行一次上传请求并校验响应状态。
+    /// 非 2xx 响应会由 <see cref="HttpResponseMessage.EnsureSuccessStatusCode"/> 抛出，
+    /// 避免把服务器拒收的上传计入成功吞吐。
+    /// </summary>
+    internal static async Task SendUploadAsync(HttpClient http, string url, byte[] payload, CancellationToken ct)
+    {
+        using var content = new ByteArrayContent(payload);
+        content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+        using var request = new HttpRequestMessage(HttpMethod.Post, url) { Content = content };
+        using var resp = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+        resp.EnsureSuccessStatusCode();
+    }
 
     public async Task<SpeedTestResult> RunUploadTestAsync(
         List<string> urls, int threadCount, List<NetworkAdapterInfo> adapters, string profileName,
@@ -1331,12 +1412,10 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
             var url = urlBalancer.GetUrlForWorker(workerId);
             try
             {
-                using var co = new ByteArrayContent(buf);
-                co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-                using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co };
                 using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(requestCt, timeoutCts.Token);
-                using var _ = await http.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, linked.Token);
+                // 非 2xx（4xx/5xx）不代表上传成功，必须显式校验，否则会把失败算作成功吞吐。
+                await SendUploadAsync(http, url, buf, linked.Token);
                 urlBalancer.ReportSuccess(url, 0, 0);
             }
             catch (OperationCanceledException)
@@ -1483,12 +1562,10 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
                 }
                 else
                 {
-                    using var co = new ByteArrayContent(buf);
-                    co.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-                    using var rq = new HttpRequestMessage(HttpMethod.Post, url) { Content = co };
                     using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
                     using var linked = CancellationTokenSource.CreateLinkedTokenSource(requestCt, timeoutCts.Token);
-                    using var _ = await http.SendAsync(rq, HttpCompletionOption.ResponseHeadersRead, linked.Token);
+                    // 非 2xx（4xx/5xx）不代表上传成功，必须显式校验，否则会把失败算作成功吞吐。
+                    await SendUploadAsync(http, url, buf, linked.Token);
                     ulBalancer.ReportSuccess(url, 0, 0);
                 }
             }
