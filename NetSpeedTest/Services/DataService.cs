@@ -11,6 +11,15 @@ namespace NetSpeedTest.Services;
 public class DataService
 {
     private readonly string _connectionString;
+    private readonly object _cacheLock = new();
+    private readonly SemaphoreSlim _countGate = new(1, 1);
+    private readonly SemaphoreSlim _statsGate = new(1, 1);
+    private int? _recordCountCache;
+    private SpeedTestStats? _statsCache;
+    private double _downloadSumMbps;
+    private int _downloadSampleCount;
+    private int _recordCountVersion;
+    private int _statsVersion;
 
     public DataService()
     {
@@ -20,12 +29,24 @@ public class DataService
     }
 
     /// <summary>
+    /// 统一打开连接，并为每个连接设置 busy_timeout，避免与测速写入并发时长时间锁等待。
+    /// </summary>
+    private SqliteConnection OpenConnection()
+    {
+        var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+        using var pragma = connection.CreateCommand();
+        pragma.CommandText = "PRAGMA busy_timeout = 5000";
+        pragma.ExecuteNonQuery();
+        return connection;
+    }
+
+    /// <summary>
     /// 初始化数据库，自动建表
     /// </summary>
     public void Initialize()
     {
-        using var connection = new SqliteConnection(_connectionString);
-        connection.Open();
+        using var connection = OpenConnection();
         using var pragma = connection.CreateCommand();
         pragma.CommandText = "PRAGMA journal_mode = WAL";
         pragma.ExecuteNonQuery();
@@ -124,8 +145,7 @@ public class DataService
     /// </summary>
     public void SaveResult(SpeedTestResult result)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        connection.Open();
+        using var connection = OpenConnection();
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = """
@@ -156,6 +176,7 @@ public class DataService
         cmd.Parameters.AddWithValue("@err", (object?)result.ErrorMessage ?? DBNull.Value);
 
         cmd.ExecuteNonQuery();
+        UpdateCachesAfterInsert(result);
     }
 
     /// <summary>
@@ -165,8 +186,7 @@ public class DataService
     {
         var results = new List<SpeedTestResult>();
 
-        using var connection = new SqliteConnection(_connectionString);
-        connection.Open();
+        using var connection = OpenConnection();
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = """
@@ -224,47 +244,150 @@ public class DataService
     /// </summary>
     public void DeleteRecord(int id)
     {
-        using var connection = new SqliteConnection(_connectionString);
-        connection.Open();
+        using var connection = OpenConnection();
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "DELETE FROM SpeedTestRecords WHERE Id = @id";
         cmd.Parameters.AddWithValue("@id", id);
-        cmd.ExecuteNonQuery();
+        var affected = cmd.ExecuteNonQuery();
+        if (affected <= 0) return;
+
+        lock (_cacheLock)
+        {
+            _recordCountVersion++;
+            _statsVersion++;
+
+            if (_recordCountCache is int cachedCount)
+                _recordCountCache = Math.Max(0, cachedCount - 1);
+
+            InvalidateStatisticsCacheLocked();
+        }
     }
 
     public void ClearAllRecords()
     {
-        using var connection = new SqliteConnection(_connectionString);
-        connection.Open();
+        using var connection = OpenConnection();
         using var cmd = connection.CreateCommand();
         cmd.CommandText = "DELETE FROM SpeedTestRecords";
         cmd.ExecuteNonQuery();
+
+        lock (_cacheLock)
+        {
+            _recordCountVersion++;
+            _statsVersion++;
+            _recordCountCache = 0;
+            _statsCache = new SpeedTestStats();
+            _downloadSumMbps = 0;
+            _downloadSampleCount = 0;
+        }
     }
 
     /// <summary>
-    /// 获取测速记录总数
+    /// 获取测速记录总数（带内存缓存与 single-flight）。
     /// </summary>
     public int GetRecordCount()
     {
-        using var connection = new SqliteConnection(_connectionString);
-        connection.Open();
-        using var cmd = connection.CreateCommand();
-        cmd.CommandText = "SELECT COUNT(*) FROM SpeedTestRecords";
-        return Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+        lock (_cacheLock)
+        {
+            if (_recordCountCache is int cachedCount)
+                return cachedCount;
+        }
+
+        _countGate.Wait();
+        try
+        {
+            lock (_cacheLock)
+            {
+                if (_recordCountCache is int cachedCount)
+                    return cachedCount;
+            }
+
+            var version = Volatile.Read(ref _recordCountVersion);
+            using var connection = OpenConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM SpeedTestRecords";
+            var count = Convert.ToInt32(cmd.ExecuteScalar() ?? 0);
+
+            lock (_cacheLock)
+            {
+                if (version == _recordCountVersion)
+                    _recordCountCache = count;
+            }
+
+            return count;
+        }
+        finally
+        {
+            _countGate.Release();
+        }
     }
 
+    /// <summary>
+    /// 获取历史记录统计（带内存缓存与 single-flight）。
+    /// </summary>
     public SpeedTestStats GetStatistics()
+    {
+        lock (_cacheLock)
+        {
+            if (_statsCache != null)
+                return CloneStats(_statsCache);
+        }
+
+        _statsGate.Wait();
+        try
+        {
+            var lastStats = new SpeedTestStats();
+
+            for (var attempt = 0; attempt < 2; attempt++)
+            {
+                int version;
+                lock (_cacheLock)
+                {
+                    if (_statsCache != null)
+                        return CloneStats(_statsCache);
+
+                    version = _statsVersion;
+                }
+
+                var stats = ReadStatisticsFromDatabase(out var downloadSum, out var downloadSampleCount);
+                lastStats = stats;
+
+                lock (_cacheLock)
+                {
+                    if (version == _statsVersion)
+                    {
+                        _statsCache = stats;
+                        _downloadSumMbps = downloadSum;
+                        _downloadSampleCount = downloadSampleCount;
+                        return CloneStats(stats);
+                    }
+                }
+            }
+
+            return CloneStats(lastStats);
+        }
+        finally
+        {
+            _statsGate.Release();
+        }
+    }
+
+    private SpeedTestStats ReadStatisticsFromDatabase(out double downloadSum, out int downloadSampleCount)
     {
         try
         {
-            using var connection = new SqliteConnection(_connectionString);
-            connection.Open();
+            using var connection = OpenConnection();
             using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*), MAX(DownloadMbps), MAX(UploadMbps), AVG(DownloadMbps), MIN(LatencyMs) FROM SpeedTestRecords";
+            cmd.CommandText = """
+                SELECT COUNT(*), MAX(DownloadMbps), MAX(UploadMbps), AVG(DownloadMbps), MIN(LatencyMs),
+                       COALESCE(SUM(DownloadMbps), 0), COUNT(DownloadMbps)
+                FROM SpeedTestRecords
+                """;
             using var reader = cmd.ExecuteReader();
             if (reader.Read())
             {
+                downloadSum = reader.IsDBNull(5) ? 0 : reader.GetDouble(5);
+                downloadSampleCount = reader.IsDBNull(6) ? 0 : Convert.ToInt32(reader.GetInt64(6));
                 return new SpeedTestStats
                 {
                     TotalCount = reader.GetInt32(0),
@@ -275,9 +398,85 @@ public class DataService
                 };
             }
         }
-        catch (Exception ex) { Logger.Log($"GetStatistics failed: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Logger.Log($"GetStatistics failed: {ex.Message}");
+            throw;
+        }
+
+        downloadSum = 0;
+        downloadSampleCount = 0;
         return new SpeedTestStats();
     }
+
+    private void UpdateCachesAfterInsert(SpeedTestResult result)
+    {
+        lock (_cacheLock)
+        {
+            _recordCountVersion++;
+            _statsVersion++;
+
+            if (_recordCountCache is int cachedCount)
+                _recordCountCache = cachedCount + 1;
+
+            if (_statsCache == null) return;
+
+            var stats = _statsCache;
+            stats.TotalCount++;
+
+            if (TryGetFinite(result.DownloadMbps, out var downloadMbps))
+            {
+                if (!stats.MaxDownloadMbps.HasValue || downloadMbps > stats.MaxDownloadMbps.Value)
+                    stats.MaxDownloadMbps = downloadMbps;
+
+                _downloadSumMbps += downloadMbps;
+                _downloadSampleCount++;
+                stats.AvgDownloadMbps = _downloadSampleCount > 0
+                    ? _downloadSumMbps / _downloadSampleCount
+                    : null;
+            }
+
+            if (TryGetFinite(result.UploadMbps, out var uploadMbps)
+                && (!stats.MaxUploadMbps.HasValue || uploadMbps > stats.MaxUploadMbps.Value))
+            {
+                stats.MaxUploadMbps = uploadMbps;
+            }
+
+            if (!double.IsNaN(result.LatencyMs)
+                && (!stats.MinLatencyMs.HasValue || result.LatencyMs < stats.MinLatencyMs.Value))
+            {
+                stats.MinLatencyMs = result.LatencyMs;
+            }
+        }
+    }
+
+    private void InvalidateStatisticsCacheLocked()
+    {
+        _statsCache = null;
+        _downloadSumMbps = 0;
+        _downloadSampleCount = 0;
+    }
+
+    private static bool TryGetFinite(double? value, out double result)
+    {
+        if (value.HasValue && !double.IsNaN(value.Value) && !double.IsInfinity(value.Value))
+        {
+            result = value.Value;
+            return true;
+        }
+
+        result = 0;
+        return false;
+    }
+
+    private static SpeedTestStats CloneStats(SpeedTestStats stats) => new()
+    {
+        TotalCount = stats.TotalCount,
+        MaxDownloadMbps = stats.MaxDownloadMbps,
+        MaxUploadMbps = stats.MaxUploadMbps,
+        AvgDownloadMbps = stats.AvgDownloadMbps,
+        MinLatencyMs = stats.MinLatencyMs
+    };
 
     public List<SpeedTestResult> GetAllRecords()
     {

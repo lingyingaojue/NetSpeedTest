@@ -361,7 +361,7 @@ public partial class MainViewModel : ObservableObject
 
 
             RefreshProfiles();
-            RefreshHistory();
+            await RefreshHistoryAsync();
 
             StatusText = "就绪";
         }
@@ -1497,9 +1497,9 @@ public partial class MainViewModel : ObservableObject
 
     }
 
-    private void RefreshHistory()
+    private async Task RefreshHistoryAsync()
     {
-        var records = _dataService.GetRecords(1, 20);
+        var records = await Task.Run(() => _dataService.GetRecords(1, 20));
         RecentRecords.Clear();
         foreach (var r in records) RecentRecords.Add(r);
     }

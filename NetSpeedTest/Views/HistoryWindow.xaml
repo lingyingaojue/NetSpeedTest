@@ -4,6 +4,7 @@
         xmlns:converters="clr-namespace:NetSpeedTest.Converters">
     <UserControl.Resources>
         <converters:RateDisplayConverter x:Key="RateDisplayConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
         <converters:BytesDisplayConverter x:Key="BytesDisplayConverter" />
         <converters:DurationDisplayConverter x:Key="DurationDisplayConverter" />
         <converters:LatencyDisplayConverter x:Key="LatencyDisplayConverter" />
@@ -80,6 +81,11 @@
                 </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
+
+        <TextBlock Grid.Row="1" Text="正在加载历史记录..."
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
+                   Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}" />
 
         <!-- ======== 底部分页栏 ======== -->
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Margin="0,8,0,0">

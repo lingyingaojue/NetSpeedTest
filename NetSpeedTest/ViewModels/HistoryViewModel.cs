@@ -19,6 +19,10 @@ public partial class HistoryViewModel : ObservableObject
     private readonly DataService _dataService;
     private const int PageSize = 20;
     private int _currentPage = 1;
+    private int _totalCount;
+    private bool _totalCountLoaded;
+    private Task<int>? _totalCountTask;
+    private int _statsVersion;
 
     // ==================== 可绑定属性 ====================
 
@@ -61,6 +65,18 @@ public partial class HistoryViewModel : ObservableObject
     [ObservableProperty]
     private SpeedTestStats _stats = new();
 
+    /// <summary>
+    /// 记录列表是否正在加载
+    /// </summary>
+    [ObservableProperty]
+    private bool _isLoading;
+
+    /// <summary>
+    /// 统计栏是否正在加载
+    /// </summary>
+    [ObservableProperty]
+    private bool _isStatsLoading;
+
     private bool CanDeleteRecord => SelectedRecord != null;
 
     partial void OnSelectedRecordChanged(SpeedTestResult? value)
@@ -73,33 +89,106 @@ public partial class HistoryViewModel : ObservableObject
     public HistoryViewModel(DataService dataService)
     {
         _dataService = dataService;
-        try { LoadPage(_currentPage); LoadStats(); }
-        catch (Exception ex)
-        {
-            Logger.Log($"History load failed: {ex.Message}");
-            Records = new ObservableCollection<SpeedTestResult>();
-            TotalPages = 1; CanGoNext = false; CanGoPrevious = false;
-        }
+        _ = LoadInitialAsync();
     }
 
     // ==================== 数据加载 ====================
 
-    private void LoadStats()
+    private async Task LoadInitialAsync()
     {
-        try { Stats = _dataService.GetStatistics(); }
-        catch { Stats = new SpeedTestStats(); }
+        await LoadPageAsync(1, loadStatsAfter: true);
     }
 
-    private void LoadPage(int page)
+    private async Task LoadPageAsync(int page, bool loadStatsAfter)
     {
-        var records = _dataService.GetRecords(page, PageSize);
-        Records = new ObservableCollection<SpeedTestResult>(records);
+        if (IsLoading) return;
 
-        var totalCount = _dataService.GetRecordCount();
-        PageNumber = page;
-        TotalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)PageSize));
-        CanGoPrevious = page > 1;
-        CanGoNext = page < TotalPages;
+        IsLoading = true;
+        CanGoPrevious = false;
+        CanGoNext = false;
+        var statsAfter = false;
+
+        try
+        {
+            var recordsTask = Task.Run(() => _dataService.GetRecords(page, PageSize));
+            var countTask = EnsureTotalCountAsync();
+
+            var records = await recordsTask;
+
+            Records = new ObservableCollection<SpeedTestResult>(records);
+            _currentPage = page;
+            PageNumber = page;
+
+            try
+            {
+                _totalCount = await countTask;
+                _totalCountLoaded = true;
+                UpdatePaging();
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"History count load failed: {ex.Message}");
+            }
+
+            statsAfter = loadStatsAfter;
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"History load failed: {ex.Message}");
+            Records = new ObservableCollection<SpeedTestResult>();
+            TotalPages = 1;
+        }
+        finally
+        {
+            IsLoading = false;
+            CanGoPrevious = _currentPage > 1;
+            CanGoNext = _currentPage < TotalPages;
+        }
+
+        if (statsAfter)
+        {
+            _ = LoadStatsAsync();
+        }
+    }
+
+    private Task<int> EnsureTotalCountAsync()
+    {
+        if (_totalCountLoaded)
+            return Task.FromResult(_totalCount);
+
+        if (_totalCountTask == null || _totalCountTask.IsFaulted || _totalCountTask.IsCanceled)
+            _totalCountTask = Task.Run(() => _dataService.GetRecordCount());
+
+        return _totalCountTask;
+    }
+
+    private void UpdatePaging()
+    {
+        TotalPages = Math.Max(1, (int)Math.Ceiling(_totalCount / (double)PageSize));
+        CanGoPrevious = !IsLoading && _currentPage > 1;
+        CanGoNext = !IsLoading && _currentPage < TotalPages;
+    }
+
+    private async Task LoadStatsAsync()
+    {
+        var version = Interlocked.Increment(ref _statsVersion);
+        IsStatsLoading = true;
+
+        try
+        {
+            var stats = await Task.Run(() => _dataService.GetStatistics());
+            if (version == Volatile.Read(ref _statsVersion))
+                Stats = stats;
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"History stats load failed: {ex.Message}");
+        }
+        finally
+        {
+            if (version == Volatile.Read(ref _statsVersion))
+                IsStatsLoading = false;
+        }
     }
 
     // ==================== 命令 ====================
@@ -108,35 +197,30 @@ public partial class HistoryViewModel : ObservableObject
     /// 上一页
     /// </summary>
     [RelayCommand]
-    private void PreviousPage()
+    private async Task PreviousPageAsync()
     {
-        if (_currentPage > 1)
-        {
-            _currentPage--;
-            try { LoadPage(_currentPage); }
-            catch { _currentPage++; PageNumber = _currentPage; TotalPages = 1; CanGoNext = false; CanGoPrevious = false; }
-        }
+        if (IsLoading || _currentPage <= 1) return;
+        await LoadPageAsync(_currentPage - 1, loadStatsAfter: false);
     }
 
     /// <summary>
     /// 下一页
     /// </summary>
     [RelayCommand]
-    private void NextPage()
+    private async Task NextPageAsync()
     {
-        if (_currentPage >= TotalPages) return;
-        _currentPage++;
-        try { LoadPage(_currentPage); }
-        catch { _currentPage--; PageNumber = _currentPage; TotalPages = 1; CanGoNext = false; CanGoPrevious = false; }
+        if (IsLoading || _currentPage >= TotalPages) return;
+        await LoadPageAsync(_currentPage + 1, loadStatsAfter: false);
     }
 
     /// <summary>
     /// 删除选中的记录
     /// </summary>
     [RelayCommand(CanExecute = nameof(CanDeleteRecord))]
-    private void DeleteRecord()
+    private async Task DeleteRecordAsync()
     {
-        if (SelectedRecord == null) return;
+        if (IsLoading || SelectedRecord == null) return;
+        var id = SelectedRecord.Id;
 
         var result = MessageBox.Show(
             "确定要删除这条测速记录吗？",
@@ -146,26 +230,55 @@ public partial class HistoryViewModel : ObservableObject
 
         if (result != MessageBoxResult.Yes) return;
 
-        _dataService.DeleteRecord(SelectedRecord.Id);
-        if (Records.Count <= 1 && _currentPage > 1) _currentPage--;
-        LoadPage(_currentPage);
-        LoadStats();
+        try
+        {
+            await Task.Run(() => _dataService.DeleteRecord(id));
+
+            Interlocked.Increment(ref _statsVersion);
+            _totalCount = Math.Max(0, _totalCount - 1);
+            _totalCountLoaded = true;
+
+            if (Records.Count <= 1 && _currentPage > 1)
+                _currentPage--;
+
+            await LoadPageAsync(_currentPage, loadStatsAfter: true);
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Delete record failed: {ex.Message}");
+            MessageBox.Show($"删除失败: {ex.Message}", "NetSpeedTest", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     [RelayCommand]
-    private void ClearAllRecords()
+    private async Task ClearAllRecordsAsync()
     {
+        if (IsLoading) return;
+
         var result = MessageBox.Show(
             "确定要清除所有历史记录吗？此操作不可撤销。",
             "确认清除",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning);
+
         if (result != MessageBoxResult.Yes) return;
 
-        _dataService.ClearAllRecords();
-        _currentPage = 1;
-        try { LoadPage(_currentPage); LoadStats(); }
-        catch { Records = new ObservableCollection<SpeedTestResult>(); TotalPages = 1; CanGoNext = false; CanGoPrevious = false; }
+        try
+        {
+            await Task.Run(() => _dataService.ClearAllRecords());
+
+            Interlocked.Increment(ref _statsVersion);
+            _totalCount = 0;
+            _totalCountLoaded = true;
+            _totalCountTask = null;
+
+            await LoadPageAsync(1, loadStatsAfter: true);
+        }
+        catch (Exception ex)
+        {
+            Logger.Log($"Clear history failed: {ex.Message}");
+            MessageBox.Show($"清除失败: {ex.Message}", "NetSpeedTest", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     [RelayCommand]
