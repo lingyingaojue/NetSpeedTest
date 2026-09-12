@@ -1283,6 +1283,9 @@ public class SpeedTestService
                 var dh = new List<(double, double)>(); var uh = new List<(double, double)>();
                 var ws = _options.RateWindowSec; bool as2 = false; long asb = 0; double ast = 0;
                 var totalBytes = tbd;
+                // 双向模式启动预热：下载、上传都产生过流量后才开始喂自适应控制器。
+                var fullWarmupDownloadSeen = false;
+                var fullWarmupUploadSeen = false;
                 while (!c.IsCancellationRequested)
                 {
                     try { await Task.Delay(initialDelayMs > 0 ? initialDelayMs : _options.NicPollIntervalMs, c); } catch { break; }
@@ -1322,9 +1325,19 @@ public class SpeedTestService
                     }
                     if (adaptive != null)
                     {
-                        var totalThroughput = sr + ur_;
-                        var adaptiveValue = throughputMode == 1 ? sr : throughputMode == 2 ? ur_ : sr + ur_;
-                        adaptive.Observe(adaptiveValue, st.IsCompensating, overall.Elapsed.TotalSeconds);
+                        if (throughputMode == 0 && !(fullWarmupDownloadSeen && fullWarmupUploadSeen))
+                        {
+                            if (sr > 0) fullWarmupDownloadSeen = true;
+                            if (ur_ > 0) fullWarmupUploadSeen = true;
+                        }
+
+                        if (ShouldObserveAdaptiveValue(throughputMode, fullWarmupDownloadSeen, fullWarmupUploadSeen))
+                        {
+                            adaptive.Observe(
+                                SelectAdaptiveObserveValue(throughputMode, sr, ur_),
+                                st.IsCompensating,
+                                overall.Elapsed.TotalSeconds);
+                        }
                     }
                     lt = e;
                     if (!as2 && e >= _options.AverageDelaySec) { as2 = true; asb = Interlocked.Read(ref totalBytes.Value); ast = e; }
@@ -1336,6 +1349,23 @@ public class SpeedTestService
         });
         return nicTask;
     }
+
+    /// <summary>
+    /// 双向模式的自适应反馈取下载/上传中较小的一侧（瓶颈方向），
+    /// 避免下载吞吐远高于上传时，上传方向的加压增益被合计值稀释而提前停止。
+    /// </summary>
+    internal static double SelectAdaptiveObserveValue(int throughputMode, double downloadMbps, double uploadMbps)
+        => throughputMode == 1 ? downloadMbps
+         : throughputMode == 2 ? uploadMbps
+         : Math.Min(downloadMbps, uploadMbps);
+
+    /// <summary>
+    /// 双向模式启动预热门控：下载、上传都产生过流量后才开始观察。
+    /// 否则先起量的单方向速率会先写入 _bestRate，另一方向稍后起量时会被误判为掉速，
+    /// 导致 target 被错误回缩、上传并发无法爬升。
+    /// </summary>
+    internal static bool ShouldObserveAdaptiveValue(int throughputMode, bool downloadSeen, bool uploadSeen)
+        => throughputMode != 0 || (downloadSeen && uploadSeen);
 
     private (Task? gatewayTask, Task wanTask, Task jitterTask, Task lossTask) StartGatewayAndWanLatency(string? gateway, CancellationToken ctLinked, Action<double>? onLatency, Action<double>? onWanLatency, Action<double>? onJitter, Action<PacketLossSample>? onPacketLoss, IPAddress? sourceIp = null, HttpClient? probeClient = null)
     {
