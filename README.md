@@ -10,6 +10,7 @@
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
 [![Release](https://img.shields.io/badge/release-v1.4.2-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+[![AI](https://img.shields.io/badge/AI-DeepSeek-4D6BFE)](https://www.deepseek.com)
 [![Stars](https://img.shields.io/github/stars/lingyingaojue/NetSpeedTest?color=yellow)](https://github.com/lingyingaojue/NetSpeedTest/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/lingyingaojue/NetSpeedTest/total?color=blue)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![Last Commit](https://img.shields.io/github/last-commit/lingyingaojue/NetSpeedTest)](https://github.com/lingyingaojue/NetSpeedTest/commits)
@@ -44,6 +45,7 @@
 - [🚀 快速开始](#-快速开始)
 - [📥 下载](#-下载)
 - [📝 更新日志](#-更新日志)
+- [🤖 开发方式与 AI 协作](#-开发方式与-ai-协作)
 - [💬 反馈与联系](#-反馈与联系)
 - [📄 许可证](#-许可证)
 
@@ -271,6 +273,7 @@
 | 配置系统 | Microsoft.Extensions.Configuration（内嵌默认值 + 用户覆盖层） |
 | Web 服务器 | `System.Net.HttpListener` + 内嵌 `wwwroot` 静态资源 |
 | 测试框架 | xUnit（`NetSpeedTest.Tests`） |
+| AI 协作 | **DeepSeek**（AI 辅助编程） |
 
 ---
 
@@ -337,6 +340,19 @@ dotnet publish NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-con
 ## 📝 更新日志
 
 完整变更记录请查看 [CHANGELOG.md](CHANGELOG.md)。当前版本 **v1.4.2** 重点修复了双向测速上传偏低、丢包率恒为 100%、测速启动假成功、设置写入非原子等问题。
+
+---
+
+## 🤖 开发方式与 AI 协作
+
+**本项目使用 DeepSeek AI 制作。** 由 **凌影傲爵** 主导需求设计、架构决策与最终验收，代码实现由 **DeepSeek AI** 协作完成（AI 辅助编程）。
+
+| 角色 | 署名 |
+|:-----|:-----|
+| 设计与开发 | 凌影傲爵 |
+| AI 协作 | DeepSeek |
+
+> 此署名与程序内「关于 → AI 协作」卡片、[官网页脚](https://lingyingaojue.github.io/NetSpeedTest/)保持一致。
 
 ---
 

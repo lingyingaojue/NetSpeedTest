@@ -214,7 +214,46 @@ public class ReadmeDocumentationTests
             "README 目录锚点失效：" + Environment.NewLine + string.Join(Environment.NewLine, mismatches));
     }
 
+    // ========== 署名（AI 协作） ==========
+
+    [Fact]
+    public void Readme_credits_DeepSeek_matching_the_about_page_and_landing_page()
+    {
+        var readme = Readme();
+        var about = ReadSourceFile(Path.Combine("Views", "AboutWindow.xaml"));
+
+        var developer = AboutCardValue(about, "About_Dev");
+        var aiCollaborator = AboutCardValue(about, "About_Collab");
+
+        // 程序内「关于 → AI 协作」卡片就是署名的事实来源，README 必须与之一致。
+        Assert.Equal("DeepSeek", aiCollaborator);
+        Assert.False(string.IsNullOrWhiteSpace(developer), "关于页缺少开发者署名");
+
+        Assert.Contains("## 🤖 开发方式与 AI 协作", readme, StringComparison.Ordinal);
+        Assert.Contains($"**本项目使用 {aiCollaborator} AI 制作。**", readme, StringComparison.Ordinal);
+        Assert.Contains($"| AI 协作 | {aiCollaborator} |", readme, StringComparison.Ordinal);
+        Assert.Contains(developer, readme, StringComparison.Ordinal);
+
+        // 落地页页脚同样署名，避免三处口径漂移。
+        var landing = ReadSourceFile("index.html");
+        var credit = Regex.Match(landing, @"class=""footer-credit"">([^<]+)<").Groups[1].Value;
+        Assert.Contains(developer, credit, StringComparison.Ordinal);
+        Assert.Contains(aiCollaborator, credit, StringComparison.Ordinal);
+    }
+
     // ========== 辅助方法 ==========
+
+    /// <summary>
+    /// 取出「关于」页信息卡里紧跟某个资源标签之后的值，例如
+    /// <c>About_Collab</c> → <c>DeepSeek</c>。
+    /// </summary>
+    private static string AboutCardValue(string aboutXaml, string labelKey)
+    {
+        var pattern = $@"\{{DynamicResource {Regex.Escape(labelKey)}\}}""[^>]*/>\s*<TextBlock Text=""([^""]+)""";
+        var match = Regex.Match(aboutXaml, pattern);
+        Assert.True(match.Success, $"AboutWindow.xaml 中找不到 {labelKey} 卡片的值");
+        return match.Groups[1].Value;
+    }
 
     /// <summary>
     /// 近似复现 GitHub 的标题锚点规则：去掉符号，小写，空格转连字符。
