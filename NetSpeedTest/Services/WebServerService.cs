@@ -58,6 +58,11 @@ public class WebServerService
     internal static readonly TimeSpan DispatcherWaitTimeout = TimeSpan.FromSeconds(2);
 
     /// <summary>
+    /// FN-01：确认测速真正启动的最长等待时间。必须长于命令内部 15s 的 URL 预探测上限。
+    /// </summary>
+    internal static readonly TimeSpan TestStartConfirmationTimeout = TimeSpan.FromSeconds(20);
+
+    /// <summary>
     /// 每次启动生成的随机会话令牌。回环访问免校验，非回环写操作必须携带。
     /// </summary>
     internal static readonly string SessionToken = GenerateSessionToken();
@@ -873,6 +878,17 @@ public void Stop()
 
             await WriteJsonAsync(ctx, 404, new { error = "Not Found" }, requestCt);
         }
+        catch (JsonException ex)
+        {
+            // 格式错误的请求体属于客户端问题，固定回 400 而不是 500。
+            Logger.Log($"Malformed request body rejected: {ex.Message}");
+            await SafeWriteErrorAsync(ctx, 400, CancellationToken.None);
+        }
+        catch (InvalidDataException ex)
+        {
+            Logger.Log($"Invalid request body rejected: {ex.Message}");
+            await SafeWriteErrorAsync(ctx, 400, CancellationToken.None);
+        }
         catch (Exception ex)
         {
             Logger.Log($"Web request failed: {ex.Message}");
@@ -1525,6 +1541,7 @@ public void Stop()
     private async Task HandleTestStartAsync(HttpListenerContext ctx, CancellationToken ct)
     {
         var started = false;
+        bool isApiInitiated = false;
         try
         {
             var body = await ReadBodyAsync(ctx.Request, ct);
@@ -1576,6 +1593,9 @@ public void Stop()
                 };
                 if (command?.CanExecute(null) == true)
                 {
+                    // 标记为 API 发起：结束时跳过模态结果窗，保持 UI 线程可响应。
+                    vm.MarkApiInitiatedTest();
+                    isApiInitiated = true;
                     command.Execute(null);
                     started = true;
                 }
@@ -1596,6 +1616,15 @@ public void Stop()
                 return;
             }
 
+            // FN-01：命令已执行但测速尚未真正进入运行态时（命令内部有前置校验/准备阶段，
+            // 例如 URL 预探测对话框），必须等待状态真的翻转，否则 200 会是假成功。
+            if (!await WaitForTestRunningAsync(() => vm.IsTesting, ct))
+            {
+                Logger.Log("Test start returned 409: command ran but the test never entered the running state");
+                await WriteJsonAsync(ctx, 409, new { error = "test did not start", message = "The test did not enter the running state" }, ct);
+                return;
+            }
+
             await WriteJsonAsync(ctx, 200, new { ok = true }, ct);
         }
         catch (Exception ex)
@@ -1603,6 +1632,32 @@ public void Stop()
             Logger.Log($"Test start failed: {ex}");
             await SafeWriteErrorAsync(ctx, 400, ct);
         }
+        finally
+        {
+            // 只有真正开始运行才保留“API 发起”标记；否则复位，避免影响用户手动测速。
+            if (isApiInitiated && !started)
+            {
+                try { TryRunOnUiThread(() => GetMainViewModel().ClearApiInitiatedTest(), TimeSpan.FromMilliseconds(500)); }
+                catch (Exception ex) { Logger.Log($"Failed to reset API-initiated flag: {ex.Message}"); }
+            }
+        }
+    }
+
+    /// <summary>
+    /// FN-01：等待 ViewModel 真正进入测速状态。
+    /// 命令内部存在前置准备阶段（适配器解析、URL 预探测对话框，最长 15s），
+    /// 因此 200 必须等 IsTesting 翻转后才能返回，否则调用方拿到的是假成功。
+    /// </summary>
+    internal static async Task<bool> WaitForTestRunningAsync(Func<bool> isRunning, CancellationToken ct, TimeSpan? timeout = null)
+    {
+        var deadline = DateTime.UtcNow + (timeout ?? TestStartConfirmationTimeout);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (isRunning()) return true;
+            try { await Task.Delay(100, ct); }
+            catch (OperationCanceledException) { return false; }
+        }
+        return isRunning();
     }
 
     private async Task HandleTestStopAsync(HttpListenerContext ctx, CancellationToken ct)
@@ -1610,6 +1665,8 @@ public void Stop()
         var vm = GetMainViewModel();
         var applied = TryRunOnUiThread(() =>
         {
+            // 运行态与前置于准备阶段的启动请求都要能取消，否则停止请求会被静默忽略。
+            vm.RequestTestStopForTest();
             if (vm.CancelTestCommand.CanExecute(null)) vm.CancelTestCommand.Execute(null);
         });
 

@@ -47,7 +47,7 @@ public class AdaptiveControllerConcurrencyTests
     }
 
     [Fact]
-    public void Target_never_exceeds_capacity_under_concurrent_set_calls()
+    public async Task Target_never_exceeds_capacity_under_concurrent_set_calls()
     {
         // PulseLoop 与 UI 线程会并发调用 SetTarget；夹取必须与容量读取原子化。
         var controller = new SpeedTestService.AdaptiveController(maxBase: 128, startThreads: 2, testTimeoutSec: 30, onActive: null);
@@ -76,16 +76,15 @@ public class AdaptiveControllerConcurrencyTests
             }
         });
 
-        Thread.Sleep(300);
+        await Task.Delay(300);
         stop.Cancel();
-        Task.WaitAll(writers.ToArray());
-        watcher.Wait(TimeSpan.FromSeconds(5));
+        await Task.WhenAll(writers.Append(watcher));
 
         Assert.Empty(violations);
     }
 
     [Fact]
-    public void Observe_is_safe_under_concurrent_target_changes()
+    public async Task Observe_is_safe_under_concurrent_target_changes()
     {
         var controller = new SpeedTestService.AdaptiveController(maxBase: 256, startThreads: 4, testTimeoutSec: 30, onActive: null);
         using var stop = new CancellationTokenSource();
@@ -123,9 +122,9 @@ public class AdaptiveControllerConcurrencyTests
             }
         });
 
-        Thread.Sleep(300);
+        await Task.Delay(300);
         stop.Cancel();
-        Task.WaitAll(observers.Append(setter).ToArray());
+        await Task.WhenAll(observers.Append(setter));
 
         Assert.Empty(errors);
         Assert.InRange(controller.Target, 1, controller.Capacity);

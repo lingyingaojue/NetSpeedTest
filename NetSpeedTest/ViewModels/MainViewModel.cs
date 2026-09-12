@@ -35,6 +35,36 @@ public partial class MainViewModel : ObservableObject
     private bool _pendingAdapterRefresh;
     private bool _suppressDefaultUrlSelection;
     private bool _adapterSelectionInitialized;
+    /// <summary>已受理但尚未进入运行态的测速启动请求（位于准备阶段）。</summary>
+    private bool _pendingTestStart;
+    /// <summary>准备阶段收到的取消请求，进入运行态时立即生效。</summary>
+    private bool _cancelPending;
+    /// <summary>
+    /// 本次测速由 Web API 发起时为 true：结束时不再弹出模态结果窗口。
+    /// 模态窗口会占住 UI 线程直到用户关闭，导致 IsTesting 长期为 true、
+    /// 所有 /api 请求超时（无人值守场景尤其严重）。
+    /// </summary>
+    private volatile bool _apiInitiatedTest;
+
+    /// <summary>
+    /// 标记本次测速由 Web API 发起。
+    /// </summary>
+    internal void MarkApiInitiatedTest() => _apiInitiatedTest = true;
+
+    /// <summary>
+    /// 清除 Web API 发起标记（启动失败时复位，避免影响用户手动测速）。
+    /// </summary>
+    internal void ClearApiInitiatedTest() => _apiInitiatedTest = false;
+
+    /// <summary>
+    /// 读取并复位“API 发起”标记，保证只影响本次测速。
+    /// </summary>
+    private bool ConsumeApiInitiatedTest()
+    {
+        var value = _apiInitiatedTest;
+        _apiInitiatedTest = false;
+        return value;
+    }
     private CancellationTokenSource? _cts;
     private DispatcherTimer? _elapsedTimer;
     private EventHandler? _elapsedTickHandler;
@@ -522,8 +552,9 @@ public partial class MainViewModel : ObservableObject
         }
 
         _startUrlCount = selectedUrls.Count;
-        if (!await ShowPreparingDialogAsync(selectedUrls)) return;
+        if (!await PrepareWithCancelTrackingAsync(selectedUrls)) return;
         StartTestCommon(selectedUrls.Count, "下载");
+        _pendingTestStart = false;
         try
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
@@ -583,8 +614,9 @@ public partial class MainViewModel : ObservableObject
         var selectedAdapters = GetSelectedAdapters();
         if (selectedAdapters.Count == 0) { StatusText = "请至少选择一张网卡"; return; }
 
-        if (!await ShowPreparingDialogAsync(selectedUrls)) return;
+        if (!await PrepareWithCancelTrackingAsync(selectedUrls)) return;
         StartTestCommon(selectedUrls.Count, "上传");
+        _pendingTestStart = false;
         try
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
@@ -643,8 +675,9 @@ public partial class MainViewModel : ObservableObject
         if (selectedAdapters.Count == 0) { StatusText = "请至少选择一张网卡"; return; }
 
         var effectiveMode = dlUrls.Count > 0 && ulUrls.Count > 0 ? "双向" : dlUrls.Count > 0 ? "下载" : "上传";
-        if (!await ShowPreparingDialogAsync(dlUrls.Concat(ulUrls).Distinct().ToList())) return;
+        if (!await PrepareWithCancelTrackingAsync(dlUrls.Concat(ulUrls).Distinct().ToList())) return;
         StartTestCommon(dlUrls.Count + ulUrls.Count, effectiveMode);
+        _pendingTestStart = false;
         try
         {
             var svc = _serviceProvider.GetRequiredService<SpeedTestService>();
@@ -751,6 +784,27 @@ public partial class MainViewModel : ObservableObject
 
     // ==================== 共用辅助 ====================
 
+    /// <summary>
+    /// 显示准备对话框并跟踪“已受理但尚未进入运行态”的状态，
+    /// 使准备阶段收到的停止请求不会被丢弃。
+    /// </summary>
+    private async Task<bool> PrepareWithCancelTrackingAsync(List<string> urls)
+    {
+        _pendingTestStart = true;
+        _cancelPending = false;
+        try
+        {
+            var ok = await ShowPreparingDialogAsync(urls);
+            if (!ok) _pendingTestStart = false;
+            return ok;
+        }
+        catch
+        {
+            _pendingTestStart = false;
+            throw;
+        }
+    }
+
     private async Task<bool> ShowPreparingDialogAsync(List<string> urls)
     {
         var dlg = new Views.PreparingWindow { Owner = Application.Current.MainWindow };
@@ -797,6 +851,14 @@ public partial class MainViewModel : ObservableObject
         (Application.Current.MainWindow as Views.MainWindow)?.SetChartFocus(mode);
         StatusText = $"{urlCount} 个 URL · {mode}测速中...";
         _cts = new CancellationTokenSource();
+
+        // 准备阶段收到过停止请求：立即取消，避免“停止无效、测速照跑”。
+        if (_cancelPending)
+        {
+            _cancelPending = false;
+            StatusText = "已取消";
+            _cts.Cancel();
+        }
         ActiveThreadCount = 0;
         ElapsedSeconds = null;
         _elapsedTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(0.2) };
@@ -892,6 +954,9 @@ public partial class MainViewModel : ObservableObject
 
     private void FinishTest(SpeedTestResult result, bool showDialog = true)
     {
+        // API 发起的测速不弹模态结果窗：模态窗口会阻塞 UI 线程直到用户关闭，
+        // 期间 IsTesting 保持 true、Dispatcher 无法响应，Web API 全部超时。
+        if (ConsumeApiInitiatedTest()) showDialog = false;
         int lanCount, wanCount, jitterCount;
         lock (_latencyLock) { lanCount = _lanLatencies.Count; wanCount = _wanLatencies.Count; jitterCount = _jitterSamples.Count; }
         Logger.Log($"[D-FIN1] VM.LatencyMs={LatencyMs:F1} VM.WanLatencyMs={WanLatencyMs:F1} VM.JitterMs={JitterMs:F1} lists: lan={lanCount} wan={wanCount} jitter={jitterCount}");
@@ -956,6 +1021,7 @@ public partial class MainViewModel : ObservableObject
     private void FinishMultiNicTest(List<SpeedTestResult> results)
     {
         if (results == null || results.Count == 0) { StatusText = "多网卡测速无结果"; return; }
+        var apiInitiated = ConsumeApiInitiatedTest();
 
         var batchId = Guid.NewGuid().ToString("N");
         var aggregate = new SpeedTestResult
@@ -1027,7 +1093,9 @@ public partial class MainViewModel : ObservableObject
             ExportResult,
             results)
         { Owner = Application.Current.MainWindow };
-        dlg.ShowDialog();
+
+        // API 发起的测速不弹模态结果窗（同上）。
+        if (!apiInitiated) dlg.ShowDialog();
 
         TestCompletedNotify?.Invoke("NetSpeedTest",
             $"下载 {FormatHelper.FormatRate(aggregate.DownloadMbps)} | 上传 {FormatHelper.FormatRate(aggregate.UploadMbps)} | 总均速 {FormatHelper.FormatRate(aggregate.AverageTotalMbps)}");
@@ -1336,7 +1404,13 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void CancelTest()
     {
-        if (!IsTesting) return;
+        // 前置准备阶段（URL 预探测最长 15s，此时 IsTesting 仍为 false）也受理取消，
+        // 否则 Web UI 在此期间发出的停止请求会被静默丢弃。
+        if (!IsTesting)
+        {
+            if (_pendingTestStart) RequestPendingTestCancel();
+            return;
+        }
         _elapsedTimer?.Stop();
         Application.Current.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Background);
         if (_elapsedTimer != null && _elapsedTickHandler != null)
@@ -1344,6 +1418,33 @@ public partial class MainViewModel : ObservableObject
         StatusText = "已取消";
         _cts?.Cancel();
     }
+
+    /// <summary>
+    /// 前置准备阶段请求取消：让 StartTestCommon 在真正开始前中止本次测速。
+    /// </summary>
+    private void RequestPendingTestCancel()
+    {
+        _cancelPending = true;
+        StatusText = "已取消";
+    }
+
+    /// <summary>
+    /// 供 Web API 使用：在准备阶段也能请求取消（内部测试钩子）。
+    /// </summary>
+    internal void RequestTestStopForTest()
+    {
+        if (IsTesting)
+        {
+            if (CancelTestCommand.CanExecute(null)) CancelTestCommand.Execute(null);
+            return;
+        }
+        if (_pendingTestStart) RequestPendingTestCancel();
+    }
+
+    /// <summary>
+    /// 供 Web API 使用：是否存在“已受理但尚未进入运行态”的测速启动请求。
+    /// </summary>
+    internal bool IsTestStartPending => _pendingTestStart;
 
     [RelayCommand]
     private void OpenHistory()

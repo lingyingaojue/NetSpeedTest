@@ -26,3 +26,7 @@ packages/
 ## Windows
 Thumbs.db
 Desktop.ini
+
+## Local verification artifacts
+tools/smoke-output.txt
+debug.log
