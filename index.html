@@ -26,7 +26,7 @@
           <strong>NetSpeedTest</strong>
           <small>Windows 网络测速</small>
         </span>
-        <span class="version-chip">v1.4.2</span>
+        <span class="version-chip">v1.4.3</span>
       </a>
 
       <button class="nav-toggle" id="navToggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="siteNav">
@@ -65,7 +65,7 @@
         <div class="hero-copy">
           <div class="hero-badge">
             <span class="pulse-dot"></span>
-            v1.4.2 已发布 · 端口自动避让与网卡独立指标
+            v1.4.3 已发布 · 检查更新修复与预发布回退
           </div>
           <h1>把 Windows 网络测速<br />做到<span class="gradient-text">专业级</span></h1>
           <p class="hero-subtitle">
@@ -236,12 +236,12 @@
         <div class="section-head">
           <span class="section-kicker">界面预览</span>
           <h2>暗色主题 · 侧边栏导航 · 自绘标题栏</h2>
-          <p>v1.4.2 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。</p>
+          <p>v1.4.3 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。</p>
         </div>
         <div class="screenshot-frame reveal">
-          <img src="assets/screenshot.png" alt="NetSpeedTest v1.4.2 主界面截图" width="1280" height="720" loading="lazy" />
+          <img src="assets/screenshot.png" alt="NetSpeedTest v1.4.3 主界面截图" width="1280" height="720" loading="lazy" />
           <div class="screenshot-caption">
-            <span>🖥️ v1.4.2 主界面</span>
+            <span>🖥️ v1.4.3 主界面</span>
             <span>截图由用户实机提供</span>
           </div>
         </div>
@@ -379,6 +379,26 @@
         <div class="changelog">
           <details class="changelog-item" open>
               <summary>
+                <span class="version-tag">v1.4.3</span>
+                <span class="version-date">2026-09-14</span>
+                <span class="version-title">检查更新修复</span>
+                <span class="chevron" aria-hidden="true"></span>
+              </summary>
+              <div class="changelog-body">
+                <h4>🛠️ 修复</h4>
+                <ul>
+                  <li>修复 Release 全部为预发布时 /releases/latest 返回 404：自动回退 Release 列表并选择最新版本</li>
+                  <li>修复更新资产选择：优先 NetSpeedTest*.exe，跳过 source.zip 与校验文件</li>
+                  <li>修复并发重复检查与关于页检查中状态卡住的问题</li>
+                </ul>
+                <h4>✨ 优化</h4>
+                <ul>
+                  <li>更新源默认改为 Release 列表；直连失败时自动用系统代理重试一次</li>
+                </ul>
+              </div>
+            </details>
+          <details class="changelog-item">
+              <summary>
                 <span class="version-tag">v1.4.2</span>
                 <span class="version-date">2026-09-12</span>
                 <span class="version-title">端口自动避让与网卡独立指标</span>
@@ -427,74 +447,10 @@
               </ul>
             </div>
           </details>
-            <details class="changelog-item">
-            <summary>
-              <span class="version-tag">v1.4.0</span>
-              <span class="version-date">2026-08-20</span>
-              <span class="version-title">多网卡并行测速</span>
-              <span class="chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="changelog-body">
-              <h4>🚀 新功能</h4>
-              <ul>
-                <li>多网卡同时测速，每张网卡独立绑定源 IP</li>
-                <li>下载 / 上传图表支持「合计 / 单网卡」曲线切换</li>
-                <li>双向测速显示下载 + 上传总速度</li>
-                <li>完成弹窗展示每网卡独立速率 / 错误信息</li>
-                <li>单文件发布，可直接运行 exe</li>
-              </ul>
-              <h4>🛠️ 修复 &amp; 优化</h4>
-              <ul>
-                <li>修复多网卡总流量显示跳动、时间轴错乱等问题</li>
-                <li>默认优先选择有默认网关的网卡</li>
-                <li>DNS 解析增加缓存，测速前自动清空</li>
-              </ul>
-            </div>
-          </details>
-
-          <details class="changelog-item">
-            <summary>
-              <span class="version-tag">v1.3.7</span>
-              <span class="version-date">2026-08-10</span>
-              <span class="version-title">界面全面重构</span>
-              <span class="chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="changelog-body">
-              <h4>🚀 重大更新</h4>
-              <ul>
-                <li>历史 / 配置 / 设置 / 更多 / 协议 / 关于改为右侧内嵌页</li>
-                <li>自绘标题栏 + 侧边栏导航</li>
-                <li>GitHub OTA 在线升级，启动自动检查</li>
-                <li>关于页全新改版</li>
-              </ul>
-            </div>
-          </details>
-
-          <details class="changelog-item">
-            <summary>
-              <span class="version-tag">v1.3.5</span>
-              <span class="version-date">2026-07-28</span>
-              <span class="version-title">18 合 1 工具箱</span>
-              <span class="chevron" aria-hidden="true"></span>
-            </summary>
-            <div class="changelog-body">
-              <h4>🚀 新增</h4>
-              <ul>
-                <li>18 种网络诊断工具一窗口搞定</li>
-                <li>测速准备弹窗：DNS 预解析 + HTTP 握手预热</li>
-                <li>NAT 检测支持自定义 STUN 服务器</li>
-              </ul>
-              <h4>🛠️ 修复</h4>
-              <ul>
-                <li>修复 DNS 重绑定 SSRF，解析 IP 后判私有地址</li>
-                <li>SQLite 并发写入冲突修复（WAL 模式）</li>
-              </ul>
-            </div>
-          </details>
         </div>
 
         <p class="changelog-more">
-          完整变更记录请查看
+          最近三个版本更新日志请查看
           <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/CHANGELOG.md">CHANGELOG.md →</a>
         </p>
       </div>

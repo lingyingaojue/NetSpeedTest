@@ -141,6 +141,44 @@ public class VersionConsistencyTests
         Assert.DoesNotContain("## V1.3.6", text, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Changelog_surfaces_keep_only_the_latest_three_versions()
+    {
+        var aboutPath = FindSourceFile(Path.Combine("Views", "AboutWindow.xaml.cs"));
+        var aboutVersions = Regex.Matches(File.ReadAllText(aboutPath), @"new ChangelogEntry\(""(V[\d.]+)""")
+            .Select(m => m.Groups[1].Value)
+            .ToList();
+
+        var changelogPath = FindSourceFile("CHANGELOG.md");
+        var changelogText = File.ReadAllText(changelogPath).Replace("\r\n", "\n");
+        var changelogVersions = Regex.Matches(changelogText, @"(?m)^## (V[\d.]+) ")
+            .Select(m => m.Groups[1].Value)
+            .ToList();
+
+        var landingPath = FindSourceFile("index.html");
+        var landingVersions = Regex.Matches(File.ReadAllText(landingPath), @"<span class=""version-tag"">v([\d.]+)</span>")
+            .Select(m => "V" + m.Groups[1].Value)
+            .ToList();
+
+        var surfaces = new[]
+        {
+            ("AboutWindow.xaml.cs", aboutVersions),
+            ("CHANGELOG.md", changelogVersions),
+            ("index.html", landingVersions),
+        };
+
+        foreach (var (name, versions) in surfaces)
+        {
+            Assert.True(versions.Count == 3,
+                $"{name} should keep exactly 3 changelog versions, found {versions.Count}: {string.Join(", ", versions)}");
+            Assert.Equal("V" + AppVersion.Short, versions[0]);
+            Assert.Equal(versions.Count, versions.Distinct().Count());
+        }
+
+        Assert.Equal(aboutVersions, changelogVersions);
+        Assert.Equal(aboutVersions, landingVersions);
+    }
+
     private static string FindWwwRootIndex()
         => FindSourceFile(Path.Combine("NetSpeedTest", "wwwroot", "index.html"));
 
