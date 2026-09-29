@@ -1,0 +1,34 @@
+【BUG-BIDI-002 证据】RunFullTestAsync 双向聚合结果 UrlDetails = new() 恒空
+
+来源文件：NetSpeedTest\Services\SpeedTestService.cs（第 1770-1800 行）
+1770:                         }
+1771:                         finally
+1772:                         {
+1773:                             try { semaphore.Release(); } catch (SemaphoreFullException) { } catch (ObjectDisposedException) { }
+1774:                             onActiveThreadCount?.Invoke(Interlocked.Decrement(ref activeThreads));
+1775:                         }
+1776:                     }));
+1777:                 }
+1778: 
+1779:                 if (_options.ThreadRampUpMs > 0 && (i + 2) % rampBatch == 0 && i + 2 < threadCount)
+1780:                 {
+1781:                     try { await Task.Delay(_options.ThreadRampUpMs, ctLinked); } catch { break; }
+1782:                 }
+1783:             }
+1784:         }
+1785: 
+1786:         if (downloadAdaptive != null || uploadAdaptive != null) { await Task.WhenAll(downloadAdaptive?.WaitAsync() ?? Task.CompletedTask, uploadAdaptive?.WaitAsync() ?? Task.CompletedTask); }
+1787:         await Task.WhenAll(tasks); overall.Stop(); internalCts.Cancel();
+1788:         await Task.WhenAll(gwFullTasks.gatewayTask ?? Task.CompletedTask, gwFullTasks.wanTask, gwFullTasks.jitterTask, gwFullTasks.lossTask, nicMonitorFull);
+1789:         if (ct.IsCancellationRequested) throw new OperationCanceledException(ct);
+1790:         var ts_ = Math.Max(overall.Elapsed.TotalSeconds, 0.1); double dl_, ul_;
+1791:         if (nicState.R) { var e = Math.Max(ts_ - _options.AverageDelaySec, 0.1); var drop = _options.CompensationEnabled ? nicState.TotalDropDuration : 0; var adj = Math.Max(e - drop, 0.1); dl_ = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (adj * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (adj * 1_000_000.0)); }
+1792:         else { dl_ = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts_ * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts_ * 1_000_000.0)); }
+1793:         long dlBytes_ = bytesDl.Value, ulBytes_ = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
+1794:         return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = useAdaptive ? Math.Max(1, combinedActivePeak) : threadCount, UrlDetails = new() };
+1795:     }
+1796: 
+1797: 
+1798:     /// <summary>
+1799:     /// 创建本次测速使用的 HttpClient。
+1800:     /// 单张显式勾选网卡且系统存在其他活动网卡时，绑定该网卡源 IP，避免流量按默认路由从

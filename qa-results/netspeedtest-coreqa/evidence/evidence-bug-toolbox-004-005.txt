@@ -1,0 +1,59 @@
+【BUG-BW-004 / BUG-SUBNET-005 证据】带宽 0/负数未拦截（除零得 Infinity）；子网掩码未校验连续性
+
+来源文件：NetSpeedTest\ViewModels\MoreViewModel.cs（第 370-425 行）
+ 370:     [ObservableProperty] private string _subnetIp = "192.168.1.1";
+ 371:     [ObservableProperty] private string _subnetMask = "255.255.255.0";
+ 372:     [ObservableProperty] private string _subnetResult = "";
+ 373: 
+ 374:     [RelayCommand]
+ 375:     private void CalcSubnet()
+ 376:     {
+ 377:         try
+ 378:         {
+ 379:             if (!IPAddress.TryParse(SubnetIp, out var ip) || !IPAddress.TryParse(SubnetMask, out var mask)) { SubnetResult = "IP 地址或掩码格式无效"; return; }
+ 380:             var ib = ip.GetAddressBytes(); var mb = mask.GetAddressBytes();
+ 381:             if (ib.Length != 4 || mb.Length != 4) { SubnetResult = "仅支持 IPv4"; return; }
+ 382:             var nb = new byte[4]; var bb = new byte[4]; uint ipv4 = 0, m = 0;
+ 383:             for (int i = 0; i < 4; i++) { nb[i] = (byte)(ib[i] & mb[i]); bb[i] = (byte)(ib[i] | (byte)(~mb[i])); ipv4 = (ipv4 << 8) | ib[i]; m = (m << 8) | mb[i]; }
+ 384:             uint cidr = 0; uint tm = m; while (tm > 0) { if ((tm & 0x80000000) != 0) cidr++; tm <<= 1; }
+ 385:             uint hosts = cidr >= 32 ? 1u : cidr == 31 ? 0u : (uint)((1L << (32 - (int)cidr)) - 2);
+ 386:             var sb = new StringBuilder(); sb.AppendLine($"子网计算: {SubnetIp}/{cidr}"); sb.AppendLine(new string('-', 40));
+ 387:             sb.AppendLine($"网络地址: {new IPAddress(nb)}"); sb.AppendLine($"广播地址: {new IPAddress(bb)}"); sb.AppendLine($"子网掩码: {mask} (/{cidr})"); sb.AppendLine($"可用主机: {hosts}"); sb.AppendLine($"IP 范围: {new IPAddress(nb)} ~ {new IPAddress(bb)}"); sb.AppendLine(new string('-', 40));
+ 388:             if (cidr == 32) sb.AppendLine("单个主机地址 (子网掩码 /32)");
+ 389:             else if (cidr == 31) sb.AppendLine("可用范围: 无可用主机 (点对点 /31)");
+ 390:             else { var net = (uint)((nb[0] << 24) | (nb[1] << 16) | (nb[2] << 8) | nb[3]); var broad = (uint)((bb[0] << 24) | (bb[1] << 16) | (bb[2] << 8) | bb[3]); var first = net + 1; var last = broad - 1; sb.AppendLine($"可用范围: {(first >> 24) & 255}.{(first >> 16) & 255}.{(first >> 8) & 255}.{first & 255} ~ {(last >> 24) & 255}.{(last >> 16) & 255}.{(last >> 8) & 255}.{last & 255}"); }
+ 391:             SubnetResult = sb.ToString();
+ 392:         }
+ 393:         catch (Exception ex) { SubnetResult = $"计算失败: {ex.Message}"; }
+ 394:     }
+ 395: 
+ 396:     // ========== 12: 带宽换算 ==========
+ 397:     [ObservableProperty] private string _bwMbps = "100";
+ 398:     [ObservableProperty] private string _bwResult = "";
+ 399: 
+ 400:     [RelayCommand]
+ 401:     private void CalcBandwidth()
+ 402:     {
+ 403:         try
+ 404:         {
+ 405:             if (!double.TryParse(BwMbps, out var mbps)) { BwResult = "请输入有效数字"; return; }
+ 406:             var sb = new StringBuilder(); sb.AppendLine($"带宽换算: {mbps} Mbps"); sb.AppendLine(new string('-', 40));
+ 407:             sb.AppendLine($"= {mbps / 8:F2} MB/s"); sb.AppendLine($"= {mbps * 1000 / 8:F1} KB/s");
+ 408:             sb.AppendLine($"= {mbps / 1000:F4} Gbps"); sb.AppendLine($"= {mbps * 125:F0} KBps");
+ 409:             sb.AppendLine(new string('-', 40)); sb.AppendLine($"100 MB 文件 ≈ {100 * 8 / mbps / (mbps > 0 ? 1 : 0.001):F1} 秒");
+ 410:             BwResult = sb.ToString();
+ 411:         }
+ 412:         catch (Exception ex) { BwResult = $"换算失败: {ex.Message}"; }
+ 413:     }
+ 414: 
+ 415:     // ========== 13: 时间戳 ==========
+ 416:     [ObservableProperty] private string _tsInput = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+ 417:     [ObservableProperty] private string _tsResult = "";
+ 418: 
+ 419:     [RelayCommand]
+ 420:     private void ConvertTimestamp()
+ 421:     {
+ 422:         try
+ 423:         {
+ 424:             var sb = new StringBuilder();
+ 425:             if (long.TryParse(TsInput, out var ts))

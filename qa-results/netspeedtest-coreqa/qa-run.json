@@ -1,0 +1,3310 @@
+{
+  "schema_version": 2,
+  "run_id": "qa-d90912c60289",
+  "revision": 5,
+  "profile": "full",
+  "test_intent": "non_ui_validation",
+  "execution_level": "blocked",
+  "selected_path": "undetermined",
+  "created_at": "2026-09-29T22:04:15.544810+00:00",
+  "target": {
+    "type": "attachment_or_directory",
+    "name": "NetSpeedTest 网络测速工具箱（.NET 8 WPF）",
+    "source": "D:\\Program Files\\DSH\\NetSpeedTest"
+  },
+  "request_contract": {
+    "request_summary": "对 NetSpeedTest（.NET 8 + WPF 网络测速工具箱）全项目核心功能做全流程 QA 收口：梳理需求基线与风险机制、核查并补充测试设计、真实执行 dotnet build 与 dotnet test、归因失败项、输出 Bug 清单与发布结论；交付本地 Markdown，产物放项目 qa-results 目录",
+    "request_hash": "sha256:1646cf55c39c98e525841bc24033e3a4f66a8380352319a36c15795a41f3fd4c",
+    "task_mode": "execution_review",
+    "scope": {
+      "included_source_ids": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-004",
+        "SRC-005",
+        "SRC-006",
+        "SRC-007",
+        "SRC-008",
+        "SRC-009",
+        "SRC-010"
+      ],
+      "excluded_source_ids": [],
+      "included_rounds": [],
+      "excluded_rounds": []
+    },
+    "evidence_policy": {
+      "allow_new_execution": true,
+      "allow_precheck_bug_promotion": false,
+      "required_bug_evidence_level": "L2_observation"
+    },
+    "delivery": {
+      "artifact_required": true,
+      "format": "markdown",
+      "carrier": "local",
+      "filenames": [
+        "QA收口报告.md",
+        "测试用例与追踪矩阵.md"
+      ],
+      "artifacts": [
+        {
+          "format": "markdown",
+          "carrier": "local",
+          "filename": "QA收口报告.md"
+        },
+        {
+          "format": "markdown",
+          "carrier": "local",
+          "filename": "测试用例与追踪矩阵.md"
+        }
+      ],
+      "required_sections": [
+        "测试报告",
+        "详细用例",
+        "Bug 单"
+      ],
+      "section_order": [
+        "测试报告",
+        "详细用例",
+        "Bug 单"
+      ],
+      "must_surface_to_user": true
+    }
+  },
+  "phase_receipts": [
+    {
+      "stage": "baseline",
+      "revision": 2,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T22:15:28.849931+00:00",
+      "source_fingerprint": "sha256:ee3c69351eda89fc6f4318f0e3d6df07ba9b0230c784a0c16191193b5c78580e",
+      "warnings": 0
+    },
+    {
+      "stage": "baseline",
+      "revision": 4,
+      "state": "DISCLOSE",
+      "checked_at": "2026-09-29T22:33:51.710090+00:00",
+      "source_fingerprint": "sha256:e7dacb86ec36ac96c5b4c821591c837b32136802c1b30e7095c0570380c7fa27",
+      "warnings": 62
+    },
+    {
+      "stage": "design",
+      "revision": 4,
+      "state": "DISCLOSE",
+      "checked_at": "2026-09-29T22:35:06.118186+00:00",
+      "source_fingerprint": "sha256:e7dacb86ec36ac96c5b4c821591c837b32136802c1b30e7095c0570380c7fa27",
+      "warnings": 62
+    },
+    {
+      "stage": "baseline",
+      "revision": 5,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T22:44:19.053865+00:00",
+      "source_fingerprint": "sha256:e784847318644bbc4e326ac9bdb03bba19af71f3f9e7a661869f229bb06c47e4",
+      "warnings": 0
+    },
+    {
+      "stage": "design",
+      "revision": 5,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T22:44:19.476845+00:00",
+      "source_fingerprint": "sha256:e784847318644bbc4e326ac9bdb03bba19af71f3f9e7a661869f229bb06c47e4",
+      "warnings": 0
+    },
+    {
+      "stage": "execution",
+      "revision": 5,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T22:44:19.969492+00:00",
+      "source_fingerprint": "sha256:e784847318644bbc4e326ac9bdb03bba19af71f3f9e7a661869f229bb06c47e4",
+      "warnings": 0
+    }
+  ],
+  "input": {
+    "summary": "NetSpeedTest 是 .NET 8 + WPF 的 Windows 网络测速工具箱（当前 v1.4.3）：多线程下载/上传/双向测速、多网卡绑定与聚合、自适应并发、延迟/抖动/丢包监测、SQLite 历史与 CSV、节点与 HBCS 配置管理、内置远程 Web 服务器（令牌认证+SSRF 防护+ACL）、18 合 1 网络工具、自动更新。解决方案含主项目与 xUnit 测试项目（12 个测试类，主要回归历史 F-01~F-22 缺陷），另有一个驱动真实 Release 程序的 smoke-test.ps1 端到端脚本。本轮为全项目核心功能全流程 QA 收口。",
+    "sources": [
+      {
+        "id": "SRC-001",
+        "title": "README.md（v1.4.3 功能规格/API 文档/参数表）",
+        "type": "doc",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\README.md",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "功能矩阵、快捷键、Web API 参数表、SSRF 说明"
+      },
+      {
+        "id": "SRC-002",
+        "title": "CHANGELOG.md（v1.0.0–v1.4.3 变更与修复史）",
+        "type": "doc",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\CHANGELOG.md",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "F-01~F-22 等历史缺陷修复脉络"
+      },
+      {
+        "id": "SRC-003",
+        "title": "NetSpeedTest.csproj / NetSpeedTest.Tests.csproj",
+        "type": "config",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest\\NetSpeedTest.csproj",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "版本 1.4.3.0、net8.0-windows、xUnit/NuGet 测试工程"
+      },
+      {
+        "id": "SRC-004",
+        "title": "主项目 Services 源码（11 个服务）",
+        "type": "source",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest\\Services",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "SpeedTestService(2231行)/WebServerService(1908行)/DataService/ProfileService/NetworkInfoService/NetworkMonitorService/PortHelper 等，已通读"
+      },
+      {
+        "id": "SRC-005",
+        "title": "ViewModels 源码（6 个）",
+        "type": "source",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest\\ViewModels",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "MainViewModel/MoreViewModel(18工具)/HistoryViewModel/ProfileViewModel/SettingsViewModel/WebServerViewModel；MoreViewModel 全文通读，MainViewModel 通读结构与关键流程"
+      },
+      {
+        "id": "SRC-006",
+        "title": "Helpers / Models / App.xaml.cs",
+        "type": "source",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "UpdateChecker/FormatHelper/AppVersion/Logger/AdManager；SpeedTestOptions/SpeedTestResult；App 启动 DI/EULA/全局异常"
+      },
+      {
+        "id": "SRC-007",
+        "title": "单元测试项目（12 个测试类）",
+        "type": "test",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest.Tests",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "Adaptive/Bidirectional/SpeedOptions/Ssrf/StartConfirm/UdpProbe/UpdateChecker/UploadValidation/UrlDetail/Version/WebSecurity/Readme 共 12 类，已逐文件通读"
+      },
+      {
+        "id": "SRC-008",
+        "title": "tools/smoke-test.ps1（真实程序 HTTP 端到端联调）",
+        "type": "test_script",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\tools\\smoke-test.ps1",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "需 Release 构建并启动 GUI；覆盖令牌/安全头/读API/输入校验/SSRF/生命周期/20次启停/设置持久化/负载可用性/日志FATAL"
+      },
+      {
+        "id": "SRC-009",
+        "title": "appsettings.json 默认配置与 wwwroot 前端",
+        "type": "config",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "默认参数、8 个预设节点；index.html/web.js/web.css 令牌携带与 API 调用"
+      },
+      {
+        "id": "SRC-010",
+        "title": "Views/SettingsWindow.xaml 等 XAML 界面",
+        "type": "source",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest\\Views",
+        "access_status": "read",
+        "completeness_checked": true,
+        "notes": "设置滑块范围已逐项核对，用于与 Web API clamp 比对"
+      }
+    ],
+    "assumptions": [
+      "本轮以可在本机自动执行的验证为准：dotnet restore/build 与 dotnet test（含无网络的桩测试）。",
+      "WPF 窗口交互、真实外网测速吞吐、真实局域网手机访问属于人工/环境依赖项，记录为未验证范围，不伪造成执行证据。",
+      "smoke-test.ps1 会启动真实 GUI 并在 127.0.0.1:8080 起服务，作为可选端到端证据；若环境不允许 GUI/端口占用则记为阻塞。",
+      "静态代码审查发现的确定性逻辑缺陷，以可复现的单元测试/代码路径作为 L2 及以上证据，不以主观印象定级。"
+    ],
+    "conflicts": [
+      "口径冲突1：README Web API 参数表与设置滑块均为 testTimeoutSec 10–600s、threadRampUpMs 0–2000ms；但 WebServerService.ApplySettingsCore 的 Clamp 为 5–600 与 0–5000，Web API 可设置 UI/文档宣称范围外的值（其余 8 项参数同样 API 更宽松）。",
+      "口径冲突2：README v1.3.1 称“自动探测防火墙放行状态，未放行给出指引”；实际 EnsureFirewallRule 先 delete 同名规则后无条件 return，add 入站规则为死代码，_firewallReady 恒为 true 且 FirewallReady 属性无任何 UI/前端消费者。",
+      "术语冲突3：MTU 探测输出把 ICMP 负载长度称为“路径 MTU”，把负载+28 称为“IP MTU”，与标准术语（IP 总包长才是路径 MTU）相反。"
+    ],
+    "artifacts": [
+      {
+        "id": "SRC-001",
+        "type": "doc",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\README.md",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      },
+      {
+        "id": "SRC-002",
+        "type": "doc",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\CHANGELOG.md",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      },
+      {
+        "id": "SRC-003",
+        "type": "config",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest\\NetSpeedTest.csproj",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      },
+      {
+        "id": "SRC-004",
+        "type": "source",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest\\Services",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      },
+      {
+        "id": "SRC-005",
+        "type": "source",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest\\ViewModels",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      },
+      {
+        "id": "SRC-006",
+        "type": "source",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      },
+      {
+        "id": "SRC-007",
+        "type": "test",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest.Tests",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      },
+      {
+        "id": "SRC-008",
+        "type": "test_script",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\tools\\smoke-test.ps1",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      },
+      {
+        "id": "SRC-009",
+        "type": "config",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      },
+      {
+        "id": "SRC-010",
+        "type": "source",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\NetSpeedTest\\Views",
+        "access_status": "read",
+        "completeness_checked": true,
+        "item_count": 1,
+        "reviewed_item_count": 1
+      }
+    ]
+  },
+  "open_questions": [],
+  "change_ledger": [
+    {
+      "id": "CHG-001",
+      "revision": 5,
+      "action": "ADD",
+      "object_type": "run",
+      "added_ids": [
+        "qa-d90912c60289"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 1,
+      "delta_count": 1,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    },
+    {
+      "id": "CHG-002",
+      "revision": 5,
+      "action": "ADD",
+      "object_type": "requirement",
+      "added_ids": [
+        "REQ-NETSPEEDTEST-001",
+        "REQ-NETSPEEDTEST-002",
+        "REQ-NETSPEEDTEST-003",
+        "REQ-NETSPEEDTEST-004",
+        "REQ-NETSPEEDTEST-005",
+        "REQ-NETSPEEDTEST-006",
+        "REQ-NETSPEEDTEST-007",
+        "REQ-NETSPEEDTEST-008",
+        "REQ-NETSPEEDTEST-009",
+        "REQ-NETSPEEDTEST-010",
+        "REQ-NETSPEEDTEST-011",
+        "REQ-NETSPEEDTEST-012",
+        "REQ-NETSPEEDTEST-013",
+        "REQ-NETSPEEDTEST-014",
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 15,
+      "delta_count": 15,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    },
+    {
+      "id": "CHG-003",
+      "revision": 5,
+      "action": "ADD",
+      "object_type": "risk_mechanism",
+      "added_ids": [
+        "RM-SEC-001",
+        "RM-WEB-002",
+        "RM-SPEED-003",
+        "RM-UPLOAD-004",
+        "RM-NIC-005",
+        "RM-ADAPT-006",
+        "RM-PERSIST-007",
+        "RM-LIFECYCLE-008",
+        "RM-LOSS-009",
+        "RM-TOOLS-010",
+        "RM-CLAMP-011",
+        "RM-DETAIL-012",
+        "RM-DATA-013",
+        "RM-UPDATE-014",
+        "RM-CANCEL-015",
+        "RM-FW-016",
+        "RM-FALLBACK-017"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 17,
+      "delta_count": 17,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    },
+    {
+      "id": "CHG-004",
+      "revision": 5,
+      "action": "ADD",
+      "object_type": "case",
+      "added_ids": [
+        "TC-NETSPEEDTEST-001",
+        "TC-NETSPEEDTEST-002",
+        "TC-NETSPEEDTEST-003",
+        "TC-NETSPEEDTEST-010",
+        "TC-NETSPEEDTEST-011",
+        "TC-URL-012",
+        "TC-NETSPEEDTEST-013",
+        "TC-NETSPEEDTEST-014",
+        "TC-NETSPEEDTEST-015",
+        "TC-UDP-016",
+        "TC-NETSPEEDTEST-017",
+        "TC-NETSPEEDTEST-018",
+        "TC-NETSPEEDTEST-019",
+        "TC-NETSPEEDTEST-020",
+        "TC-WEBSSRF-030",
+        "TC-WEB-031",
+        "TC-WEB-032",
+        "TC-WEB-033",
+        "TC-WEB-034",
+        "TC-WEB-035",
+        "TC-WEB-036",
+        "TC-WEB-037",
+        "TC-WEBACL-038",
+        "TC-WEB-039",
+        "TC-WEB-040",
+        "TC-NETSPEEDTEST-050",
+        "TC-CSV-051",
+        "TC-HBCS-052",
+        "TC-NETSPEEDTEST-060",
+        "TC-NETSPEEDTEST-061",
+        "TC-MTU-062",
+        "TC-NETSPEEDTEST-063",
+        "TC-NETSPEEDTEST-064",
+        "TC-NETSPEEDTEST-065",
+        "TC-NETSPEEDTEST-070",
+        "TC-NETSPEEDTEST-080",
+        "TC-NETSPEEDTEST-081",
+        "TC-WEB-082",
+        "TC-NETSPEEDTEST-083"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 39,
+      "delta_count": 39,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    },
+    {
+      "id": "CHG-005",
+      "revision": 5,
+      "action": "ADD",
+      "object_type": "acceptance",
+      "added_ids": [
+        "AC-BUILD-001",
+        "AC-CORE-002",
+        "AC-SEC-003",
+        "AC-LIFE-004",
+        "AC-DATA-005",
+        "AC-TOOL-006",
+        "AC-UPDATE-007",
+        "AC-DEFECT-008",
+        "AC-STAB-009"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 9,
+      "delta_count": 9,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    },
+    {
+      "id": "CHG-006",
+      "revision": 5,
+      "action": "ADD",
+      "object_type": "execution",
+      "added_ids": [
+        "EXE-NETSPEEDTEST-001",
+        "EXE-NETSPEEDTEST-002",
+        "EXE-NETSPEEDTEST-003",
+        "EXE-NETSPEEDTEST-010",
+        "EXE-NETSPEEDTEST-011",
+        "EXE-NETSPEEDTEST-012",
+        "EXE-NETSPEEDTEST-013",
+        "EXE-NETSPEEDTEST-014",
+        "EXE-NETSPEEDTEST-015",
+        "EXE-NETSPEEDTEST-016",
+        "EXE-NETSPEEDTEST-017",
+        "EXE-NETSPEEDTEST-018",
+        "EXE-NETSPEEDTEST-019",
+        "EXE-NETSPEEDTEST-020",
+        "EXE-NETSPEEDTEST-030",
+        "EXE-NETSPEEDTEST-031",
+        "EXE-NETSPEEDTEST-032",
+        "EXE-NETSPEEDTEST-033",
+        "EXE-NETSPEEDTEST-034",
+        "EXE-NETSPEEDTEST-035",
+        "EXE-NETSPEEDTEST-036",
+        "EXE-NETSPEEDTEST-037",
+        "EXE-NETSPEEDTEST-038",
+        "EXE-NETSPEEDTEST-039",
+        "EXE-NETSPEEDTEST-040",
+        "EXE-NETSPEEDTEST-050",
+        "EXE-NETSPEEDTEST-051",
+        "EXE-NETSPEEDTEST-052",
+        "EXE-NETSPEEDTEST-060",
+        "EXE-NETSPEEDTEST-061",
+        "EXE-NETSPEEDTEST-062",
+        "EXE-NETSPEEDTEST-063",
+        "EXE-NETSPEEDTEST-064",
+        "EXE-NETSPEEDTEST-065",
+        "EXE-NETSPEEDTEST-070",
+        "EXE-NETSPEEDTEST-080",
+        "EXE-NETSPEEDTEST-081",
+        "EXE-NETSPEEDTEST-082",
+        "EXE-NETSPEEDTEST-083"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 39,
+      "delta_count": 39,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    },
+    {
+      "id": "CHG-007",
+      "revision": 5,
+      "action": "ADD",
+      "object_type": "evidence",
+      "added_ids": [
+        "EV-001",
+        "EV-002",
+        "EV-003",
+        "EV-004",
+        "EV-005",
+        "EV-006",
+        "EV-007",
+        "EV-008",
+        "EV-009"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 9,
+      "delta_count": 9,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    },
+    {
+      "id": "CHG-008",
+      "revision": 5,
+      "action": "ADD",
+      "object_type": "bug",
+      "added_ids": [
+        "BUG-181MTU-001",
+        "BUG-NETSPEEDTEST-002",
+        "BUG-WEBAPI-003",
+        "BUG-181-004",
+        "BUG-181-005",
+        "BUG-WEB-006",
+        "BUG-WEB-007"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 7,
+      "delta_count": 7,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    }
+  ],
+  "environment": {
+    "os": "Windows（用户真实桌面，非沙箱）",
+    "dotnet_sdk": "8.0.425（dotnet --list-sdks 已确认）",
+    "target_framework": "net8.0-windows，WPF，UseWPF=true，PlatformTarget=AnyCPU",
+    "app_version": "1.4.3.0（csproj / README / CHANGELOG / 关于页 一致）",
+    "git_baseline": "771e23f docs: 发布 v1.4.3 正式版（工作区干净，仅 qa-results/ 未跟踪）",
+    "execution_scope": "非 UI 自动化：dotnet restore/build/test；WPF 界面人工操作与真实外网测速不做全量执行",
+    "network": "本机真实网络可用；SSRF/重定向类用例以无网络单元测试（桩解析器）为准"
+  },
+  "screenshot_policy": "unconfirmed",
+  "plan": {
+    "scope": [
+      "REQ-001~REQ-015 全项目核心功能",
+      "现有 12 个测试类全部执行",
+      "构建（Debug/Release）验证",
+      "对静态发现的确定性缺陷补充可复现单元测试"
+    ],
+    "out_of_scope": [
+      "WPF 控件像素级 UI 走查",
+      "真实外网吞吐数值准确性（依赖实时网络）",
+      "真实手机局域网跨设备访问（需第二台设备）",
+      "广告位/赞助文案内容审核",
+      "安装包签名与发布流水线"
+    ],
+    "entry_criteria": [
+      "dotnet SDK 8 可用",
+      "解决方案可还原",
+      "基线源码与文档已清点"
+    ],
+    "exit_criteria": [
+      "dotnet build 成功",
+      "dotnet test 全部通过（新增测试同样通过）",
+      "P0/P1 风险有正式执行证据",
+      "失败项完成归因与定级",
+      "发布结论证据充分"
+    ],
+    "regression": [
+      "F-01~F-22 历史修复对应 12 个测试类全量回归",
+      "新增测试不得引入对真实外网的依赖"
+    ]
+  },
+  "requirements": [
+    {
+      "id": "REQ-NETSPEEDTEST-001",
+      "summary": "下载测速：多 URL 并发下载，线程 2–1024，支持固定/自适应并发、爬坡启动、URL 探索→最快节点→失败避让，输出速率/峰值/字节/URL 明细",
+      "source": "SRC-001,SRC-004",
+      "risk": "P3",
+      "impact_scope": [
+        "SpeedTestService",
+        "MainViewModel"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-002",
+      "summary": "上传测速：POST 随机数据到上传 URL，非 2xx 响应必须计为失败，不得把拒收流量算作成功吞吐",
+      "source": "SRC-001,SRC-004",
+      "risk": "P3",
+      "impact_scope": [
+        "SpeedTestService"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-003",
+      "summary": "双向同时测速：下载/上传并发，各自独立自适应控制器，起始线程对半拆分，双向都起量后才反馈",
+      "source": "SRC-001,SRC-004",
+      "risk": "P3",
+      "impact_scope": [
+        "SpeedTestService"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-004",
+      "summary": "多网卡：单网卡多活动环境绑定源 IP 防走错出口；多网卡独立绑定并行测速并聚合，失败网卡隔离不拖垮整体",
+      "source": "SRC-001,SRC-004",
+      "risk": "P3",
+      "impact_scope": [
+        "SpeedTestService",
+        "NetworkInfoService"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-005",
+      "summary": "网络质量：内网网关/外网延迟、抖动（标准差）、丢包率；ICMP 全失败时 UDP 复核，PortUnreachable 计为主机可达",
+      "source": "SRC-001,SRC-004",
+      "risk": "P3",
+      "impact_scope": [
+        "SpeedTestService"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-006",
+      "summary": "测速准备：DNS 预解析+HEAD 连接预热，进度 0–100，可取消，失败地址不阻断整体",
+      "source": "SRC-001,SRC-004,SRC-005",
+      "risk": "P3",
+      "impact_scope": [
+        "SpeedTestService",
+        "MainViewModel"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-007",
+      "summary": "历史记录：SQLite 持久化测速结果，分页/条件查询，CSV 导出，数据库初始化失败明确报错",
+      "source": "SRC-001,SRC-004",
+      "risk": "P3",
+      "impact_scope": [
+        "DataService",
+        "HistoryViewModel"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-008",
+      "summary": "节点管理：节点 CRUD、去重、HBCS 配置导入导出（.conf/.txt），保存/导入 URL 必须通过公网校验",
+      "source": "SRC-001,SRC-004",
+      "risk": "P3",
+      "impact_scope": [
+        "ProfileService",
+        "ProfileViewModel"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-009",
+      "summary": "内置 Web 服务器：回环+局域网双 HttpListener，端口自动/手动，非回环 X-NST-Token 令牌认证，ACL 网段白名单，静态文件防路径穿越，安全响应头，拒绝跨域",
+      "source": "SRC-001,SRC-004,SRC-009",
+      "risk": "P3",
+      "impact_scope": [
+        "WebServerService",
+        "wwwroot"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-010",
+      "summary": "Web API：status/adapters/profiles/history/settings/server GET、profiles/settings/test start/stop POST；状态码契约（200/400/401/403/404/409/503），200 必须在真正 running 后返回",
+      "source": "SRC-001,SRC-004,SRC-008",
+      "risk": "P3",
+      "impact_scope": [
+        "WebServerService",
+        "MainViewModel"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-011",
+      "summary": "18 合 1 工具箱：Ping/DNS/HTTP 测速/路由追踪/端口/MTU/DNS 对比/IP 归属/公网 IP/SSL/Header/子网计算/带宽换算/时间戳/哈希/Base64/UUID/NAT 检测，结果正确且异常有提示",
+      "source": "SRC-001,SRC-005",
+      "risk": "P3",
+      "impact_scope": [
+        "MoreViewModel"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-012",
+      "summary": "设置：原子持久化（写临时文件+替换，无残留 .tmp），并发写不损坏，重启保留，运行时生效；Web 与 UI 口径应一致",
+      "source": "SRC-001,SRC-004",
+      "risk": "P3",
+      "impact_scope": [
+        "WebServerService",
+        "SettingsViewModel"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-013",
+      "summary": "自动更新：查询 GitHub releases（含国内加速），网络/解析失败降级不打扰，下载产物 SHA256 签名验证，防止降级/错误资产",
+      "source": "SRC-001,SRC-006",
+      "risk": "P3",
+      "impact_scope": [
+        "UpdateChecker"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-014",
+      "summary": "SSRF 防护：测速/节点/远程发起的 URL 必须为公网地址，拒绝环回/私网/链路本地(含云元数据)/非 http(s)/非白名单端口，重定向逐跳校验（最多 3 跳）",
+      "source": "SRC-001,SRC-004",
+      "risk": "P3",
+      "impact_scope": [
+        "WebServerService",
+        "SpeedTestService"
+      ]
+    },
+    {
+      "id": "REQ-NETSPEEDTEST-015",
+      "summary": "稳定性与资源：全局异常兜底（UI/后台/未观察任务），并发集合线程安全，测速取消及时释放 HttpClient/Socket/任务，无 FATAL/未观察异常",
+      "source": "SRC-004,SRC-006,SRC-008",
+      "risk": "P3",
+      "impact_scope": [
+        "全项目"
+      ]
+    }
+  ],
+  "risk_mechanisms": [
+    {
+      "id": "RM-SEC-001",
+      "title": "SSRF 与重定向绕过导致服务器访问内网/元数据",
+      "failure_mode": "测速 URL 或 302 Location 指向 127.0.0.1/169.254.169.254/私网/非白名单端口，或用 IPv4 映射、缺省端口、进制缩写绕过校验",
+      "business_impact": "用户机器被诱导访问内网服务或云凭据，构成安全漏洞",
+      "oracle": "SsrfGuard 对全部恶意形态返回 IsAllowed=false；重定向逐跳校验、最多 3 跳；自动重定向关闭",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-014",
+        "REQ-NETSPEEDTEST-009",
+        "REQ-NETSPEEDTEST-010"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-017",
+        "TC-WEBSSRF-030",
+        "TC-WEB-033",
+        "TC-HBCS-052"
+      ],
+      "priority": "P0",
+      "status": "designed"
+    },
+    {
+      "id": "RM-WEB-002",
+      "title": "远程 Web 未授权操作（令牌缺失/泄漏/可猜）",
+      "failure_mode": "非回环请求无令牌或令牌错误仍可 POST 启动测速/改设置/存节点；令牌被硬编码或注入到静态资源",
+      "business_impact": "局域网任意设备可操控本机测速与配置",
+      "oracle": "非回环无/错令牌 POST 返回 403；回环免令牌；index.html 每次运行注入 64hex 随机令牌，web.js 带头且不含密钥",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-009",
+        "REQ-NETSPEEDTEST-010"
+      ],
+      "case_ids": [
+        "TC-WEB-031",
+        "TC-WEB-032",
+        "TC-WEBACL-038"
+      ],
+      "priority": "P0",
+      "status": "designed"
+    },
+    {
+      "id": "RM-SPEED-003",
+      "title": "测速核心结果（速率/峰值/字节/明细）错误",
+      "failure_mode": "NIC 字节差分回绕、平均窗口口径错误、峰值/合计计算错误、URL 明细聚合错误",
+      "business_impact": "向用户展示错误带宽结论，属产品核心功能失效",
+      "oracle": "固定/自适应模式速率与字节口径可验证；URL 明细成功/失败/超时分类正确；结果非负且峰值≥平均",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-001",
+        "REQ-NETSPEEDTEST-002",
+        "REQ-NETSPEEDTEST-003"
+      ],
+      "case_ids": [
+        "TC-URL-012",
+        "TC-NETSPEEDTEST-014",
+        "TC-NETSPEEDTEST-018"
+      ],
+      "priority": "P0",
+      "status": "designed"
+    },
+    {
+      "id": "RM-UPLOAD-004",
+      "title": "服务器拒收的上传被计为成功吞吐",
+      "failure_mode": "POST 返回 4xx/5xx 仍读字节计时，上传速率虚高、失败 URL 不标红",
+      "business_impact": "上传测速结果造假",
+      "oracle": "SendUploadAsync 对非 2xx EnsureSuccessStatusCode 抛错；失败计入 UrlBalancer 并在明细标记",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-002"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-013",
+        "TC-NETSPEEDTEST-014"
+      ],
+      "priority": "P1",
+      "status": "designed"
+    },
+    {
+      "id": "RM-NIC-005",
+      "title": "网卡绑定失效走错出口或多网卡聚合错误",
+      "failure_mode": "单网卡多活动环境未绑定源 IP；多网卡 HttpClient 未按网卡绑定；失败网卡导致整批失败；聚合重复计数",
+      "business_impact": "多宽带/多网卡场景测速归属错误",
+      "oracle": "ResolveEgressClientCore 分支正确；无 IPv4 网卡明确报错；多网卡结果按网卡归属且失败隔离",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-004"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-015",
+        "TC-NETSPEEDTEST-019"
+      ],
+      "priority": "P1",
+      "status": "designed"
+    },
+    {
+      "id": "RM-ADAPT-006",
+      "title": "自适应并发放大失控/死锁/裁剪失效/并发枚举崩溃",
+      "failure_mode": "实际线程超过硬上限、容量翻倍、PulseLoop 与 Observe 竞争导致 Collection was modified、裁剪不回收、双向两侧超额",
+      "business_impact": "打满连接、测速卡死或崩溃",
+      "oracle": "任意调度下 Current/Peak ≤ MaxBase；双向 Current 之和 ≤ cap；Observe 状态机收敛；锁内枚举快照",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-001",
+        "REQ-NETSPEEDTEST-003",
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-010",
+        "TC-NETSPEEDTEST-011",
+        "TC-NETSPEEDTEST-080"
+      ],
+      "priority": "P1",
+      "status": "designed"
+    },
+    {
+      "id": "RM-PERSIST-007",
+      "title": "设置/节点写入损坏或丢失",
+      "failure_mode": "非原子写产生半截 JSON/.tmp 残留；并发写互相覆盖；重启后设置或节点丢失",
+      "business_impact": "配置不可用、节点丢失",
+      "oracle": "WriteJsonAtomic 写临时文件+替换且异常清理；8 并发 POST 后文件为合法 JSON；往返一致",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-008",
+        "REQ-NETSPEEDTEST-012"
+      ],
+      "case_ids": [
+        "TC-WEB-035",
+        "TC-HBCS-052"
+      ],
+      "priority": "P1",
+      "status": "designed"
+    },
+    {
+      "id": "RM-LIFECYCLE-008",
+      "title": "Web 测试生命周期竞态与服务端无响应",
+      "failure_mode": "start 在真正 running 前返回 200；运行中重复 start 不返回 409；stop 不生效；测速期间 status 阻塞超过 2s；快速启停卡死",
+      "business_impact": "远程控制状态错乱、UI 判定失败",
+      "oracle": "200 仅在 running=true 后；重复 start=409；stop 后 running 归 false；负载下 status 恒 200 且<2s",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-010",
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "case_ids": [
+        "TC-WEB-034",
+        "TC-WEB-036",
+        "TC-WEB-037",
+        "TC-NETSPEEDTEST-081"
+      ],
+      "priority": "P1",
+      "status": "designed"
+    },
+    {
+      "id": "RM-LOSS-009",
+      "title": "ICMP 被防火墙屏蔽时误报 100% 丢包/无延迟",
+      "failure_mode": "UDP 探测把 ICMP PortUnreachable 当超时；首轮 ICMP 全失败不做 UDP 复核",
+      "business_impact": "网络质量结论错误",
+      "oracle": "ClassifyUdpProbeResult 对 ConnectionReset(PortUnreachable) 计成功；ICMP 全失败自动 UDP 复核",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-005"
+      ],
+      "case_ids": [
+        "TC-UDP-016"
+      ],
+      "priority": "P2",
+      "status": "designed"
+    },
+    {
+      "id": "RM-TOOLS-010",
+      "title": "18 合 1 工具计算/探测逻辑错误与输入未校验",
+      "failure_mode": "MTU 探测 PingOptions TTL 固定为 1 导致跨网关目标必然失败；子网掩码不校验连续性；带宽换算 0/负数除零显示异常；时间戳越界异常",
+      "business_impact": "工具箱给出错误结果，MTU 功能对默认目标不可用",
+      "oracle": "MTU 对跨网关目标可得到路径 MTU；非法掩码/0/负带宽给出明确错误而非错误数字或 ∞",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-011"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-060",
+        "TC-NETSPEEDTEST-061",
+        "TC-MTU-062",
+        "TC-NETSPEEDTEST-063",
+        "TC-NETSPEEDTEST-064",
+        "TC-NETSPEEDTEST-065"
+      ],
+      "priority": "P2",
+      "status": "designed"
+    },
+    {
+      "id": "RM-CLAMP-011",
+      "title": "Web API 参数 clamp 与 UI 滑块/文档口径不一致",
+      "failure_mode": "/api/settings 接受 testTimeoutSec=5、threadRampUpMs=5000 等 UI/文档范围外的值；testTimeoutSec 小于平均窗口导致结果为空",
+      "business_impact": "远程可配置出 UI 不允许的无效/危险参数，行为与文档不符",
+      "oracle": "API clamp 范围与 SettingsWindow.xaml 滑块、README 参数表三者一致；越界值被拒绝或钳制并与文档一致",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-010",
+        "REQ-NETSPEEDTEST-012"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-003",
+        "TC-WEB-039"
+      ],
+      "priority": "P2",
+      "status": "designed"
+    },
+    {
+      "id": "RM-DETAIL-012",
+      "title": "双向测速 URL 明细缺失",
+      "failure_mode": "RunFullTestAsync 返回 UrlDetails 恒为空，多网卡双向同样为空，前端/导出无法展示各 URL 成败",
+      "business_impact": "双向模式无法定位失败节点，可观测性退化",
+      "oracle": "双向结果包含下载/上传 URL 明细，失败 URL 正确标记",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-003",
+        "REQ-NETSPEEDTEST-010"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-083"
+      ],
+      "priority": "P2",
+      "status": "designed"
+    },
+    {
+      "id": "RM-DATA-013",
+      "title": "SQLite 历史分页/查询/CSV 与建表无自动化覆盖",
+      "failure_mode": "分页 total/records 错误、时间/网卡条件遗漏、CSV 格式错、初始化异常未拦截",
+      "business_impact": "历史记录与导出不可信",
+      "oracle": "已知数据集下分页 total/pages/records 正确；CSV 含表头与行；初始化失败走报错路径",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-007"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-050",
+        "TC-CSV-051"
+      ],
+      "priority": "P2",
+      "status": "designed"
+    },
+    {
+      "id": "RM-UPDATE-014",
+      "title": "更新检查版本判定/资产解析/签名校验",
+      "failure_mode": "错误地把旧版/预发布判为需更新、取错资产、SHA256 不匹配仍提示、网络失败弹错误窗",
+      "business_impact": "误导升级或安全风险",
+      "oracle": "版本比较、资产选择、SHA256 校验、失败静默降级均有正确输出",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-013"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-002",
+        "TC-NETSPEEDTEST-070"
+      ],
+      "priority": "P2",
+      "status": "designed"
+    },
+    {
+      "id": "RM-CANCEL-015",
+      "title": "准备/测速取消与资源释放",
+      "failure_mode": "准备阶段取消不终止、测速停止后 HttpClient/任务/Socket 未释放、内部 CTS 未取消后台任务",
+      "business_impact": "句柄/线程泄漏、停止后仍有流量",
+      "oracle": "取消后任务在超时内终止、无残留请求、重复启停无泄漏",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-006",
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-001",
+        "TC-NETSPEEDTEST-020",
+        "TC-NETSPEEDTEST-080",
+        "TC-NETSPEEDTEST-081"
+      ],
+      "priority": "P2",
+      "status": "designed"
+    },
+    {
+      "id": "RM-FW-016",
+      "title": "防火墙放行逻辑为死代码且状态标志无消费者",
+      "failure_mode": "EnsureFirewallRule 删除同名规则后无条件 return，add 规则永不执行；_firewallReady 恒 true；FirewallReady 无 UI/前端消费",
+      "business_impact": "与 README“自动探测/放行防火墙”宣称不符，局域网访问可能被防火墙拦截且无正确指引",
+      "oracle": "启动局域网监听时防火墙规则与状态语义一致，或 UI 明确给出手动放行指引；无死代码",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-009"
+      ],
+      "case_ids": [
+        "TC-WEB-082"
+      ],
+      "priority": "P3",
+      "status": "designed"
+    },
+    {
+      "id": "RM-FALLBACK-017",
+      "title": "内嵌兜底页面缺少令牌导致局域网只读",
+      "failure_mode": "wwwroot 缺失时 DefaultIndexHtml 的 start/stop/saveSettings 不携带 X-NST-Token，非回环 POST 全部 403",
+      "business_impact": "兜底页在局域网只能查看不能操作",
+      "oracle": "兜底页与正式页一致注入并携带令牌，或明确不支持局域网操作",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-009"
+      ],
+      "case_ids": [
+        "TC-WEB-040"
+      ],
+      "priority": "P3",
+      "status": "designed"
+    }
+  ],
+  "observed_surfaces": [
+    {
+      "surface_id": "SURF-01",
+      "page": "主界面-测速",
+      "control_or_claim": "下载/上传/双向/多网卡测速、线程与自适应、延迟抖动丢包、URL明细",
+      "functional_check": "结果速率/字节/明细正确，取消生效",
+      "source": "SRC-004,SRC-005"
+    },
+    {
+      "surface_id": "SURF-02",
+      "page": "测速准备",
+      "control_or_claim": "DNS 预解析+预热进度+取消",
+      "functional_check": "进度推进、失败地址不阻断、取消终止",
+      "source": "SRC-004"
+    },
+    {
+      "surface_id": "SURF-03",
+      "page": "历史记录",
+      "control_or_claim": "SQLite 分页查询+CSV 导出",
+      "functional_check": "分页数据正确、导出可打开",
+      "source": "SRC-004"
+    },
+    {
+      "surface_id": "SURF-04",
+      "page": "节点管理",
+      "control_or_claim": "节点 CRUD、HBCS 导入导出、私网 URL 拒绝",
+      "functional_check": "校验生效、往返一致",
+      "source": "SRC-004"
+    },
+    {
+      "surface_id": "SURF-05",
+      "page": "设置窗口",
+      "control_or_claim": "参数滑块范围、原子保存、重启保留",
+      "functional_check": "范围与 API/文档一致、持久化不损坏",
+      "source": "SRC-010,SRC-004"
+    },
+    {
+      "surface_id": "SURF-06",
+      "page": "Web 服务窗口/远程页面",
+      "control_or_claim": "回环/局域网监听、令牌、ACL、端口、安全头、测试生命周期",
+      "functional_check": "认证/授权/状态码/可用性",
+      "source": "SRC-004,SRC-009,SRC-008"
+    },
+    {
+      "surface_id": "SURF-07",
+      "page": "18 合 1 工具箱",
+      "control_or_claim": "18 个网络工具计算与探测",
+      "functional_check": "结果正确、非法输入有提示",
+      "source": "SRC-005"
+    },
+    {
+      "surface_id": "SURF-08",
+      "page": "关于/更新",
+      "control_or_claim": "版本一致性、更新检查与签名",
+      "functional_check": "版本判定/资产/SHA256/降级",
+      "source": "SRC-006"
+    }
+  ],
+  "cases": [
+    {
+      "id": "TC-NETSPEEDTEST-001",
+      "module": "构建",
+      "title": "Debug 与 Release 解决方案构建零错误零警告",
+      "priority": "P0",
+      "type": "构建",
+      "steps": [
+        "dotnet restore",
+        "dotnet build -c Debug",
+        "dotnet build -c Release"
+      ],
+      "test_data": "NetSpeedTest.sln，net8.0-windows",
+      "expected_result": "两个配置均生成成功，0 error / 0 warning",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "risk_mechanism_ids": [
+        "RM-CANCEL-015"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "dotnet build 退出码 0 与汇总输出"
+      ],
+      "release_blocking_reason": "核心/安全能力失效将直接阻断发布"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-002",
+      "module": "版本",
+      "title": "版本号四处一致且更新历史为最新",
+      "priority": "P1",
+      "type": "配置",
+      "steps": [
+        "运行 VersionConsistencyTests 全部用例"
+      ],
+      "test_data": "csproj 1.4.3.0 / README / CHANGELOG / 关于页",
+      "expected_result": "版本一致、更新历史含 v1.4.3、无重复或缺失",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-013"
+      ],
+      "risk_mechanism_ids": [
+        "RM-UPDATE-014"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "VersionConsistencyTests 全绿"
+      ],
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-003",
+      "module": "文档",
+      "title": "README 功能/快捷键/滑块范围与实现一致",
+      "priority": "P2",
+      "type": "兼容",
+      "steps": [
+        "运行 ReadmeDocumentationTests"
+      ],
+      "test_data": "README.md、XAML、Strings 资源",
+      "expected_result": "文档声明均能在实现中找到对应，滑块范围与 XAML 一致",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-012"
+      ],
+      "risk_mechanism_ids": [
+        "RM-CLAMP-011"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "ReadmeDocumentationTests 全绿"
+      ]
+    },
+    {
+      "id": "TC-NETSPEEDTEST-010",
+      "module": "测速引擎-自适应",
+      "title": "任意调度下自适应并发不突破硬上限且裁剪回收",
+      "priority": "P0",
+      "type": "功能",
+      "steps": [
+        "运行 AdaptiveControllerTests 全部并发不变式用例（高并发脉冲/缩容/双向合计）"
+      ],
+      "test_data": "MaxBase=8/16/32/128/256/512/1024，随机调度",
+      "expected_result": "Current/Peak ≤ MaxBase；双向 Current 之和 ≤ cap；槽位最终回收；无死锁/枚举异常",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-001",
+        "REQ-NETSPEEDTEST-003",
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "risk_mechanism_ids": [
+        "RM-ADAPT-006"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "AdaptiveControllerTests 全绿"
+      ],
+      "release_blocking_reason": "核心/安全能力失效将直接阻断发布"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-011",
+      "module": "测速引擎-双向",
+      "title": "双向反馈取瓶颈侧、双方向起量后才观察、起始线程对半",
+      "priority": "P1",
+      "type": "功能",
+      "steps": [
+        "运行 BidirectionalAdaptiveFeedbackTests"
+      ],
+      "test_data": "下载/上传速率序列组合",
+      "expected_result": "SelectAdaptiveObserveValue 取较小侧；ShouldObserve 双方向都见流量；Split 各≥1",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-003"
+      ],
+      "risk_mechanism_ids": [
+        "RM-ADAPT-006"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "BidirectionalAdaptiveFeedbackTests 全绿"
+      ],
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-URL-012",
+      "module": "测速引擎-URL均衡",
+      "title": "探索覆盖全部 URL→最快节点→失败/超时冷却避让",
+      "priority": "P0",
+      "type": "功能",
+      "steps": [
+        "运行 UrlBalancerTests"
+      ],
+      "test_data": "3~4 URL、不同速率、连续失败、超时、单 URL",
+      "expected_result": "探索阶段每 URL 至少分配一次；探测后选最快；冷却期避让；全不健康不返回空串；明细正确分类",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-001"
+      ],
+      "risk_mechanism_ids": [
+        "RM-SPEED-003"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "UrlBalancerTests 全绿（9 用例）"
+      ],
+      "release_blocking_reason": "核心/安全能力失效将直接阻断发布"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-013",
+      "module": "测速引擎-上传",
+      "title": "上传非 2xx 响应一律计失败",
+      "priority": "P1",
+      "type": "异常",
+      "steps": [
+        "运行 UploadValidationTests（200/204/301/403/404/405/500/502/超时/断连）"
+      ],
+      "test_data": "HttpMessageHandler 桩返回各状态码",
+      "expected_result": "仅 2xx 计成功；其余抛错并不计吞吐",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-002"
+      ],
+      "risk_mechanism_ids": [
+        "RM-UPLOAD-004"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "UploadValidationTests 全绿"
+      ],
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-014",
+      "module": "测速引擎-明细",
+      "title": "上传 URL 明细正确标记成功/拒收/超时",
+      "priority": "P1",
+      "type": "数据",
+      "steps": [
+        "运行 UrlDetailReportingTests"
+      ],
+      "test_data": "混合成功/404/超时/未访问 URL",
+      "expected_result": "失败 URL IsFailed=true 且 ErrorMessage 反映原因；未访问 URL 不标失败",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-002",
+        "REQ-NETSPEEDTEST-001"
+      ],
+      "risk_mechanism_ids": [
+        "RM-SPEED-003",
+        "RM-UPLOAD-004"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "UrlDetailReportingTests 全绿"
+      ],
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-015",
+      "module": "测速引擎-网卡绑定",
+      "title": "出口 HttpClient 解析五分支正确",
+      "priority": "P1",
+      "type": "功能",
+      "steps": [
+        "运行 NicEgressResolverTests"
+      ],
+      "test_data": "调用方注入/单卡多活动/绑定失败/单卡单活动/多卡",
+      "expected_result": "该绑定时绑定并拥有客户端；绑定失败显式 BindFailed；不该绑定时走默认路由",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-004"
+      ],
+      "risk_mechanism_ids": [
+        "RM-NIC-005"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "NicEgressResolverTests 全绿（5 用例）"
+      ],
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-UDP-016",
+      "module": "测速引擎-UDP探测",
+      "title": "ICMP PortUnreachable 计为主机可达",
+      "priority": "P2",
+      "type": "异常",
+      "steps": [
+        "运行 UdpProbeTests（Response/Reset/Timeout/边界）"
+      ],
+      "test_data": "UdpClient Receive 桩",
+      "expected_result": "ConnectionReset→PortUnreachable→成功；超时才计丢包；参数校验",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-005"
+      ],
+      "risk_mechanism_ids": [
+        "RM-LOSS-009"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "UdpProbeTests 全绿"
+      ]
+    },
+    {
+      "id": "TC-NETSPEEDTEST-017",
+      "module": "测速引擎-重定向",
+      "title": "重定向逐跳公网校验、最多 3 跳、自动重定向关闭",
+      "priority": "P0",
+      "type": "安全",
+      "steps": [
+        "运行 SsrfGuardTests 中重定向相关用例"
+      ],
+      "test_data": "302→内网/元数据/非 http(s)/超跳数",
+      "expected_result": "恶意 Location 抛 HttpRequestException；合法跳转成功；AllowAutoRedirect=false",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-014",
+        "REQ-NETSPEEDTEST-001"
+      ],
+      "risk_mechanism_ids": [
+        "RM-SEC-001"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "SsrfGuardTests 重定向用例全绿"
+      ],
+      "release_blocking_reason": "核心/安全能力失效将直接阻断发布"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-018",
+      "module": "测速引擎-下载实测",
+      "title": "真实外网多线程下载测速产出合理结果",
+      "priority": "P1",
+      "type": "功能",
+      "steps": [
+        "启动程序→选择预设节点→下载测速→观察速率/峰值/URL 明细/曲线"
+      ],
+      "test_data": "预设节点（如阿里云/腾讯云），128 线程，60s",
+      "expected_result": "速率>0、曲线连续、URL 明细有成功字节、平均窗口 10s 后出现、可取消",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-001",
+        "REQ-NETSPEEDTEST-006"
+      ],
+      "risk_mechanism_ids": [
+        "RM-SPEED-003"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "测速界面截图、debug.log [D-URL] 行"
+      ],
+      "manual_reason": "依赖真实外网与公网测速文件，无法在无网络单测中验证吞吐数值",
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-019",
+      "module": "测速引擎-多网卡实测",
+      "title": "多网卡选择后流量按指定网卡出口并聚合",
+      "priority": "P2",
+      "type": "功能",
+      "steps": [
+        "勾选两张活动网卡→多网卡同时测速→核对各卡速率与出口 IP"
+      ],
+      "test_data": "双宽带/双网卡环境",
+      "expected_result": "各卡结果独立归属、失败卡隔离、合计为各卡之和",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-004"
+      ],
+      "risk_mechanism_ids": [
+        "RM-NIC-005"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "多网卡结果截图、日志 [NIC] 测速出口已绑定"
+      ],
+      "manual_reason": "需要多张活动网卡与多条上联，环境依赖强"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-020",
+      "module": "测速引擎-准备取消",
+      "title": "准备阶段可取消且不进入测速",
+      "priority": "P2",
+      "type": "异常",
+      "steps": [
+        "开始测速→准备对话框出现→立即取消"
+      ],
+      "test_data": "不可达/慢解析 URL 与正常 URL 各一组",
+      "expected_result": "取消后不启动测速、按钮状态恢复、无残留后台请求/异常弹窗",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-006",
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "risk_mechanism_ids": [
+        "RM-CANCEL-015"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "取消操作录屏/日志"
+      ]
+    },
+    {
+      "id": "TC-WEBSSRF-030",
+      "module": "Web安全-SSRF",
+      "title": "私网/环回/链路本地/元数据/非http/非白名单端口/进制变体全拒绝",
+      "priority": "P0",
+      "type": "安全",
+      "steps": [
+        "运行 SsrfGuardTests 全部 Theory"
+      ],
+      "test_data": "60+ 恶意/合法 URL 形态",
+      "expected_result": "恶意形态 IsAllowed=false 且给出原因；公网 http:80/443/8080 与 https:443 放行",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-014"
+      ],
+      "risk_mechanism_ids": [
+        "RM-SEC-001"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "SsrfGuardTests 全绿"
+      ],
+      "release_blocking_reason": "核心/安全能力失效将直接阻断发布"
+    },
+    {
+      "id": "TC-WEB-031",
+      "module": "Web安全-令牌",
+      "title": "非回环无/错令牌写操作 403，回环免令牌，令牌每次随机注入",
+      "priority": "P0",
+      "type": "安全",
+      "steps": [
+        "运行 WebSecurityTests 令牌相关用例"
+      ],
+      "test_data": "127.0.0.1 / 伪造局域网 IP / 正确令牌",
+      "expected_result": "非回环无令牌 401/403；错误令牌 403；回环 200；index 注入 64hex 且 web.js 带头",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-009",
+        "REQ-NETSPEEDTEST-010"
+      ],
+      "risk_mechanism_ids": [
+        "RM-WEB-002"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "WebSecurityTests + smoke F-01 全绿"
+      ],
+      "release_blocking_reason": "核心/安全能力失效将直接阻断发布"
+    },
+    {
+      "id": "TC-WEB-032",
+      "module": "Web安全-响应头",
+      "title": "JSON/静态/错误响应均带安全头，CORS 拒绝，错误体固定不泄密",
+      "priority": "P1",
+      "type": "安全",
+      "steps": [
+        "运行 WebSecurityTests 与 smoke FN-06/FN-07"
+      ],
+      "test_data": "/api/status、/assets/web.css、不存在路由",
+      "expected_result": "nosniff/DENY/no-referrer 存在；404 固定文案不含异常/路径/netsh",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-009"
+      ],
+      "risk_mechanism_ids": [
+        "RM-WEB-002"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "WebSecurityTests、smoke 输出"
+      ],
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-WEB-033",
+      "module": "Web安全-路径穿越",
+      "title": "../ 与编码穿越无法读取 wwwroot 之外文件",
+      "priority": "P1",
+      "type": "安全",
+      "steps": [
+        "运行 WebSecurityTests 路径穿越用例"
+      ],
+      "test_data": "/../../appsettings.json、%2e%2e、绝对路径",
+      "expected_result": "一律 404/400，不返回 wwwroot 外文件",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-009"
+      ],
+      "risk_mechanism_ids": [
+        "RM-SEC-001"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "WebSecurityTests 穿越用例全绿"
+      ],
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-WEB-034",
+      "module": "Web生命周期",
+      "title": "start 真正 running 后才 200、重复 409、stop 归 false",
+      "priority": "P1",
+      "type": "功能",
+      "steps": [
+        "运行 TestStartConfirmationTests；执行 smoke 生命周期段"
+      ],
+      "test_data": "POST /api/test/start、重复 start、stop、轮询 status",
+      "expected_result": "200 后 status.running=true；重复=409；stop=200 且 running 在超时内归 false",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-010"
+      ],
+      "risk_mechanism_ids": [
+        "RM-LIFECYCLE-008"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "测试类全绿、smoke 状态序列"
+      ],
+      "state_oracle": {
+        "intermediate": "start 后服务端进入 running 才回 200",
+        "terminal": "stop 后 running=false",
+        "technical_outcome": "测试任务被请求取消并清理",
+        "side_effect": "无残留测速线程/句柄"
+      },
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-WEB-035",
+      "module": "Web设置",
+      "title": "设置原子持久化、并发写不损坏、重启保留",
+      "priority": "P1",
+      "type": "数据",
+      "steps": [
+        "运行 SpeedOptionsPersistenceTests；执行 smoke 设置段（含 8 并发 POST）"
+      ],
+      "test_data": "合法/边界/非法值、8 并发写、断电模拟（写一半）",
+      "expected_result": "往返一致；文件始终为合法 JSON；无 .tmp 残留；非法值钳制或拒绝",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-012"
+      ],
+      "risk_mechanism_ids": [
+        "RM-PERSIST-007"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "持久化测试全绿、smoke 磁盘校验"
+      ],
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-WEB-036",
+      "module": "Web可用性",
+      "title": "测速/高并发轮询下 status 始终快速响应",
+      "priority": "P1",
+      "type": "性能",
+      "steps": [
+        "执行 smoke：20 次快速启停 + 90 次并发 status 轮询"
+      ],
+      "test_data": "127.0.0.1:8080，16 runspace 并发",
+      "expected_result": "status 恒 200 且单次 <2s；start 允许 200/409；无超时",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-010",
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "risk_mechanism_ids": [
+        "RM-LIFECYCLE-008"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "smoke-test.ps1 汇总表"
+      ],
+      "manual_reason": "需启动真实 Release GUI 程序",
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-WEB-037",
+      "module": "Web启动确认",
+      "title": "API 发起的测速不弹准备确认框且错误不派发到 UI",
+      "priority": "P1",
+      "type": "功能",
+      "steps": [
+        "运行 TestStartConfirmationTests"
+      ],
+      "test_data": "API 标志位、Dispatcher、错误文案",
+      "expected_result": "MarkApiInitiated 后不弹窗；错误经 Web 返回固定文案而非 MessageBox",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-010"
+      ],
+      "risk_mechanism_ids": [
+        "RM-LIFECYCLE-008"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "TestStartConfirmationTests 全绿"
+      ],
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-WEBACL-038",
+      "module": "Web-局域网ACL",
+      "title": "网段白名单外设备被拒、白名单内可访问",
+      "priority": "P1",
+      "type": "安全",
+      "steps": [
+        "配置允许网段→白名单内/外设备分别访问 API"
+      ],
+      "test_data": "192.168.1.0/24 与 10.0.0.x 客户端",
+      "expected_result": "白名单外 403；白名单内带令牌可操作；回环始终可用",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-009"
+      ],
+      "risk_mechanism_ids": [
+        "RM-WEB-002"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "两台设备访问结果截图"
+      ],
+      "manual_reason": "需要第二台设备跨网段访问",
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-WEB-039",
+      "module": "Web设置-范围一致性",
+      "title": "API clamp 与 UI 滑块/README 参数表一致",
+      "priority": "P2",
+      "type": "兼容",
+      "steps": [
+        "逐项比对 ApplySettingsCore Clamp、SettingsWindow.xaml Slider、README 参数表"
+      ],
+      "test_data": "testTimeoutSec、threadRampUpMs 等 10 项",
+      "expected_result": "三处范围一致；当前实测 API 更宽松（5–600 vs 文档 10–600；0–5000 vs 0–2000 等）→ BUG-003",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-010",
+        "REQ-NETSPEEDTEST-012"
+      ],
+      "risk_mechanism_ids": [
+        "RM-CLAMP-011"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "三处范围对照表（见报告缺陷 BUG-003）"
+      ],
+      "manual_reason": "clamp 硬编码在私有方法，以静态对照取证"
+    },
+    {
+      "id": "TC-WEB-040",
+      "module": "Web-兜底页",
+      "title": "wwwroot 缺失时内嵌兜底页在局域网仍可带令牌操作",
+      "priority": "P3",
+      "type": "异常",
+      "steps": [
+        "临时移走 wwwroot→局域网打开兜底页→尝试启动测速/保存设置"
+      ],
+      "test_data": "非回环客户端、兜底 DefaultIndexHtml",
+      "expected_result": "应能正常 POST；当前兜底页 fetch 未带 X-NST-Token，非回环全部 403 → BUG-007",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-009"
+      ],
+      "risk_mechanism_ids": [
+        "RM-FALLBACK-017"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "DefaultIndexHtml 源码对照（报告 BUG-007）"
+      ],
+      "manual_reason": "需构造 wwwroot 缺失并跨设备访问"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-050",
+      "module": "历史记录",
+      "title": "SQLite 建表/写入/分页/计数/删除/清空/字段往返",
+      "priority": "P2",
+      "type": "数据",
+      "steps": [
+        "运行 DataServicePaginationTests（临时库）"
+      ],
+      "test_data": "25 条记录、pageSize 10/20、删除、清空",
+      "expected_result": "分页 total/页大小正确、倒序、页间不重叠；删除/清空计数同步；字段往返一致",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-007"
+      ],
+      "risk_mechanism_ids": [
+        "RM-DATA-013"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "DataServicePaginationTests 全绿（5 用例）"
+      ]
+    },
+    {
+      "id": "TC-CSV-051",
+      "module": "历史记录-CSV",
+      "title": "CSV 导出含表头且内容与记录一致可打开",
+      "priority": "P3",
+      "type": "数据",
+      "steps": [
+        "历史页→导出 CSV→用 Excel/文本打开核对"
+      ],
+      "test_data": "含中文节点名与多类型记录",
+      "expected_result": "UTF-8 可识别、表头齐全、行数与记录一致",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-007"
+      ],
+      "risk_mechanism_ids": [
+        "RM-DATA-013"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "导出的 CSV 文件"
+      ]
+    },
+    {
+      "id": "TC-HBCS-052",
+      "module": "节点-HBCS",
+      "title": "HBCS 配置导入导出往返、私网 URL 被过滤",
+      "priority": "P2",
+      "type": "数据",
+      "steps": [
+        "导出节点为 .conf/.txt→重新导入→核对；导入含内网 URL 的文件"
+      ],
+      "test_data": "HBCS JSON、含 http://10.0.0.1 的配置",
+      "expected_result": "往返字段一致；私网 URL 被 urlFilter 剔除或拒绝；无效文件明确报错",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-008"
+      ],
+      "risk_mechanism_ids": [
+        "RM-PERSIST-007",
+        "RM-SEC-001"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "导入导出文件、节点列表截图"
+      ],
+      "manual_reason": "文件对话框与真实配置往返适合人工验证"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-060",
+      "module": "工具箱-子网",
+      "title": "子网计算 /24 /30 /31 /32 与非法输入正确",
+      "priority": "P2",
+      "type": "功能",
+      "steps": [
+        "运行 ToolboxCalculationTests 子网用例"
+      ],
+      "test_data": "192.168.1.1/24、/30、/31、/32、非法 IP",
+      "expected_result": "网络/广播/掩码/CIDR/主机数/可用范围全部正确，非法输入报错",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-011"
+      ],
+      "risk_mechanism_ids": [
+        "RM-TOOLS-010"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "ToolboxCalculationTests 子网用例全绿"
+      ]
+    },
+    {
+      "id": "TC-NETSPEEDTEST-061",
+      "module": "工具箱-带宽",
+      "title": "带宽换算正确且拒绝非数字",
+      "priority": "P2",
+      "type": "功能",
+      "steps": [
+        "运行 ToolboxCalculationTests 带宽用例"
+      ],
+      "test_data": "100/1000 Mbps、非数字",
+      "expected_result": "MB/s、Gbps 换算正确；非数字提示错误",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-011"
+      ],
+      "risk_mechanism_ids": [
+        "RM-TOOLS-010"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "ToolboxCalculationTests 带宽用例全绿"
+      ]
+    },
+    {
+      "id": "TC-MTU-062",
+      "module": "工具箱-MTU",
+      "title": "MTU 探测对跨网关目标可得出路径 MTU",
+      "priority": "P2",
+      "type": "功能",
+      "steps": [
+        "代码审查 PingOptions TTL；真实 ping -i 1 与 -i 30 对比取证；修复后启用 Skip 用例"
+      ],
+      "test_data": "目标 8.8.8.8，DF=true，二分负载 68~1500",
+      "expected_result": "TTL 必须足以到达远端；当前 TTL 固定 1，跨网关首跳 TtlExpired，恒“未找到可用 MTU” → BUG-001",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-011"
+      ],
+      "risk_mechanism_ids": [
+        "RM-TOOLS-010"
+      ],
+      "execution_mode": "hybrid",
+      "evidence_expected": [
+        "MtuProbe_UsesTtlLargeEnoughToReachRemoteTarget（Skip 待修复）",
+        "ping -i 1/-i 30 真实输出"
+      ],
+      "manual_reason": "TTL 硬编码在私有方法，结合真实 ping 观察取证"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-063",
+      "module": "工具箱-带宽边界",
+      "title": "带宽 0 与负数应被拒绝",
+      "priority": "P3",
+      "type": "异常",
+      "steps": [
+        "修复后启用 Skip 用例 Bandwidth_Zero/Negative"
+      ],
+      "test_data": "0、-50",
+      "expected_result": "0 不得显示 ∞ 秒、负数不得显示负耗时，应提示输入大于 0 → BUG-004",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-011"
+      ],
+      "risk_mechanism_ids": [
+        "RM-TOOLS-010"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "Bandwidth_Zero/Negative（Skip 待修复）"
+      ]
+    },
+    {
+      "id": "TC-NETSPEEDTEST-064",
+      "module": "工具箱-掩码合法性",
+      "title": "非连续子网掩码应报错",
+      "priority": "P3",
+      "type": "异常",
+      "steps": [
+        "修复后启用 Skip 用例 Subnet_NonContiguousMask"
+      ],
+      "test_data": "255.0.255.0",
+      "expected_result": "应提示掩码非法而非给出错误 CIDR/网络地址 → BUG-005",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-011"
+      ],
+      "risk_mechanism_ids": [
+        "RM-TOOLS-010"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "Subnet_NonContiguousMask（Skip 待修复）"
+      ]
+    },
+    {
+      "id": "TC-NETSPEEDTEST-065",
+      "module": "工具箱-其余冒烟",
+      "title": "Ping/DNS/HTTP/路由/端口/DNS对比/IP归属/公网IP/SSL/Header/时间戳/哈希/Base64/UUID/NAT 可用",
+      "priority": "P3",
+      "type": "功能",
+      "steps": [
+        "逐工具使用默认值执行一次"
+      ],
+      "test_data": "默认目标（8.8.8.8/github.com 等）",
+      "expected_result": "各工具返回合理结果，异常有提示，NAT 检测可得出结论",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-011"
+      ],
+      "risk_mechanism_ids": [
+        "RM-TOOLS-010"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "各工具结果截图"
+      ],
+      "manual_reason": "多数工具依赖外网与第三方接口，适合人工冒烟"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-070",
+      "module": "更新检查",
+      "title": "版本判定/资产选择/SHA256 校验/网络失败静默降级",
+      "priority": "P2",
+      "type": "功能",
+      "steps": [
+        "运行 UpdateCheckerTests"
+      ],
+      "test_data": "有新版/无新版/预发布/错误资产/签名不符/超时",
+      "expected_result": "仅稳定新版提示；取 zip 资产；签名不符拒绝；异常不弹错误窗",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-013"
+      ],
+      "risk_mechanism_ids": [
+        "RM-UPDATE-014"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "UpdateCheckerTests 全绿"
+      ]
+    },
+    {
+      "id": "TC-NETSPEEDTEST-080",
+      "module": "稳定性-日志",
+      "title": "真实运行无 FATAL/未观察任务/枚举修改异常",
+      "priority": "P1",
+      "type": "稳定性",
+      "steps": [
+        "执行 smoke-test.ps1 并检查 debug.log"
+      ],
+      "test_data": "完整 smoke 生命周期",
+      "expected_result": "0 FATAL、0 Unhandled/Unobserved/Collection was modified",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "risk_mechanism_ids": [
+        "RM-ADAPT-006",
+        "RM-CANCEL-015"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "smoke Runtime errors 段"
+      ],
+      "manual_reason": "需真实 Release 运行产生日志",
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-081",
+      "module": "稳定性-快速启停",
+      "title": "20 次快速 start/stop 不卡死不泄漏",
+      "priority": "P1",
+      "type": "稳定性",
+      "steps": [
+        "执行 smoke Rapid start/stop x20"
+      ],
+      "test_data": "127.0.0.1:8080",
+      "expected_result": "每周期 start∈{200,409}、stop=200、status<2s，进程不退出",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-010",
+        "REQ-NETSPEEDTEST-015"
+      ],
+      "risk_mechanism_ids": [
+        "RM-LIFECYCLE-008",
+        "RM-CANCEL-015"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "smoke 20x 段汇总"
+      ],
+      "manual_reason": "需真实程序",
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+    },
+    {
+      "id": "TC-WEB-082",
+      "module": "Web-防火墙",
+      "title": "局域网监听时防火墙规则/状态/指引语义一致",
+      "priority": "P3",
+      "type": "兼容",
+      "steps": [
+        "审查 EnsureFirewallRule 与 FirewallReady 消费方；非管理员启动 Web 服务观察"
+      ],
+      "test_data": "netsh delete/add 规则、_firewallReady 赋值、UI/前端消费",
+      "expected_result": "当前 add 为死代码、状态恒 true 且无消费者，与 README 宣称不符 → BUG-006",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-009"
+      ],
+      "risk_mechanism_ids": [
+        "RM-FW-016"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "WebServerService.cs:462-477 源码、全仓 FirewallReady 引用检索"
+      ],
+      "manual_reason": "是否自动添加规则涉及 UAC 产品决策，需作者确认预期"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-083",
+      "module": "测速引擎-双向明细",
+      "title": "双向测速结果包含下载/上传 URL 明细",
+      "priority": "P2",
+      "type": "数据",
+      "steps": [
+        "双向测速后检查结果 UrlDetails 与界面明细/导出"
+      ],
+      "test_data": "下载+上传 URL 各≥1",
+      "expected_result": "应包含两侧 URL 成败；当前 RunFullTestAsync 返回 UrlDetails 恒为空 → BUG-002",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-003",
+        "REQ-NETSPEEDTEST-010"
+      ],
+      "risk_mechanism_ids": [
+        "RM-DETAIL-012"
+      ],
+      "execution_mode": "manual",
+      "evidence_expected": [
+        "SpeedTestService.cs:1794 源码、双向结果观察"
+      ],
+      "manual_reason": "需真实双向测速观察界面"
+    }
+  ],
+  "executions": [
+    {
+      "id": "EXE-NETSPEEDTEST-001",
+      "case_id": "TC-NETSPEEDTEST-001",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "dotnet build Debug+Release 均退出码 0，0 警告 0 错误",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-BUILD-001",
+        "EVD-TEST-002"
+      ],
+      "tester_notes": "构建为命令行正式执行；Debug 与 Release 两配置均验证"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-002",
+      "case_id": "TC-NETSPEEDTEST-002",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "VersionConsistencyTests 全绿，版本 1.4.3.0 四处一致",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-003",
+      "case_id": "TC-NETSPEEDTEST-003",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "ReadmeDocumentationTests 全绿",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-010",
+      "case_id": "TC-NETSPEEDTEST-010",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "AdaptiveControllerTests 全绿，并发硬上限/裁剪/双向合计不变式成立",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-011",
+      "case_id": "TC-NETSPEEDTEST-011",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "BidirectionalAdaptiveFeedbackTests 全绿，瓶颈侧/双方向门控/起始拆分正确",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-012",
+      "case_id": "TC-URL-012",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "UrlBalancerTests 9 用例全绿：探索覆盖/最快选择/失败与超时冷却/全不健康不返回空串/明细分类",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-013",
+      "case_id": "TC-NETSPEEDTEST-013",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "UploadValidationTests 全绿，仅 2xx 计成功",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-014",
+      "case_id": "TC-NETSPEEDTEST-014",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "UrlDetailReportingTests 全绿，上传拒收/超时明细正确",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-015",
+      "case_id": "TC-NETSPEEDTEST-015",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "NicEgressResolverTests 5 用例全绿，出口解析五分支正确",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-016",
+      "case_id": "TC-UDP-016",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "UdpProbeTests 全绿，PortUnreachable 计可达、超时才计丢包",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-017",
+      "case_id": "TC-NETSPEEDTEST-017",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "SsrfGuardTests 重定向逐跳用例全绿，恶意 Location 被拒、自动重定向关闭",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-018",
+      "case_id": "TC-NETSPEEDTEST-018",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "真实外网下载测速未实测：授权范围为 dotnet build/test，未启动 GUI 做联网测速",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-019",
+      "case_id": "TC-NETSPEEDTEST-019",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "多网卡真实绑定/聚合未实测：需多张活动网卡与多上联环境",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-020",
+      "case_id": "TC-NETSPEEDTEST-020",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "准备阶段取消的 GUI 行为未实测",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-030",
+      "case_id": "TC-WEBSSRF-030",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "SsrfGuardTests 全形态用例全绿，私网/元数据/进制变体/非白名单端口均拒绝",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-031",
+      "case_id": "TC-WEB-031",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "WebSecurityTests 令牌用例全绿：非回环无/错令牌拒绝、回环免令牌、index 注入随机令牌",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-032",
+      "case_id": "TC-WEB-032",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "WebSecurityTests 安全头/错误体用例全绿（smoke FN-06/07 端到端段未执行）",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-033",
+      "case_id": "TC-WEB-033",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "WebSecurityTests 路径穿越用例全绿",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-034",
+      "case_id": "TC-WEB-034",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "TestStartConfirmationTests 全绿：running 后才 200、重复 409、API 不弹确认框（smoke 生命周期段未执行）",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-035",
+      "case_id": "TC-WEB-035",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "SpeedOptionsPersistenceTests 全绿：原子写/往返/非法值处理（smoke 8 并发写段未执行）",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-036",
+      "case_id": "TC-WEB-036",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "smoke 负载段（20 次快速启停+90 次并发 status）未执行：需启动 Release GUI 并占用 8080",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-037",
+      "case_id": "TC-WEB-037",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "TestStartConfirmationTests 全绿，错误不经 UI 弹窗派发",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-038",
+      "case_id": "TC-WEBACL-038",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "跨设备网段白名单实测未执行：需第二台设备",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-039",
+      "case_id": "TC-WEB-039",
+      "status": "failed",
+      "execution_level": "partial_validation",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "静态对照确认 API clamp 与 UI/README 有 2 项不一致：testTimeoutSec 下限 5 vs 10、threadRampUpMs 上限 5000 vs 2000，其余 8 项一致 → BUG-003",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-CLAMP-005"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-040",
+      "case_id": "TC-WEB-040",
+      "status": "failed",
+      "execution_level": "partial_validation",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "静态确认兜底页 fetch 不携带 X-NST-Token，wwwroot 缺失时非回环 GET 401/POST 403，兜底页局域网不可用 → BUG-007",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-FALLBACK-007"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-050",
+      "case_id": "TC-NETSPEEDTEST-050",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "DataServicePaginationTests 5 用例全绿：25 条分页/页边界/删除/清空/字段往返",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-051",
+      "case_id": "TC-CSV-051",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "CSV 导出 GUI 操作未执行",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-052",
+      "case_id": "TC-HBCS-052",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "HBCS 导入导出 GUI 往返未执行",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-060",
+      "case_id": "TC-NETSPEEDTEST-060",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "ToolboxCalculationTests 子网 /24//30//31//32/非法 IP 用例全绿",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-061",
+      "case_id": "TC-NETSPEEDTEST-061",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "ToolboxCalculationTests 带宽 100/1000/非数字用例全绿",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-062",
+      "case_id": "TC-MTU-062",
+      "status": "failed",
+      "execution_level": "partial_validation",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "真实 ping 复现 TTL=1 跨网关首跳即 TTL expired，TTL=30 正常到达，确定性证明 MTU 探测对跨网关目标恒失败 → BUG-001",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-MTU-PING-003",
+        "EVD-MTU-SRC-004"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-063",
+      "case_id": "TC-NETSPEEDTEST-063",
+      "status": "skipped",
+      "execution_level": "partial_validation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "Skip 复现用例 Bandwidth_Zero/Negative 已就位；源码确定 0 得 ∞、负数得负耗时 → BUG-004",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TOOLBOX-009"
+      ],
+      "tester_notes": "缺陷复现用例以 [Fact(Skip)] 保留为修复检查点，修复后取消 Skip 即转回归测试"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-064",
+      "case_id": "TC-NETSPEEDTEST-064",
+      "status": "skipped",
+      "execution_level": "partial_validation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "Skip 复现用例 Subnet_NonContiguousMask 已就位；源码确定非连续掩码输出错误结果 → BUG-005",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TOOLBOX-009"
+      ],
+      "tester_notes": "缺陷复现用例以 [Fact(Skip)] 保留为修复检查点，修复后取消 Skip 即转回归测试"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-065",
+      "case_id": "TC-NETSPEEDTEST-065",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "18 工具中依赖外网第三方接口的人工冒烟未执行",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-070",
+      "case_id": "TC-NETSPEEDTEST-070",
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "UpdateCheckerTests 全绿：版本判定/资产选择/SHA256 不符拒绝/失败静默降级",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-TEST-002"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-080",
+      "case_id": "TC-NETSPEEDTEST-080",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "smoke 日志 FATAL 检查未执行：需真实 Release 运行产生 debug.log",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-081",
+      "case_id": "TC-NETSPEEDTEST-081",
+      "status": "blocked",
+      "execution_level": "blocked",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "smoke 20 次快速启停未执行",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-082",
+      "case_id": "TC-WEB-082",
+      "status": "failed",
+      "execution_level": "partial_validation",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "静态确认 add 防火墙入站规则为死代码、_firewallReady 恒 true 且无消费者，与 README 宣称不符 → BUG-006",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-FW-006"
+      ]
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-083",
+      "case_id": "TC-NETSPEEDTEST-083",
+      "status": "failed",
+      "execution_level": "partial_validation",
+      "validation_scope": "formal",
+      "execution_method": "manual",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "静态确认 RunFullTestAsync 双向结果 UrlDetails 恒空 → BUG-002",
+      "attempt": 1,
+      "started_at": "2026-09-30T00:00:00",
+      "finished_at": "2026-09-30T06:33:17",
+      "evidence_ids": [
+        "EVD-BIDI-008"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "EVD-BUILD-001",
+      "type": "log",
+      "level": "L4_formal",
+      "validation_scope": "formal",
+      "path": "build-release.log",
+      "description": "Release 完整构建 dotnet build NetSpeedTest.sln -c Release：退出码 0，0 警告 0 错误（Debug 配置同样 0/0）"
+    },
+    {
+      "id": "EVD-TEST-002",
+      "type": "log",
+      "level": "L4_formal",
+      "validation_scope": "formal",
+      "path": "test-full.log",
+      "description": "全量单元测试 dotnet test -c Release：失败 0 / 通过 239 / 跳过 4 / 总计 243。结构化结果另见 qa-full.trx"
+    },
+    {
+      "id": "EVD-MTU-PING-003",
+      "type": "log",
+      "level": "L3_reproducible",
+      "validation_scope": "formal",
+      "path": "mtu-ttl1.txt",
+      "description": "TTL=1 复现：ping -i 1 8.8.8.8 返回网关 TTL expired in transit；对照 mtu-ttl30.txt（-i 30）正常收到 8.8.8.8 应答 TTL=107"
+    },
+    {
+      "id": "EVD-MTU-SRC-004",
+      "type": "trace",
+      "level": "L2_observation",
+      "validation_scope": "formal",
+      "path": "evidence/evidence-bug-mtu-001.txt",
+      "description": "MoreViewModel.cs:203 new PingOptions(1, dontFragment:true) TTL 硬编码 1；:209 路径 MTU/IP MTU 术语颠倒"
+    },
+    {
+      "id": "EVD-CLAMP-005",
+      "type": "trace",
+      "level": "L2_observation",
+      "validation_scope": "formal",
+      "path": "evidence/evidence-bug-clamp-003.txt",
+      "description": "后端 WebServerService.cs:1431/1435 clamp（testTimeoutSec 5-600、threadRampUpMs 0-5000）对照 XAML:96/107（10-600、0-2000）"
+    },
+    {
+      "id": "EVD-FW-006",
+      "type": "trace",
+      "level": "L2_observation",
+      "validation_scope": "formal",
+      "path": "evidence/evidence-bug-fw-006.txt",
+      "description": "WebServerService.cs:513-524 EnsureFirewallRule delete 后无条件 return，add 为死代码；:454 _firewallReady 恒 true"
+    },
+    {
+      "id": "EVD-FALLBACK-007",
+      "type": "trace",
+      "level": "L2_observation",
+      "validation_scope": "formal",
+      "path": "evidence/evidence-bug-fallback-007.txt",
+      "description": "兜底页 :1844 注入 nst-token，但 :1885 api()/ :1900 startTest/ :1902 stopTest 的 fetch 均不带 X-NST-Token"
+    },
+    {
+      "id": "EVD-BIDI-008",
+      "type": "trace",
+      "level": "L2_observation",
+      "validation_scope": "formal",
+      "path": "evidence/evidence-bug-bidi-002.txt",
+      "description": "SpeedTestService.cs:1794 RunFullTestAsync 双向结果 UrlDetails=new() 恒空"
+    },
+    {
+      "id": "EVD-TOOLBOX-009",
+      "type": "trace",
+      "level": "L2_observation",
+      "validation_scope": "formal",
+      "path": "evidence/evidence-bug-toolbox-004-005.txt",
+      "description": "MoreViewModel.cs CalcBandwidth 0/负数除零、CalcSubnet 未校验掩码连续性的源码片段"
+    }
+  ],
+  "bugs": [
+    {
+      "status": "open",
+      "reproducibility": "always",
+      "repro_attempts": 1,
+      "first_failure_preserved": true,
+      "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3",
+      "id": "BUG-MTU-001",
+      "title": "MTU 探测 TTL 硬编码为 1，跨网关目标必然探测失败且结果术语颠倒",
+      "module": "18合1工具箱-MTU探测",
+      "severity": "S3",
+      "severity_basis": "工具箱子功能在默认目标（8.8.8.8 等跨网关地址）下 100% 不可用，但不影响核心测速与其它工具，无崩溃/数据损坏",
+      "priority": "P2",
+      "category": "other",
+      "preconditions": "使用 MTU 探测工具，目标为任何跨网关（非同一二层）地址，默认 8.8.8.8",
+      "steps": [
+        "打开 18 合 1 工具箱→MTU 探测",
+        "目标保持默认 8.8.8.8，开始探测",
+        "二分负载 68~1500 均以 PingOptions(ttl=1,DF=true) 发送"
+      ],
+      "actual_result": "所有探测包在第一跳网关即 TtlExpired，SuccessCount 恒为 0，最终提示『未找到可用 MTU』；ping -i 1 8.8.8.8 实测网关回 TTL expired in transit 佐证",
+      "expected_result": "TTL 应足够大（如 64 或至少大于路径跳数，路由追踪上限 30）以到达目标，按 DF 二分得到正确路径 MTU；结果文案中『IP MTU=负载+28、ICMP 负载=负载』术语不应颠倒",
+      "evidence_grade": "L3_reproducible",
+      "evidence_ids": [
+        "EVD-MTU-PING-003",
+        "EVD-MTU-SRC-004"
+      ],
+      "impact": "MTU 探测对跨网关目标完全失效，用户无法用该工具排查 PPPoE/隧道 MTU 问题；同网段目标因 1 跳可达而表现正常，具迷惑性",
+      "independent_failure_signature": "MoreViewModel.StartMtu:new PingOptions(1,true)→跨网关目标 ICMP TtlExpired→SuccessCount=0→未找到可用MTU",
+      "analysis": {
+        "classification": "logic_error",
+        "trigger_hypothesis": "开发时以同网段/网关为目标调试（1 跳可达），将路由追踪式递增 TTL 与 MTU 探测混淆，误把 TTL 固定为 1",
+        "change_correlation": "无法从 git 历史确定引入版本（本轮为静态评审，未做 bisect），v1.4.3 现存",
+        "blast_radius": "仅 MTU 探测工具；不影响主测速、Web、数据",
+        "confidence": "high"
+      },
+      "workaround": "将 PingOptions 第一个参数改为固定较大值（如 64）；修正结果文案术语；修复后启用 Skip 用例 MtuProbe_UsesTtlLargeEnoughToReachRemoteTarget",
+      "related_ids": [
+        "RM-TOOLS-010",
+        "TC-MTU-062"
+      ],
+      "case_ids": [
+        "TC-MTU-062"
+      ],
+      "risk_mechanism_id": "RM-TOOLS-010"
+    },
+    {
+      "status": "open",
+      "reproducibility": "always",
+      "repro_attempts": 1,
+      "first_failure_preserved": true,
+      "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3",
+      "id": "BUG-BIDI-002",
+      "title": "双向测速聚合结果 UrlDetails 恒为空，缺少下载/上传 URL 成败明细",
+      "module": "测速引擎-双向",
+      "severity": "S3",
+      "severity_basis": "双向测速的速率结果正常，仅 URL 级明细/排障信息缺失，属数据完整性降级，无错误数值",
+      "priority": "P2",
+      "category": "other",
+      "preconditions": "通过界面或 Web API 发起双向（full）测速，下载与上传 URL 均≥1",
+      "steps": [
+        "发起双向测速",
+        "测速完成后查看结果 URL 明细/历史详情/远程返回"
+      ],
+      "actual_result": "RunFullTestAsync（SpeedTestService.cs:1794）返回的 SpeedTestResult.UrlDetails = new()，不包含下载与上传两侧的 URL 成败、字节、错误信息",
+      "expected_result": "应合并下载与上传两侧 UrlDetails（或分别暴露），与单下载/单上传模式一致，供界面与远程排障显示",
+      "evidence_grade": "L2_observation",
+      "evidence_ids": [
+        "EVD-BIDI-008"
+      ],
+      "impact": "双向测速下无法定位是哪个节点失败/拖慢，远程 Web 与历史详情缺少 URL 级证据",
+      "independent_failure_signature": "RunFullTestAsync→SpeedTestResult.UrlDetails=new()（空集合），与两侧 inner.UrlDetails 未合并",
+      "analysis": {
+        "classification": "missing_aggregation",
+        "trigger_hypothesis": "双向聚合重构时合并了速率指标但遗漏 UrlDetails 集合",
+        "change_correlation": "v1.4.3 现存，未做 git bisect",
+        "blast_radius": "仅双向测速结果明细；单下载/单上传不受影响",
+        "confidence": "high"
+      },
+      "workaround": "在聚合结果中 Concat 下载与上传 inner.UrlDetails 后赋值；建议补一条针对 RunFullTestAsync 的明细断言测试",
+      "related_ids": [
+        "RM-DETAIL-012",
+        "TC-NETSPEEDTEST-083"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-083"
+      ],
+      "risk_mechanism_id": "RM-DETAIL-012"
+    },
+    {
+      "status": "open",
+      "reproducibility": "always",
+      "repro_attempts": 1,
+      "first_failure_preserved": true,
+      "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3",
+      "id": "BUG-CLAMP-003",
+      "title": "Web 设置 API 参数钳制范围与 UI 滑块/README 不一致（testTimeoutSec、threadRampUpMs）",
+      "module": "Web服务器-设置API",
+      "severity": "S3",
+      "severity_basis": "API 比 UI 更宽松，经 API 可写入 UI 不允许的值；testTimeoutSec=5 小于默认平均窗口 10s 会导致平均结果窗口尚未开启测速即结束，产生异常/空结果",
+      "priority": "P2",
+      "category": "other",
+      "preconditions": "启用 Web 服务器，通过 POST /api/settings 提交 testTimeoutSec=5 或 threadRampUpMs=3000",
+      "steps": [
+        "向 /api/settings 提交 {\"testTimeoutSec\":5}",
+        "或提交 {\"threadRampUpMs\":3000}",
+        "对照 SettingsWindow.xaml 滑块与 README 参数表"
+      ],
+      "actual_result": "testTimeoutSec 被接受为 5（UI/README 下限 10）；threadRampUpMs 被接受为 3000（UI/README 上限 2000）。其余 8 项（threadCount/averageDelaySec/rateWindowSec/各轮询间隔/补偿参数）三处一致",
+      "expected_result": "API、UI 滑块、README 三处范围应统一；建议 testTimeoutSec 下限不小于平均窗口相关约束，或在超时时长<平均窗口时给出明确拒绝/提示",
+      "evidence_grade": "L2_observation",
+      "evidence_ids": [
+        "EVD-CLAMP-005"
+      ],
+      "impact": "远程可写入 UI 无法表达的边界值；testTimeoutSec=5 与 10s 平均窗口冲突，可能产出无平均速率的结果，破坏远程与界面行为一致性",
+      "independent_failure_signature": "ApplySettingsCore:Clamp(testTimeoutSec,5,600) 与 Clamp(threadRampUpMs,0,5000) 与 XAML/README 边界不匹配",
+      "analysis": {
+        "classification": "boundary_mismatch",
+        "trigger_hypothesis": "后端 clamp 与 UI 滑块/文档分别维护，参数调整时未同步",
+        "change_correlation": "v1.4.3 现存",
+        "blast_radius": "仅经 Web API 的远程设置；界面滑块操作不受影响",
+        "confidence": "high"
+      },
+      "workaround": "统一三处常量（建议以 UI/README 为准：testTimeoutSec 10–600、threadRampUpMs 0–2000），并为 testTimeoutSec<averageDelaySec 增加校验；可加一条 API↔XAML 范围一致性自动化测试",
+      "related_ids": [
+        "RM-CLAMP-011",
+        "TC-WEB-039",
+        "TC-NETSPEEDTEST-003"
+      ],
+      "case_ids": [
+        "TC-WEB-039"
+      ],
+      "risk_mechanism_id": "RM-CLAMP-011"
+    },
+    {
+      "status": "open",
+      "reproducibility": "always",
+      "repro_attempts": 1,
+      "first_failure_preserved": true,
+      "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3",
+      "id": "BUG-BW-004",
+      "title": "带宽换算不拒绝 0/负数，0 显示『∞ 秒』、负数显示负耗时",
+      "module": "18合1工具箱-带宽换算",
+      "severity": "S4",
+      "severity_basis": "仅异常输入下的显示错误，不影响他人、无崩溃，普通使用（正数）正确",
+      "priority": "P3",
+      "category": "other",
+      "preconditions": "带宽换算框输入 0 或负数",
+      "steps": [
+        "输入 100 并选择文件大小可正常换算",
+        "输入 0",
+        "输入 -50"
+      ],
+      "actual_result": "mbps=0 时 seconds=size*8/0=double Infinity，界面显示『∞ 秒』；负数显示负的耗时数字",
+      "expected_result": "应提示『请输入大于 0 的带宽数值』，不进行换算",
+      "evidence_grade": "L2_observation",
+      "evidence_ids": [
+        "EVD-TOOLBOX-009"
+      ],
+      "impact": "异常输入下给出荒谬结果，影响工具专业度，无其它副作用",
+      "independent_failure_signature": "CalcBandwidth:seconds=size*8/mbps 未做 mbps>0 前置校验→Infinity/负值",
+      "analysis": {
+        "classification": "input_validation_missing",
+        "trigger_hypothesis": "仅做了 double.TryParse，未补充正数域校验",
+        "change_correlation": "v1.4.3 现存",
+        "blast_radius": "仅带宽换算工具",
+        "confidence": "high"
+      },
+      "workaround": "TryParse 后增加 mbps<=0 分支提示；修复后启用 Skip 用例 Bandwidth_Zero/Negative",
+      "related_ids": [
+        "RM-TOOLS-010",
+        "TC-NETSPEEDTEST-063"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-063"
+      ],
+      "risk_mechanism_id": "RM-TOOLS-010"
+    },
+    {
+      "status": "open",
+      "reproducibility": "always",
+      "repro_attempts": 1,
+      "first_failure_preserved": true,
+      "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3",
+      "id": "BUG-SUBNET-005",
+      "title": "子网计算不校验掩码位连续性，非法掩码输出错误 CIDR/网络地址",
+      "module": "18合1工具箱-子网计算",
+      "severity": "S4",
+      "severity_basis": "仅在输入非法子网掩码时给出错误结果，合法掩码计算正确，无崩溃",
+      "priority": "P3",
+      "category": "other",
+      "preconditions": "输入非连续掩码，如 255.0.255.0",
+      "steps": [
+        "IP 填 192.168.1.1，掩码填 255.0.255.0",
+        "执行计算"
+      ],
+      "actual_result": "按字节 popcount 直接算出 CIDR=16 并给出网络/广播地址，未识别该掩码非法（1 位不连续），结果具有误导性",
+      "expected_result": "应检测掩码二进制位必须连续（形如 1...10...0），非法时提示『无效的子网掩码』",
+      "evidence_grade": "L2_observation",
+      "evidence_ids": [
+        "EVD-TOOLBOX-009"
+      ],
+      "impact": "错误掩码下输出看似合理实则错误的网络参数，可能误导网络配置",
+      "independent_failure_signature": "CalcSubnet: 仅 popcount 掩码字节得 prefix，未校验 (mask & (mask+1))==0 连续性",
+      "analysis": {
+        "classification": "input_validation_missing",
+        "trigger_hypothesis": "实现假设用户输入标准掩码，未防御非连续掩码",
+        "change_correlation": "v1.4.3 现存",
+        "blast_radius": "仅子网计算工具",
+        "confidence": "high"
+      },
+      "workaround": "增加掩码连续性校验（UInt32 掩码满足 mask 为前导连续 1）；修复后启用 Skip 用例 Subnet_NonContiguousMask",
+      "related_ids": [
+        "RM-TOOLS-010",
+        "TC-NETSPEEDTEST-064"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-064"
+      ],
+      "risk_mechanism_id": "RM-TOOLS-010"
+    },
+    {
+      "status": "open",
+      "reproducibility": "always",
+      "repro_attempts": 1,
+      "first_failure_preserved": true,
+      "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3",
+      "id": "BUG-FW-006",
+      "title": "防火墙入站放行规则添加为死代码，且每次启动删除同名规则不重建，状态恒为就绪",
+      "module": "Web服务器-防火墙",
+      "severity": "S3",
+      "severity_basis": "与 README『自动探测防火墙放行状态』宣称不符；函数每次先 delete 同名规则却永不 add，可能移除用户已有放行而不恢复，削弱局域网开箱可用性；回环与已授权环境不受影响，无崩溃",
+      "priority": "P2",
+      "category": "other",
+      "preconditions": "启用局域网 Web 服务器，系统存在防火墙，且无同名放行规则",
+      "steps": [
+        "启动 Web 服务器（非管理员）",
+        "检查 netsh advfirewall rule name=\"NetSpeedTest Web Server\"",
+        "观察 _firewallReady/FirewallReady"
+      ],
+      "actual_result": "EnsureFirewallRule 内层 try 执行 delete 后第 519 行无条件 return，523 行 add 永不执行；_firewallReady 在 :454 恒置 true；FirewallReady 无任何 UI/前端消费者（仅 status JSON 输出字段）",
+      "expected_result": "应真正探测/创建入站放行规则（或在无提权时明确返回未就绪并给出用户指引），FirewallReady 反映真实可达性，且不应只删不建",
+      "evidence_grade": "L2_observation",
+      "evidence_ids": [
+        "EVD-FW-006"
+      ],
+      "impact": "局域网首次访问可能被防火墙拦截且软件误报已就绪；反复启动会删除同名规则而不重建。是否自动 netsh add 需管理员/UAC，属需作者拍板的产品决策",
+      "independent_failure_signature": "EnsureFirewallRule:{ try{ delete; }catch{} return; } → add 语句不可达；_firewallReady=true 恒定",
+      "analysis": {
+        "classification": "dead_code_logic_error",
+        "trigger_hypothesis": "可能因非管理员下 netsh add 会抛错而临时 return 屏蔽，但同时把 delete 保留、状态位置 true，形成『只删不建+误报就绪』",
+        "change_correlation": "v1.4.3 现存",
+        "blast_radius": "局域网入站放行；回环监听不受影响",
+        "confidence": "high"
+      },
+      "workaround": "二选一：①移除死代码，delete 后正常 add 并在非提权失败时 _firewallReady=false 且给出提权/手动指引；②若不打算自动配置，则删除 delete/add 与误导性就绪状态，文档改为提示用户手动放行。需作者确认 UAC 策略",
+      "related_ids": [
+        "RM-FW-016",
+        "TC-WEB-082"
+      ],
+      "case_ids": [
+        "TC-WEB-082"
+      ],
+      "risk_mechanism_id": "RM-FW-016"
+    },
+    {
+      "status": "open",
+      "reproducibility": "always",
+      "repro_attempts": 1,
+      "first_failure_preserved": true,
+      "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3",
+      "id": "BUG-FALLBACK-007",
+      "title": "内嵌兜底网页未携带 X-NST-Token，wwwroot 缺失时局域网访问全部 401/403",
+      "module": "Web服务器-兜底页",
+      "severity": "S4",
+      "severity_basis": "仅在 wwwroot 静态资源缺失的边缘场景触发；回环免令牌仍可用，正式前端存在时不触发",
+      "priority": "P3",
+      "category": "other",
+      "preconditions": "wwwroot 目录缺失导致回退到内嵌 DefaultIndexHtml，且从非回环（局域网）设备访问",
+      "steps": [
+        "移走/重命名 wwwroot",
+        "从局域网设备打开兜底页",
+        "观察状态加载与点击测速按钮"
+      ],
+      "actual_result": "兜底页虽在 meta 注入 nst-token，但 api() 直接 fetch 不注入 X-NST-Token，startTest 仅带 Content-Type、stopTest 无头；非回环 GET /api/status、adapters、history 返回 401，POST 返回 403，页面打开但数据全空、操作全失败",
+      "expected_result": "兜底页应与正式 web.js 一致，从 meta 读取 token 并为所有 /api 请求附加 X-NST-Token，使局域网在持有令牌时可用",
+      "evidence_grade": "L2_observation",
+      "evidence_ids": [
+        "EVD-FALLBACK-007"
+      ],
+      "impact": "资源缺失的兜底场景下局域网远程控制完全不可用（只剩静态壳），削弱兜底页设计价值",
+      "independent_failure_signature": "DefaultIndexHtml.api():fetch(path,options) 未合并 X-NST-Token 头；meta nst-token 无 JS 读取",
+      "analysis": {
+        "classification": "missing_auth_header",
+        "trigger_hypothesis": "兜底页脚本为精简手写，遗漏了正式前端的令牌注入逻辑",
+        "change_correlation": "v1.4.3 现存",
+        "blast_radius": "仅兜底页+非回环；正式前端与回环正常",
+        "confidence": "high"
+      },
+      "workaround": "在兜底页 api() 中读取 document.querySelector('meta[name=nst-token]').content 并注入 X-NST-Token；建议补兜底页令牌头的自动化断言",
+      "related_ids": [
+        "RM-FALLBACK-017",
+        "TC-WEB-040"
+      ],
+      "case_ids": [
+        "TC-WEB-040"
+      ],
+      "risk_mechanism_id": "RM-FALLBACK-017"
+    }
+  ],
+  "bug_candidates": [],
+  "risks": [],
+  "acceptance_checks": [
+    {
+      "id": "AC-BUILD-001",
+      "title": "解决方案可构建且版本/文档一致",
+      "type": "release_config",
+      "case_ids": [
+        "TC-NETSPEEDTEST-001",
+        "TC-NETSPEEDTEST-002",
+        "TC-NETSPEEDTEST-003"
+      ],
+      "blocking": true,
+      "notes": "Debug/Release 构建零错误零警告是发布前提；版本号必须四处一致"
+    },
+    {
+      "id": "AC-CORE-002",
+      "title": "测速核心（自适应/URL均衡/网卡/上传校验）正确性",
+      "type": "core_flow",
+      "case_ids": [
+        "TC-NETSPEEDTEST-010",
+        "TC-NETSPEEDTEST-011",
+        "TC-URL-012",
+        "TC-NETSPEEDTEST-013",
+        "TC-NETSPEEDTEST-014",
+        "TC-NETSPEEDTEST-015",
+        "TC-UDP-016",
+        "TC-NETSPEEDTEST-017"
+      ],
+      "blocking": true,
+      "notes": "P0/P1 自动化必须全绿；真实外网/多网卡为人工补充证据"
+    },
+    {
+      "id": "AC-SEC-003",
+      "title": "远程 Web 安全（SSRF/令牌/穿越/响应头）",
+      "type": "permission_security",
+      "case_ids": [
+        "TC-NETSPEEDTEST-017",
+        "TC-WEBSSRF-030",
+        "TC-WEB-031",
+        "TC-WEB-032",
+        "TC-WEB-033"
+      ],
+      "blocking": true,
+      "notes": "安全类 P0：任何绕过都会阻断发布"
+    },
+    {
+      "id": "AC-LIFE-004",
+      "title": "Web 测试生命周期、设置持久化与可用性",
+      "type": "performance",
+      "case_ids": [
+        "TC-WEB-034",
+        "TC-WEB-035",
+        "TC-WEB-036",
+        "TC-WEB-037",
+        "TC-NETSPEEDTEST-081"
+      ],
+      "blocking": true,
+      "notes": "200 不得早于 running；负载下 status<2s；持久化不损坏"
+    },
+    {
+      "id": "AC-DATA-005",
+      "title": "历史记录与节点数据一致性",
+      "type": "data_consistency",
+      "case_ids": [
+        "TC-NETSPEEDTEST-050",
+        "TC-CSV-051",
+        "TC-HBCS-052",
+        "TC-NETSPEEDTEST-014"
+      ],
+      "blocking": false,
+      "notes": "分页/计数/往返自动化覆盖；CSV 与 HBCS 人工补充"
+    },
+    {
+      "id": "AC-TOOL-006",
+      "title": "18 合 1 工具箱计算/探测正确并校验输入",
+      "type": "exception",
+      "case_ids": [
+        "TC-NETSPEEDTEST-060",
+        "TC-NETSPEEDTEST-061",
+        "TC-MTU-062",
+        "TC-NETSPEEDTEST-063",
+        "TC-NETSPEEDTEST-064",
+        "TC-NETSPEEDTEST-065"
+      ],
+      "blocking": false,
+      "notes": "MTU/带宽/掩码缺陷为 P2/P3，不阻断核心测速发布，但须在报告列明"
+    },
+    {
+      "id": "AC-UPDATE-007",
+      "title": "更新检查与签名验证",
+      "type": "release_config",
+      "case_ids": [
+        "TC-NETSPEEDTEST-070"
+      ],
+      "blocking": false,
+      "notes": "错误资产/签名不符必须拒绝"
+    },
+    {
+      "id": "AC-DEFECT-008",
+      "title": "已识别缺陷逐项复核与定级",
+      "type": "defect_blocker",
+      "case_ids": [
+        "TC-WEB-039",
+        "TC-WEB-040",
+        "TC-MTU-062",
+        "TC-NETSPEEDTEST-063",
+        "TC-NETSPEEDTEST-064",
+        "TC-WEB-082",
+        "TC-NETSPEEDTEST-083"
+      ],
+      "blocking": false,
+      "notes": "BUG-001~007 证据、定级、修复/规避建议齐备；P0 集合必须与阻断集合相等"
+    },
+    {
+      "id": "AC-STAB-009",
+      "title": "真实运行稳定性（无 FATAL/未观察异常）",
+      "type": "core_flow",
+      "case_ids": [
+        "TC-NETSPEEDTEST-080",
+        "TC-NETSPEEDTEST-081",
+        "TC-NETSPEEDTEST-018",
+        "TC-NETSPEEDTEST-020"
+      ],
+      "blocking": false,
+      "notes": "若 smoke 无法执行则记为未验证范围，不得伪装通过"
+    }
+  ],
+  "blockers": [],
+  "manual_handoff": {
+    "required": false,
+    "status": "not_required",
+    "reason": "",
+    "target_platform": "",
+    "operator": "",
+    "prerequisites": [],
+    "case_ids": [],
+    "evidence_requirements": [],
+    "result_submission": []
+  },
+  "unverified": [
+    "WPF 控件像素级界面走查、深色/浅色主题与中英文渲染未做人工全量核对",
+    "真实外网测速的吞吐数值准确性未做联网实测（依赖实时网络质量与公网测速文件可用性），核心算法以无网络单元测试验证",
+    "真实手机/第二台设备跨网段访问、ACL 网段白名单拦截未做跨设备实测（TC-038/TC-040）",
+    "多网卡多宽带真实绑定与聚合未在多上联环境实测（TC-019），绑定分支以纯逻辑测试覆盖",
+    "tools/smoke-test.ps1 端到端需启动 Release GUI 并占用 127.0.0.1:8080，是否执行以本机环境为准；未执行则其覆盖项记为未验证",
+    "防火墙 netsh 提权添加/删除规则未在管理员/非管理员环境分别实测（TC-082），仅做静态代码取证",
+    "广告弹窗与赞助内容、安装包代码签名、GitHub Release 发布流水线不在本轮范围",
+    "CSV 导出、HBCS 往返、18 工具中依赖外网第三方接口（ip-api/ipify/STUN）的人工冒烟（TC-051/052/065）未执行"
+  ],
+  "coverage": {
+    "requirement_total": 15,
+    "requirement_linked": 15,
+    "requirement_unlinked": 0,
+    "p0_requirement_total": 0,
+    "p0_requirement_linked": 0,
+    "case_total": 39,
+    "case_status_counts": {
+      "不适用": 2,
+      "失败": 5,
+      "通过": 22,
+      "阻塞": 10
+    },
+    "acceptance_total": 9,
+    "acceptance_status_counts": {
+      "未通过": 2,
+      "通过": 4,
+      "阻塞": 3
+    }
+  },
+  "release_decision": {
+    "decision": "undetermined",
+    "rationale": "自动化与静态层证据充分：Debug/Release 构建 0 错误 0 警告（EV-001），全量 243 个单元测试 239 通过、0 失败、4 个为缺陷复现 Skip（EV-002），覆盖自适应并发、URL 均衡、上传校验、网卡出口、SSRF/重定向、令牌、路径穿越、生命周期、持久化、更新校验、历史分页等 P0/P1 机制；另以真实 ping 对 MTU 缺陷完成 L3 复现（EV-003）。但本轮授权范围为 dotnet build/test，真实 GUI 外网下载/上传/双向测速（TC-018）、多网卡实测（TC-019）、跨设备局域网访问（TC-038）、tools/smoke-test.ps1 端到端（TC-036/080/081）等核心旅程缺少真实运行证据，且存在 5 个 P2、2 个 P3 开放缺陷（BUG-MTU-001/002/003/006 为 P2，BUG-BW-004/005/007 为 P3）。在核心端到端未实测、缺陷未处置前不做 go 终审；无 S1/S2 与 P0/P1 缺陷，故亦非 no_go，结论为 undetermined。",
+    "blocking_bug_ids": [],
+    "p0_open_bug_ids": [],
+    "conditions": [
+      "授权并执行 tools/smoke-test.ps1（或等效真机步骤），取得生命周期/负载/安全头/日志无 FATAL 的端到端证据（TC-036/080/081）",
+      "完成至少一次真实外网下载、上传、双向测速并核对速率与 URL 明细（TC-018；双向同时验证 BUG-BIDI-002）",
+      "用第二台设备验证局域网令牌与网段白名单（TC-038），并在 wwwroot 缺失场景验证兜底页（关联 BUG-FALLBACK-007）",
+      "处置 4 个 P2 缺陷：BUG-MTU-001（MTU TTL）、BUG-BIDI-002（双向明细）、BUG-CLAMP-003（clamp 一致性）、BUG-FW-006（防火墙死代码，需定 UAC 策略）",
+      "修复后取消 4 个 [Fact(Skip)] 复现用例并确保全量测试转绿"
+    ],
+    "responsible": "项目作者（凌影傲爵）修复缺陷；QA 提供复现用例与定级",
+    "monitoring": "修复后重跑全量 dotnet test 与 smoke-test.ps1，重点观察 debug.log 是否出现 FATAL/Unobserved/Collection was modified",
+    "rollback": "若修复引入回归，可 git revert 修复提交回到 771e23f（v1.4.3）；缺陷均不影响回环本地测速，紧急时可暂不启用局域网 Web 与 MTU 工具"
+  },
+  "delivery_manifest": {
+    "source_revision": 5,
+    "outputs": [
+      {
+        "purpose": "deliverable",
+        "carrier": "local",
+        "format": "markdown",
+        "filename": "QA收口报告.md",
+        "source_revision": 5,
+        "sha256": "44b108cff56b5313ab375954e39fa4f6a5bbb348c4efbb7832d7ade16f9e1c85",
+        "status": "validated",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\qa-results\\netspeedtest-coreqa\\QA收口报告.md",
+        "readback_receipt": "9108 字符 / 246 行；约定章节齐全",
+        "validated": true
+      },
+      {
+        "purpose": "deliverable",
+        "carrier": "local",
+        "format": "markdown",
+        "filename": "测试用例与追踪矩阵.md",
+        "source_revision": 5,
+        "sha256": "e53fdbb59324fbe7baebdbf604fa5fb8dc8a2650257abfa2bebe9367b37af139",
+        "status": "validated",
+        "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\qa-results\\netspeedtest-coreqa\\测试用例与追踪矩阵.md",
+        "readback_receipt": "14310 字符 / 207 行；约定章节齐全",
+        "validated": true
+      }
+    ],
+    "fingerprint": "sha256:59034c9337b337b352281e4b9367b80b57519e853cecc856aaf2a420d3170d13"
+  },
+  "test_data": {
+    "writes_allowed": false,
+    "accounts": [],
+    "created_records": [],
+    "cleanup": {
+      "required": false,
+      "status": "completed",
+      "command": "none",
+      "residuals": []
+    }
+  },
+  "disclosures": [
+    "引用不存在的用例 TC-001（executions[].case_id）",
+    "引用不存在的用例 TC-002（executions[].case_id）",
+    "引用不存在的用例 TC-003（executions[].case_id）",
+    "引用不存在的用例 TC-010（executions[].case_id）",
+    "引用不存在的用例 TC-011（executions[].case_id）",
+    "引用不存在的用例 TC-012（executions[].case_id）",
+    "引用不存在的用例 TC-013（executions[].case_id）",
+    "引用不存在的用例 TC-014（executions[].case_id）",
+    "引用不存在的用例 TC-015（executions[].case_id）",
+    "引用不存在的用例 TC-016（executions[].case_id）",
+    "引用不存在的用例 TC-017（executions[].case_id）",
+    "引用不存在的用例 TC-018（executions[].case_id）",
+    "引用不存在的用例 TC-019（executions[].case_id）",
+    "引用不存在的用例 TC-020（executions[].case_id）",
+    "引用不存在的用例 TC-030（executions[].case_id）",
+    "引用不存在的用例 TC-031（executions[].case_id）",
+    "引用不存在的用例 TC-032（executions[].case_id）",
+    "引用不存在的用例 TC-033（executions[].case_id）",
+    "引用不存在的用例 TC-034（executions[].case_id）",
+    "引用不存在的用例 TC-035（executions[].case_id）",
+    "引用不存在的用例 TC-036（executions[].case_id）",
+    "引用不存在的用例 TC-037（executions[].case_id）",
+    "引用不存在的用例 TC-038（executions[].case_id）",
+    "引用不存在的用例 TC-039（executions[].case_id）",
+    "引用不存在的用例 TC-040（executions[].case_id）",
+    "引用不存在的用例 TC-050（executions[].case_id）",
+    "引用不存在的用例 TC-051（executions[].case_id）",
+    "引用不存在的用例 TC-052（executions[].case_id）",
+    "引用不存在的用例 TC-060（executions[].case_id）",
+    "引用不存在的用例 TC-061（executions[].case_id）",
+    "引用不存在的用例 TC-062（executions[].case_id）",
+    "引用不存在的用例 TC-063（executions[].case_id）",
+    "引用不存在的用例 TC-064（executions[].case_id）",
+    "引用不存在的用例 TC-065（executions[].case_id）",
+    "引用不存在的用例 TC-070（executions[].case_id）",
+    "引用不存在的用例 TC-080（executions[].case_id）",
+    "引用不存在的用例 TC-081（executions[].case_id）",
+    "引用不存在的用例 TC-082（executions[].case_id）",
+    "引用不存在的用例 TC-083（executions[].case_id）",
+    "文件型证据必须提供路径（evidence[].path）",
+    "缺少或非法 reproducibility（bugs[].reproducibility）",
+    "必须记录合法 Bug 证据类别（bugs[].category）",
+    "引用不存在的证据 EV-005（executions[].evidence_ids）",
+    "引用不存在的证据 EV-007（executions[].evidence_ids）",
+    "引用不存在的证据 EV-003（executions[].evidence_ids）",
+    "引用不存在的证据 EV-004（executions[].evidence_ids）",
+    "引用不存在的证据 EV-006（executions[].evidence_ids）"
+  ]
+}

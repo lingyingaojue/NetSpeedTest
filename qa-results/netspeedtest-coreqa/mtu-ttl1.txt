@@ -1,0 +1,7 @@
+
+Pinging 8.8.8.8 with 32 bytes of data:
+Reply from 192.168.1.1: TTL expired in transit.
+Reply from 192.168.1.1: TTL expired in transit.
+
+Ping statistics for 8.8.8.8:
+    Packets: Sent = 2, Received = 2, Lost = 0 (0% loss),

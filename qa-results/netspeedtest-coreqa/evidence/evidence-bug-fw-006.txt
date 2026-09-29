@@ -1,0 +1,99 @@
+【BUG-FW-006 证据】EnsureFirewallRule 中 add 入站规则为不可达死代码（delete 后无条件 return），_firewallReady 恒 true
+
+来源文件：NetSpeedTest\Services\WebServerService.cs（第 445-540 行）
+ 445:         catch (Exception ex)
+ 446:         {
+ 447:             _lanError = ex.Message;
+ 448:             Logger.Log($"URL ACL setup failed: {ex.Message}");
+ 449:         }
+ 450: 
+ 451:         try
+ 452:         {
+ 453:             EnsureFirewallRule(port);
+ 454:             _firewallReady = true;
+ 455:         }
+ 456:         catch (Exception ex)
+ 457:         {
+ 458:             _firewallReady = false;
+ 459:             if (string.IsNullOrWhiteSpace(_lanError)) _lanError = ex.Message;
+ 460:             Logger.Log($"Firewall rule setup failed: {ex.Message}");
+ 461:         }
+ 462: 
+ 463:         // 优先通配符监听：网卡/网段变化后无需重设 ACL
+ 464:         var wildcard = StartListener($"http://+:{port}/");
+ 465:         if (wildcard != null)
+ 466:         {
+ 467:             _listeners.Add(wildcard);
+ 468:             _usingWildcardListener = true;
+ 469:             _lanReady = true;
+ 470:             _aclReady = true;
+ 471:             _lanError = "";
+ 472:             return;
+ 473:         }
+ 474: 
+ 475:         // 回退：逐网卡监听其本机 IP
+ 476:         var lanCount = 0;
+ 477:         foreach (var binding in _bindings)
+ 478:         {
+ 479:             var listener = StartListener($"http://{binding.IPAddress}:{port}/");
+ 480:             if (listener == null) continue;
+ 481:             _listeners.Add(listener);
+ 482:             lanCount++;
+ 483:         }
+ 484:         _lanReady = lanCount > 0;
+ 485:         _aclReady = _lanReady;
+ 486:         if (!_lanReady && string.IsNullOrWhiteSpace(_lanError))
+ 487:             _lanError = LocalizationService.Get("WebServer_LanNeedAdmin");
+ 488:     }
+ 489: 
+ 490:     private HttpListener? StartListener(params string[] prefixes)
+ 491:     {
+ 492:         var listener = new HttpListener();
+ 493:         try
+ 494:         {
+ 495:             foreach (var prefix in prefixes) listener.Prefixes.Add(prefix);
+ 496:             listener.Start();
+ 497:             return listener;
+ 498:         }
+ 499:         catch (Exception ex)
+ 500:         {
+ 501:             Logger.Log($"Listener start failed for {string.Join(", ", prefixes)}: {ex.Message}");
+ 502:             try { listener.Close(); } catch { }
+ 503:             return null;
+ 504:         }
+ 505:     }
+ 506: 
+ 507:     private void EnsureUrlAcl(int port)
+ 508:     {
+ 509:         var user = $"{Environment.UserDomainName}\\{Environment.UserName}";
+ 510:         RunNetsh($"http add urlacl url=http://+:{port}/ user=\"{user}\"");
+ 511:     }
+ 512: 
+ 513:     private void EnsureFirewallRule(int port)
+ 514:     {
+ 515:         const string ruleName = "NetSpeedTest Web Server";
+ 516:         try
+ 517:         {
+ 518:             try { RunNetsh($"advfirewall firewall delete rule name=\"{ruleName}\""); } catch { }
+ 519:             return;
+ 520:         }
+ 521:         catch { }
+ 522: 
+ 523:         RunNetsh($"advfirewall firewall add rule name=\"{ruleName}\" dir=in action=allow protocol=TCP localport={port} profile=any");
+ 524:     }
+ 525: 
+ 526:     private static void RunNetsh(string arguments)
+ 527:     {
+ 528:         var psi = new ProcessStartInfo("netsh.exe", arguments)
+ 529:         {
+ 530:             UseShellExecute = false,
+ 531:             CreateNoWindow = true,
+ 532:             WindowStyle = ProcessWindowStyle.Hidden,
+ 533:             RedirectStandardOutput = true,
+ 534:             RedirectStandardError = true
+ 535:         };
+ 536:         using var process = Process.Start(psi);
+ 537:         if (process == null) throw new InvalidOperationException("无法启动 netsh");
+ 538:         process.WaitForExit(10000);
+ 539:         var output = process.StandardOutput.ReadToEnd();
+ 540:         var error = process.StandardError.ReadToEnd();

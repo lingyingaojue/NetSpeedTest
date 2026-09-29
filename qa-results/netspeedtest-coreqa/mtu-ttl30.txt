@@ -1,0 +1,9 @@
+
+Pinging 8.8.8.8 with 32 bytes of data:
+Reply from 8.8.8.8: bytes=32 time=181ms TTL=107
+Reply from 8.8.8.8: bytes=32 time=181ms TTL=107
+
+Ping statistics for 8.8.8.8:
+    Packets: Sent = 2, Received = 2, Lost = 0 (0% loss),
+Approximate round trip times in milli-seconds:
+    Minimum = 181ms, Maximum = 181ms, Average = 181ms

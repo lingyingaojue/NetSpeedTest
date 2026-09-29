@@ -1,0 +1,54 @@
+【BUG-MTU-001 证据】MTU 探测 PingOptions TTL 硬编码为 1 + 结果术语颠倒
+
+来源文件：NetSpeedTest\ViewModels\MoreViewModel.cs（第 185-235 行）
+ 185: 
+ 186:     // ========== 5: MTU 探测 ==========
+ 187:     [ObservableProperty] private string _mtuHost = "8.8.8.8";
+ 188:     [ObservableProperty] private string _mtuResult = "";
+ 189:     [ObservableProperty] private bool _isMtuProbing;
+ 190: 
+ 191:     [RelayCommand]
+ 192:     private async Task StartMtu()
+ 193:     {
+ 194:         if (IsMtuProbing) return; IsMtuProbing = true; MtuResult = "";
+ 195:         try
+ 196:         {
+ 197:             var sb = new StringBuilder(); sb.AppendLine($"MTU 探测: {MtuHost}"); sb.AppendLine(new string('-', 40));
+ 198:             using var ping = new Ping();
+ 199:             int lo = 68, hi = 1500, found = -1;
+ 200:             while (lo <= hi)
+ 201:             {
+ 202:                 int mid = (lo + hi) / 2;
+ 203:                 var opt = new PingOptions(1, dontFragment: true);
+ 204:                 try { var reply = await ping.SendPingAsync(MtuHost, 2000, new byte[mid], opt); if (reply.Status == IPStatus.Success) { found = mid; lo = mid + 1; } else { hi = mid - 1; } }
+ 205:                 catch { hi = mid - 1; }
+ 206:                 sb.AppendLine($"测试 MTU={mid}: {(found == mid ? "通过" : "失败")} (当前最大={found})");
+ 207:                 MtuResult = sb.ToString(); await Task.Delay(50);
+ 208:             }
+ 209:             sb.AppendLine(new string('-', 40)); sb.AppendLine(found > 0 ? $"路径 MTU = {found} bytes (+28 头 = {found + 28} IP MTU)" : "未找到可用 MTU");
+ 210:             MtuResult = sb.ToString();
+ 211:         }
+ 212:         catch (Exception ex) { MtuResult = $"MTU 探测失败: {ex.Message}"; }
+ 213:         finally { IsMtuProbing = false; }
+ 214:     }
+ 215: 
+ 216:     // ========== 6: DNS 对比 ==========
+ 217:     [ObservableProperty] private string _dnsCompHost = "github.com";
+ 218:     [ObservableProperty] private string _dnsCompResult = "";
+ 219:     [ObservableProperty] private bool _isDnsComparing;
+ 220: 
+ 221:     [RelayCommand]
+ 222:     private async Task StartDnsComp()
+ 223:     {
+ 224:         if (IsDnsComparing) return; IsDnsComparing = true; DnsCompResult = "";
+ 225:         try
+ 226:         {
+ 227:             string[] servers = ["8.8.8.8", "114.114.114.114", "1.1.1.1", "223.5.5.5"];
+ 228:             var sb = new StringBuilder(); sb.AppendLine($"DNS 对比: {DnsCompHost}"); sb.AppendLine(new string('-', 40));
+ 229:             using var ping = new Ping();
+ 230:             foreach (var s in servers)
+ 231:             {
+ 232:                 try
+ 233:                 {
+ 234:                     var sw = System.Diagnostics.Stopwatch.StartNew();
+ 235:                     var reply = await ping.SendPingAsync(s, 2000); sw.Stop();

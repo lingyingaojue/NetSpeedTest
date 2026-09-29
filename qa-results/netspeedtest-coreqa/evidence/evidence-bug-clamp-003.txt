@@ -1,0 +1,24 @@
+【BUG-CLAMP-003 证据-后端】ApplySettingsCore 参数钳制范围
+
+来源文件：NetSpeedTest\Services\WebServerService.cs（第 1428-1444 行）
+1428:     private bool? ApplySettingsCore(JsonElement root, SpeedTestOptions options)
+1429:     {
+1430:         if (root.TryGetProperty("threadCount", out var threadCount)) options.ThreadCount = Math.Clamp(threadCount.GetInt32(), 2, 1024);
+1431:         if (root.TryGetProperty("testTimeoutSec", out var testTimeoutSec)) options.TestTimeoutSec = Math.Clamp(testTimeoutSec.GetInt32(), 5, 600);
+1432:         if (root.TryGetProperty("averageDelaySec", out var averageDelaySec)) options.AverageDelaySec = Math.Clamp(averageDelaySec.GetInt32(), 1, 30);
+1433:         if (root.TryGetProperty("rateWindowSec", out var rateWindowSec)) options.RateWindowSec = Math.Clamp(rateWindowSec.GetDouble(), 0.5, 10);
+1434:         if (root.TryGetProperty("nicPollIntervalMs", out var nicPollIntervalMs)) options.NicPollIntervalMs = Math.Clamp(nicPollIntervalMs.GetInt32(), 200, 5000);
+1435:         if (root.TryGetProperty("threadRampUpMs", out var threadRampUpMs)) options.ThreadRampUpMs = Math.Clamp(threadRampUpMs.GetInt32(), 0, 5000);
+1436:         if (root.TryGetProperty("latencyPollIntervalMs", out var latencyPollIntervalMs)) options.LatencyPollIntervalMs = Math.Clamp(latencyPollIntervalMs.GetInt32(), 500, 10000);
+1437:         if (root.TryGetProperty("jitterTargetHost", out var jitterTargetHost)) options.JitterTargetHost = jitterTargetHost.GetString() ?? options.JitterTargetHost;
+1438:         if (root.TryGetProperty("jitterPollIntervalMs", out var jitterPollIntervalMs)) options.JitterPollIntervalMs = Math.Clamp(jitterPollIntervalMs.GetInt32(), 500, 5000);
+1439:         if (root.TryGetProperty("packetLossTargetHost", out var packetLossTargetHost)) options.PacketLossTargetHost = packetLossTargetHost.GetString() ?? options.PacketLossTargetHost;
+1440:         if (root.TryGetProperty("packetLossPollIntervalMs", out var packetLossPollIntervalMs)) options.PacketLossPollIntervalMs = Math.Clamp(packetLossPollIntervalMs.GetInt32(), 500, 5000);
+1441:         if (root.TryGetProperty("compensationEnabled", out var compensationEnabled)) options.CompensationEnabled = compensationEnabled.GetBoolean();
+1442:         if (root.TryGetProperty("compensationThreshold", out var compensationThreshold)) options.CompensationThreshold = Math.Clamp(compensationThreshold.GetDouble(), 0.3, 0.8);
+1443:         if (root.TryGetProperty("compensationConfirmSec", out var compensationConfirmSec)) options.CompensationConfirmSec = Math.Clamp(compensationConfirmSec.GetInt32(), 1, 10);
+1444:         if (root.TryGetProperty("adaptiveThreadsEnabled", out var adaptiveThreadsEnabled)) options.AdaptiveThreadsEnabled = adaptiveThreadsEnabled.GetBoolean();
+【BUG-CLAMP-003 证据-UI 滑块】SettingsWindow.xaml
+  96:                     <Slider Minimum="10" Maximum="600" Value="{Binding TestTimeoutSec}"
+ 107:                     <Slider Minimum="0" Maximum="2000" Value="{Binding ThreadRampUpMs}"
+说明：UI TestTimeoutSec=10..600 / ThreadRampUpMs=0..2000；后端 API 为 5..600 / 0..5000，两处不一致；其余参数一致。

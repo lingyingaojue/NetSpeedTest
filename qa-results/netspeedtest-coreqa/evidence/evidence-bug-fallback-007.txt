@@ -1,0 +1,69 @@
+【BUG-FALLBACK-007 证据】内嵌兜底页 meta 注入了 nst-token，但 api()/startTest/stopTest 的 fetch 均未携带 X-NST-Token
+
+来源文件：NetSpeedTest\Services\WebServerService.cs（第 1842-1907 行）
+1842:   <meta charset="utf-8" />
+1843:   <meta name="viewport" content="width=device-width, initial-scale=1" />
+1844:   <meta name="nst-token" content="%%NST_TOKEN%%" />
+1845:   <title>NetSpeedTest Web</title>
+1846:   <style>
+1847:     body { font-family: Segoe UI, Microsoft YaHei, sans-serif; background:#0d1117; color:#e6edf3; margin:0; padding:24px; }
+1848:     h1 { font-size:22px; } h2 { font-size:16px; }
+1849:     .card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px; margin:12px 0; }
+1850:     button { background:#21262d; color:#e6edf3; border:1px solid #30363d; border-radius:6px; padding:8px 14px; margin:4px; cursor:pointer; }
+1851:     button:hover { background:#292e36; }
+1852:     .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+1853:     .value { font-size:24px; font-weight:700; }
+1854:     .muted { color:#7d8590; font-size:12px; }
+1855:     table { width:100%; border-collapse:collapse; margin-top:10px; }
+1856:     td,th { text-align:left; padding:6px 8px; border-bottom:1px solid #30363d; font-size:13px; }
+1857:   </style>
+1858: </head>
+1859: <body>
+1860:   <h1>NetSpeedTest Web</h1>
+1861:   <div class="card">
+1862:     <h2>状态</h2>
+1863:     <div class="row">
+1864:       <div><div class="muted">状态</div><div id="status" class="value">--</div></div>
+1865:       <div><div class="muted">下载</div><div id="download" class="value">--</div></div>
+1866:       <div><div class="muted">上传</div><div id="upload" class="value">--</div></div>
+1867:       <div><div class="muted">延迟</div><div id="latency" class="value">--</div></div>
+1868:     </div>
+1869:     <div class="row">
+1870:       <button onclick="startTest('download')">下载测速</button>
+1871:       <button onclick="startTest('upload')">上传测速</button>
+1872:       <button onclick="startTest('full')">双向测速</button>
+1873:       <button onclick="stopTest()">停止</button>
+1874:     </div>
+1875:   </div>
+1876:   <div class="card">
+1877:     <h2>网卡</h2>
+1878:     <div id="adapters"></div>
+1879:   </div>
+1880:   <div class="card">
+1881:     <h2>历史记录</h2>
+1882:     <div id="history"></div>
+1883:   </div>
+1884:   <script>
+1885:     async function api(path, options){ const r = await fetch(path, options); return r.json(); }
+1886:     async function refresh(){
+1887:       const s = await api('/api/status');
+1888:       document.getElementById('status').textContent = s.status || (s.running ? '测速中' : '就绪');
+1889:       document.getElementById('download').textContent = fmt(s.downloadMbps);
+1890:       document.getElementById('upload').textContent = fmt(s.uploadMbps);
+1891:       document.getElementById('latency').textContent = s.latencyMs == null ? '--' : s.latencyMs + ' ms';
+1892:       const ads = await api('/api/adapters');
+1893:       document.getElementById('adapters').innerHTML = ads.map(a => `<label><input type="checkbox" data-id="${a.id}" ${a.selected?'checked':''}/> ${a.name} · ${a.ip||'无IP'}</label>`).join('<br/>');
+1894:       const h = await api('/api/history?page=1&pageSize=10');
+1895:       document.getElementById('history').innerHTML = '<table><tr><th>时间</th><th>下载</th><th>上传</th><th>网卡</th></tr>' + (h.records||[]).map(r => `<tr><td>${r.timestamp}</td><td>${fmt(r.downloadMbps)}</td><td>${fmt(r.uploadMbps)}</td><td>${r.networkAdapterName}</td></tr>`).join('') + '</table>';
+1896:     }
+1897:     function fmt(v){ return v == null ? '--' : (v >= 1000 ? (v/1000).toFixed(2)+' Gbps' : v >= 1 ? v.toFixed(2)+' Mbps' : (v*1000).toFixed(0)+' Kbps'); }
+1898:     async function startTest(mode){
+1899:       const ids=[...document.querySelectorAll('#adapters input:checked')].map(x=>x.dataset.id);
+1900:       await api('/api/test/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode,adapterIds:ids})});
+1901:     }
+1902:     async function stopTest(){ await api('/api/test/stop',{method:'POST'}); }
+1903:     setInterval(refresh,1000); refresh();
+1904:   </script>
+1905: </body>
+1906: </html>
+1907: """;
