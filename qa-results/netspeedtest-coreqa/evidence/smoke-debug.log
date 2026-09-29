@@ -1,0 +1,392 @@
+[07:03:58.910] URL ACL setup failed: 添加 URL 保留项失败，错误: 183
+当文件已存在时，无法创建该文件。
+[07:03:59.111] Web server started on http://127.0.0.1:8080 with LAN subnet mapping
+[07:04:03.158] Test start failed: System.Text.Json.JsonReaderException: 'n' is an invalid start of a property name. Expected a '"'. LineNumber: 0 | BytePositionInLine: 1.
+   at System.Text.Json.ThrowHelper.ThrowJsonReaderException(Utf8JsonReader& json, ExceptionResource resource, Byte nextByte, ReadOnlySpan`1 bytes)
+   at System.Text.Json.Utf8JsonReader.ReadSingleSegment()
+   at System.Text.Json.Utf8JsonReader.Read()
+   at System.Text.Json.JsonDocument.Parse(ReadOnlySpan`1 utf8JsonSpan, JsonReaderOptions readerOptions, MetadataDb& database, StackRowStack& stack)
+   at System.Text.Json.JsonDocument.Parse(ReadOnlyMemory`1 utf8Json, JsonReaderOptions readerOptions, Byte[] extraRentedArrayPoolBytes, PooledByteBufferWriter extraPooledByteBufferWriter)
+   at System.Text.Json.JsonDocument.Parse(ReadOnlyMemory`1 json, JsonDocumentOptions options)
+   at System.Text.Json.JsonDocument.Parse(String json, JsonDocumentOptions options)
+   at NetSpeedTest.Services.WebServerService.HandleTestStartAsync(HttpListenerContext ctx, CancellationToken ct) in D:\Program Files\DSH\NetSpeedTest\NetSpeedTest\Services\WebServerService.cs:line 1553
+[07:04:03.194] Test start failed: System.IO.InvalidDataException: Request body too large
+   at NetSpeedTest.Services.WebServerService.ReadBodyAsync(HttpListenerRequest request, CancellationToken ct) in D:\Program Files\DSH\NetSpeedTest\NetSpeedTest\Services\WebServerService.cs:line 1691
+   at NetSpeedTest.Services.WebServerService.HandleTestStartAsync(HttpListenerContext ctx, CancellationToken ct) in D:\Program Files\DSH\NetSpeedTest\NetSpeedTest\Services\WebServerService.cs:line 1552
+[07:04:03.205] Test start failed: System.IO.InvalidDataException: Only public http/https URLs are allowed
+   at NetSpeedTest.Services.WebServerService.HandleTestStartAsync(HttpListenerContext ctx, CancellationToken ct) in D:\Program Files\DSH\NetSpeedTest\NetSpeedTest\Services\WebServerService.cs:line 1561
+[07:04:03.209] Test start failed: System.IO.InvalidDataException: Only public http/https URLs are allowed
+   at NetSpeedTest.Services.WebServerService.HandleTestStartAsync(HttpListenerContext ctx, CancellationToken ct) in D:\Program Files\DSH\NetSpeedTest\NetSpeedTest\Services\WebServerService.cs:line 1561
+[07:04:03.215] Test start failed: System.IO.InvalidDataException: Only public http/https URLs are allowed
+   at NetSpeedTest.Services.WebServerService.HandleTestStartAsync(HttpListenerContext ctx, CancellationToken ct) in D:\Program Files\DSH\NetSpeedTest\NetSpeedTest\Services\WebServerService.cs:line 1561
+[07:04:03.219] Test start failed: System.IO.InvalidDataException: Only public http/https URLs are allowed
+   at NetSpeedTest.Services.WebServerService.HandleTestStartAsync(HttpListenerContext ctx, CancellationToken ct) in D:\Program Files\DSH\NetSpeedTest\NetSpeedTest\Services\WebServerService.cs:line 1561
+[07:04:03.225] Profile save failed: System.IO.InvalidDataException: Only public http/https URLs are allowed
+   at NetSpeedTest.Services.WebServerService.HandleProfilesPostAsync(HttpListenerContext ctx, CancellationToken ct) in D:\Program Files\DSH\NetSpeedTest\NetSpeedTest\Services\WebServerService.cs:line 1178
+[07:04:06.893] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:06.902] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:07.014] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:07.015] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:07.083] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:07.136] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:07.137] 延迟(192.168.1.1): UDP=4.5ms
+[07:04:07.137] 延迟(8.8.8.8): UDP=50.3ms
+[07:04:07.139] [D-LAN] raw=4.5ms elapsed=0.2s added=NO count=0
+[07:04:07.140] [D-WAN] raw=50.3ms elapsed=0.2s added=NO count=0
+[07:04:07.140] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:07.141] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:07.153] [D-FIN1] VM.LatencyMs=4.5 VM.WanLatencyMs=50.3 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:07.154] [D-FIN2] result.LatencyMs=4.5(AVG) VM.LatencyMs=4.5(LAST) result.WanLatencyMs=50.3(AVG) VM.WanLatencyMs=50.3(LAST) result.JitterMs= VM.JitterMs=
+[07:04:07.156] [D-END] VM final: LatencyMs=4.5 WanLatencyMs=50.3 JitterMs=
+[07:04:11.033] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:11.046] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:11.336] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:11.336] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:11.401] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:11.672] 延迟(192.168.1.1): UDP=2.7ms
+[07:04:11.673] [D-LAN] raw=2.7ms elapsed=0.6s added=NO count=0
+[07:04:11.764] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf ok=28812060B 570.36Mbps
+[07:04:11.783] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:11.784] 延迟(8.8.8.8): UDP=46.7ms
+[07:04:11.784] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/android/weixin8072android3100_0x28004835_arm64.apk TIMEOUT
+[07:04:11.784] [D-WAN] raw=46.7ms elapsed=0.8s added=NO count=0
+[07:04:11.784] [D-URL] nic=以太网 2 url=https://8b06c261e77fac3dbe275a2430234968.dlied1.cdntips.net/dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a4202103_11.3.1.1_QBcYZh.apk?mkey=lego_ztc&f=00&sche_type=7&cip=223.73.170.221&proto=https&access_type=&sign=1780735353.5c763961604f533d2ce7f7816e383ecc.5693883960094723e88424a05f1681fb.z1b_o4oq97NX_KbHo47pgTRBQ_p4-62-B5ACHfpA7NA&tx_domain=dlied4.myapp.com&tx_path=%2Fmyapp%2F1104466820%2F&tx_id=6c9382a8c8 TIMEOUT
+[07:04:11.785] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:04:11.785] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:11.785] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/Windows/WeChatSetup_x86.exe TIMEOUT
+[07:04:11.799] [D-URL] nic=以太网 2 url=http://download.taobaocdn.com/wireless/taobao4android/latest/701483.apk#enhanced TIMEOUT
+[07:04:11.800] [D-URL] nic=以太网 2 url=https://ot2-gdown.baidu.com/appcenter/pkg/upload/8fef14924e8b969bf65011c55b7f0f94?md5hash=0d58cb32326e31818a07ce37fd84ae78&timestamp=1780905849 TIMEOUT
+[07:04:11.801] [D-URL] nic=以太网 2 url=https://fc2-gdown.baidu.com/appcenter/pkg/upload/62f6265b29524cf90a0a0a72211af70e?md5hash=e53b2df08175d05896a9cd83342fbd73&timestamp=1780905831 TIMEOUT
+[07:04:11.801] [D-URL] nic=以太网 2 url=https://store-drcn.hispace.dbankcloud.cn/dl/appdl/application/apk/ce/cea074d22c784e4ab8a5b19ba8b493a5/com.huawei.appmarket.1908281654.apk?maple=0&trackId=0&distOpEntity=HWSW#enhanced TIMEOUT
+[07:04:11.801] [D-URL] nic=以太网 2 url=https://fc2-gdown.baidu.com/8Jx58_1gyUWI0AZ27VsE36lpWgIa_okJ5ZY9SC7fTCUD_QyN_y4D2Fr0aSYdIhHuilAqmjq3B6H85ph6O9Nw05_or1W3US8NMLG4Yivo9BQ=?dynamic=1&md5hash=69c393a0d81c47f6d3fa6dd8eadf65bf&rl=1&timestamp=1780905818 TIMEOUT
+[07:04:11.801] [D-URL] nic=以太网 2 url=https://media.steampowered.com/apps/steam-android/steam-3.10.9.apk TIMEOUT
+[07:04:11.802] [D-URL] nic=以太网 2 url=https://mirrors.zju.edu.cn/ubuntu-releases/24.04/ubuntu-24.04.5.1-desktop-amd64.iso TIMEOUT
+[07:04:11.802] [D-URL] nic=以太网 2 url=https://speedtest.tele2.net/100MB.zip TIMEOUT
+[07:04:11.828] [D-FIN1] VM.LatencyMs=2.7 VM.WanLatencyMs=46.7 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:11.828] [D-FIN2] result.LatencyMs=2.7(AVG) VM.LatencyMs=2.7(LAST) result.WanLatencyMs=46.7(AVG) VM.WanLatencyMs=46.7(LAST) result.JitterMs= VM.JitterMs=
+[07:04:11.829] [D-END] VM final: LatencyMs=2.7 WanLatencyMs=46.7 JitterMs=
+[07:04:15.465] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:15.471] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:15.565] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:15.565] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:15.617] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:15.739] 延迟(192.168.1.1): UDP=1.9ms
+[07:04:15.740] [D-LAN] raw=1.9ms elapsed=0.3s added=NO count=0
+[07:04:15.740] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:15.741] 延迟(8.8.8.8): UDP=48.0ms
+[07:04:15.746] [D-WAN] raw=48.0ms elapsed=0.3s added=NO count=0
+[07:04:15.754] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:15.754] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:15.757] [D-FIN1] VM.LatencyMs=1.9 VM.WanLatencyMs=48.0 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:15.757] [D-FIN2] result.LatencyMs=1.9(AVG) VM.LatencyMs=1.9(LAST) result.WanLatencyMs=48.0(AVG) VM.WanLatencyMs=48.0(LAST) result.JitterMs= VM.JitterMs=
+[07:04:15.762] [D-END] VM final: LatencyMs=1.9 WanLatencyMs=48.0 JitterMs=
+[07:04:19.432] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:19.441] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:19.541] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:19.542] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:19.594] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:19.675] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:19.676] 延迟(192.168.1.1): UDP=5.0ms
+[07:04:19.676] 延迟(8.8.8.8): UDP=52.1ms
+[07:04:19.676] [D-LAN] raw=5.0ms elapsed=0.2s added=NO count=0
+[07:04:19.677] [D-WAN] raw=52.1ms elapsed=0.2s added=NO count=0
+[07:04:19.691] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:19.691] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:19.692] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:04:19.708] [D-URL] nic=以太网 2 url=https://store-drcn.hispace.dbankcloud.cn/dl/appdl/application/apk/ce/cea074d22c784e4ab8a5b19ba8b493a5/com.huawei.appmarket.1908281654.apk?maple=0&trackId=0&distOpEntity=HWSW#enhanced TIMEOUT
+[07:04:19.719] [D-FIN1] VM.LatencyMs=5.0 VM.WanLatencyMs=52.1 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:19.720] [D-FIN2] result.LatencyMs=5.0(AVG) VM.LatencyMs=5.0(LAST) result.WanLatencyMs=52.1(AVG) VM.WanLatencyMs=52.1(LAST) result.JitterMs= VM.JitterMs=
+[07:04:19.721] [D-END] VM final: LatencyMs=5.0 WanLatencyMs=52.1 JitterMs=
+[07:04:23.393] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:23.395] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:23.496] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:23.553] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:23.607] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:23.625] 延迟(192.168.1.1): UDP=2.3ms
+[07:04:23.626] [D-LAN] raw=2.3ms elapsed=0.2s added=NO count=0
+[07:04:23.626] 延迟(8.8.8.8): UDP=51.7ms
+[07:04:23.627] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:23.627] [D-WAN] raw=51.7ms elapsed=0.2s added=NO count=0
+[07:04:23.628] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:23.629] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:23.632] [D-FIN1] VM.LatencyMs=2.3 VM.WanLatencyMs=51.7 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:23.677] [D-FIN2] result.LatencyMs=2.3(AVG) VM.LatencyMs=2.3(LAST) result.WanLatencyMs=51.7(AVG) VM.WanLatencyMs=51.7(LAST) result.JitterMs= VM.JitterMs=
+[07:04:23.678] [D-END] VM final: LatencyMs=2.3 WanLatencyMs=51.7 JitterMs=
+[07:04:27.300] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:27.303] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:27.393] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:27.393] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:27.446] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:27.482] 延迟(8.8.8.8): UDP=47.3ms
+[07:04:27.482] 延迟(192.168.1.1): UDP=2.3ms
+[07:04:27.482] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:27.483] [D-LAN] raw=2.3ms elapsed=0.2s added=NO count=0
+[07:04:27.483] [D-WAN] raw=47.3ms elapsed=0.2s added=NO count=0
+[07:04:27.485] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:27.485] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:27.485] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/Windows/WeChatSetup_x86.exe TIMEOUT
+[07:04:27.486] [D-FIN1] VM.LatencyMs=2.3 VM.WanLatencyMs=47.3 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:27.487] [D-FIN2] result.LatencyMs=2.3(AVG) VM.LatencyMs=2.3(LAST) result.WanLatencyMs=47.3(AVG) VM.WanLatencyMs=47.3(LAST) result.JitterMs= VM.JitterMs=
+[07:04:27.488] [D-END] VM final: LatencyMs=2.3 WanLatencyMs=47.3 JitterMs=
+[07:04:31.081] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:31.083] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:31.148] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:31.148] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:31.198] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:31.205] 延迟(8.8.8.8): UDP=48.9ms
+[07:04:31.208] 延迟(192.168.1.1): UDP=1.8ms
+[07:04:31.208] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:31.209] [D-WAN] raw=48.9ms elapsed=0.1s added=NO count=0
+[07:04:31.209] [D-LAN] raw=1.8ms elapsed=0.1s added=NO count=0
+[07:04:31.211] [D-URL] nic=以太网 2 url=https://fc2-gdown.baidu.com/appcenter/pkg/upload/62f6265b29524cf90a0a0a72211af70e?md5hash=e53b2df08175d05896a9cd83342fbd73&timestamp=1780905831 TIMEOUT
+[07:04:31.211] [D-URL] nic=以太网 2 url=https://ot2-gdown.baidu.com/appcenter/pkg/upload/8fef14924e8b969bf65011c55b7f0f94?md5hash=0d58cb32326e31818a07ce37fd84ae78&timestamp=1780905849 TIMEOUT
+[07:04:31.215] [D-FIN1] VM.LatencyMs=1.8 VM.WanLatencyMs=48.9 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:31.215] [D-FIN2] result.LatencyMs=1.8(AVG) VM.LatencyMs=1.8(LAST) result.WanLatencyMs=48.9(AVG) VM.WanLatencyMs=48.9(LAST) result.JitterMs= VM.JitterMs=
+[07:04:31.216] [D-END] VM final: LatencyMs=1.8 WanLatencyMs=48.9 JitterMs=
+[07:04:34.785] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:34.789] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:34.893] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:34.895] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:35.022] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:35.055] 延迟(8.8.8.8): UDP=50.5ms
+[07:04:35.055] 延迟(192.168.1.1): UDP=14.0ms
+[07:04:35.058] [D-WAN] raw=50.5ms elapsed=0.3s added=NO count=0
+[07:04:35.059] [D-LAN] raw=14.0ms elapsed=0.3s added=NO count=0
+[07:04:35.059] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:35.060] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:35.061] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:35.063] [D-URL] nic=以太网 2 url=https://8b06c261e77fac3dbe275a2430234968.dlied1.cdntips.net/dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a4202103_11.3.1.1_QBcYZh.apk?mkey=lego_ztc&f=00&sche_type=7&cip=223.73.170.221&proto=https&access_type=&sign=1780735353.5c763961604f533d2ce7f7816e383ecc.5693883960094723e88424a05f1681fb.z1b_o4oq97NX_KbHo47pgTRBQ_p4-62-B5ACHfpA7NA&tx_domain=dlied4.myapp.com&tx_path=%2Fmyapp%2F1104466820%2F&tx_id=6c9382a8c8 TIMEOUT
+[07:04:35.064] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:04:35.064] [D-FIN1] VM.LatencyMs=14.0 VM.WanLatencyMs=50.5 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:35.065] [D-FIN2] result.LatencyMs=14.0(AVG) VM.LatencyMs=14.0(LAST) result.WanLatencyMs=50.5(AVG) VM.WanLatencyMs=50.5(LAST) result.JitterMs= VM.JitterMs=
+[07:04:35.065] [D-END] VM final: LatencyMs=14.0 WanLatencyMs=50.5 JitterMs=
+[07:04:38.683] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:38.689] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:38.774] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:38.774] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:38.824] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:38.845] 延迟(8.8.8.8): UDP=47.6ms
+[07:04:38.845] 延迟(192.168.1.1): UDP=1.2ms
+[07:04:38.845] [D-LAN] raw=1.2ms elapsed=0.2s added=NO count=0
+[07:04:38.846] [D-WAN] raw=47.6ms elapsed=0.2s added=NO count=0
+[07:04:38.846] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:38.847] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:38.848] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:38.850] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/android/weixin8072android3100_0x28004835_arm64.apk TIMEOUT
+[07:04:38.851] [D-URL] nic=以太网 2 url=https://ot2-gdown.baidu.com/appcenter/pkg/upload/8fef14924e8b969bf65011c55b7f0f94?md5hash=0d58cb32326e31818a07ce37fd84ae78&timestamp=1780905849 TIMEOUT
+[07:04:38.855] [D-FIN1] VM.LatencyMs=1.2 VM.WanLatencyMs=47.6 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:38.886] [D-FIN2] result.LatencyMs=1.2(AVG) VM.LatencyMs=1.2(LAST) result.WanLatencyMs=47.6(AVG) VM.WanLatencyMs=47.6(LAST) result.JitterMs= VM.JitterMs=
+[07:04:38.886] [D-END] VM final: LatencyMs=1.2 WanLatencyMs=47.6 JitterMs=
+[07:04:42.465] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:42.471] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:42.582] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:42.582] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:42.645] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:42.679] 延迟(192.168.1.1): UDP=1.4ms
+[07:04:42.679] 延迟(8.8.8.8): UDP=47.8ms
+[07:04:42.679] [D-LAN] raw=1.4ms elapsed=0.2s added=NO count=0
+[07:04:42.680] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:42.680] [D-WAN] raw=47.8ms elapsed=0.2s added=NO count=0
+[07:04:42.682] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:42.682] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:42.682] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:04:42.683] [D-FIN1] VM.LatencyMs=1.4 VM.WanLatencyMs=47.8 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:42.683] [D-FIN2] result.LatencyMs=1.4(AVG) VM.LatencyMs=1.4(LAST) result.WanLatencyMs=47.8(AVG) VM.WanLatencyMs=47.8(LAST) result.JitterMs= VM.JitterMs=
+[07:04:42.684] [D-END] VM final: LatencyMs=1.4 WanLatencyMs=47.8 JitterMs=
+[07:04:46.280] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:46.283] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:46.372] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:46.372] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:46.432] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:46.632] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf ok=28812060B 689.48Mbps
+[07:04:46.634] 延迟(192.168.1.1): UDP=7.3ms
+[07:04:46.635] [D-LAN] raw=7.3ms elapsed=0.4s added=NO count=0
+[07:04:46.653] 延迟(8.8.8.8): UDP=48.2ms
+[07:04:46.653] [D-URL] nic=以太网 2 url=https://8b06c261e77fac3dbe275a2430234968.dlied1.cdntips.net/dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a4202103_11.3.1.1_QBcYZh.apk?mkey=lego_ztc&f=00&sche_type=7&cip=223.73.170.221&proto=https&access_type=&sign=1780735353.5c763961604f533d2ce7f7816e383ecc.5693883960094723e88424a05f1681fb.z1b_o4oq97NX_KbHo47pgTRBQ_p4-62-B5ACHfpA7NA&tx_domain=dlied4.myapp.com&tx_path=%2Fmyapp%2F1104466820%2F&tx_id=6c9382a8c8 TIMEOUT
+[07:04:46.653] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:46.654] [D-WAN] raw=48.2ms elapsed=0.4s added=NO count=0
+[07:04:46.654] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:04:46.661] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:46.663] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/Windows/WeChatSetup_x86.exe TIMEOUT
+[07:04:46.664] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/android/weixin8072android3100_0x28004835_arm64.apk TIMEOUT
+[07:04:46.665] [D-URL] nic=以太网 2 url=https://speedtest.dallas.linode.com/100MB-dallas.bin TIMEOUT
+[07:04:46.665] [D-URL] nic=以太网 2 url=https://store-drcn.hispace.dbankcloud.cn/dl/appdl/application/apk/ce/cea074d22c784e4ab8a5b19ba8b493a5/com.huawei.appmarket.1908281654.apk?maple=0&trackId=0&distOpEntity=HWSW#enhanced TIMEOUT
+[07:04:46.678] [D-FIN1] VM.LatencyMs=7.3 VM.WanLatencyMs=48.2 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:46.679] [D-FIN2] result.LatencyMs=7.3(AVG) VM.LatencyMs=7.3(LAST) result.WanLatencyMs=48.2(AVG) VM.WanLatencyMs=48.2(LAST) result.JitterMs= VM.JitterMs=
+[07:04:46.680] [D-END] VM final: LatencyMs=7.3 WanLatencyMs=48.2 JitterMs=
+[07:04:50.288] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:50.290] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:50.401] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:50.402] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:50.453] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:50.525] 延迟(8.8.8.8): UDP=47.4ms
+[07:04:50.536] [D-WAN] raw=47.4ms elapsed=0.2s added=NO count=0
+[07:04:50.537] 延迟(192.168.1.1): UDP=1.0ms
+[07:04:50.537] [D-LAN] raw=1.0ms elapsed=0.2s added=NO count=0
+[07:04:50.537] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:50.538] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:50.538] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:50.550] [D-FIN1] VM.LatencyMs=1.0 VM.WanLatencyMs=47.4 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:50.551] [D-FIN2] result.LatencyMs=1.0(AVG) VM.LatencyMs=1.0(LAST) result.WanLatencyMs=47.4(AVG) VM.WanLatencyMs=47.4(LAST) result.JitterMs= VM.JitterMs=
+[07:04:50.551] [D-END] VM final: LatencyMs=1.0 WanLatencyMs=47.4 JitterMs=
+[07:04:54.192] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:54.194] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:54.293] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:54.293] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:54.345] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:54.515] 延迟(192.168.1.1): UDP=2.2ms
+[07:04:54.517] [D-LAN] raw=2.2ms elapsed=0.3s added=NO count=0
+[07:04:54.526] 延迟(8.8.8.8): UDP=55.8ms
+[07:04:54.527] [D-WAN] raw=55.8ms elapsed=0.3s added=NO count=0
+[07:04:54.527] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:54.528] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:04:54.528] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:54.529] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:04:54.537] [D-URL] nic=以太网 2 url=https://media.steampowered.com/apps/steam-android/steam-3.10.9.apk TIMEOUT
+[07:04:54.538] [D-URL] nic=以太网 2 url=https://8b06c261e77fac3dbe275a2430234968.dlied1.cdntips.net/dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a4202103_11.3.1.1_QBcYZh.apk?mkey=lego_ztc&f=00&sche_type=7&cip=223.73.170.221&proto=https&access_type=&sign=1780735353.5c763961604f533d2ce7f7816e383ecc.5693883960094723e88424a05f1681fb.z1b_o4oq97NX_KbHo47pgTRBQ_p4-62-B5ACHfpA7NA&tx_domain=dlied4.myapp.com&tx_path=%2Fmyapp%2F1104466820%2F&tx_id=6c9382a8c8 TIMEOUT
+[07:04:54.538] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/Windows/WeChatSetup_x86.exe TIMEOUT
+[07:04:54.538] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/android/weixin8072android3100_0x28004835_arm64.apk TIMEOUT
+[07:04:54.539] [D-URL] nic=以太网 2 url=https://mirrors.tuna.tsinghua.edu.cn/ubuntu-releases/24.04/ubuntu-24.04.5.1-desktop-amd64.iso TIMEOUT
+[07:04:54.539] [D-URL] nic=以太网 2 url=https://mirror.iscas.ac.cn/ubuntu-releases/24.04/ubuntu-24.04.4-desktop-amd64.iso TIMEOUT
+[07:04:54.539] [D-URL] nic=以太网 2 url=https://mirrors.zju.edu.cn/ubuntu-releases/24.04/ubuntu-24.04.5.1-desktop-amd64.iso TIMEOUT
+[07:04:54.541] [D-FIN1] VM.LatencyMs=2.2 VM.WanLatencyMs=55.8 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:54.541] [D-FIN2] result.LatencyMs=2.2(AVG) VM.LatencyMs=2.2(LAST) result.WanLatencyMs=55.8(AVG) VM.WanLatencyMs=55.8(LAST) result.JitterMs= VM.JitterMs=
+[07:04:54.541] [D-END] VM final: LatencyMs=2.2 WanLatencyMs=55.8 JitterMs=
+[07:04:58.158] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:04:58.161] 测速启动: gateway=192.168.1.1, adapters=1
+[07:04:58.241] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:04:58.241] 网关延迟测试启动: gateway=192.168.1.1
+[07:04:58.292] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:04:58.312] 延迟(8.8.8.8): UDP=47.0ms
+[07:04:58.313] 延迟(192.168.1.1): UDP=1.5ms
+[07:04:58.313] [D-WAN] raw=47.0ms elapsed=0.2s added=NO count=0
+[07:04:58.313] [D-LAN] raw=1.5ms elapsed=0.2s added=NO count=0
+[07:04:58.313] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:04:58.315] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:04:58.315] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:04:58.316] [D-URL] nic=以太网 2 url=https://8b06c261e77fac3dbe275a2430234968.dlied1.cdntips.net/dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a4202103_11.3.1.1_QBcYZh.apk?mkey=lego_ztc&f=00&sche_type=7&cip=223.73.170.221&proto=https&access_type=&sign=1780735353.5c763961604f533d2ce7f7816e383ecc.5693883960094723e88424a05f1681fb.z1b_o4oq97NX_KbHo47pgTRBQ_p4-62-B5ACHfpA7NA&tx_domain=dlied4.myapp.com&tx_path=%2Fmyapp%2F1104466820%2F&tx_id=6c9382a8c8 TIMEOUT
+[07:04:58.316] [D-FIN1] VM.LatencyMs=1.5 VM.WanLatencyMs=47.0 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:04:58.316] [D-FIN2] result.LatencyMs=1.5(AVG) VM.LatencyMs=1.5(LAST) result.WanLatencyMs=47.0(AVG) VM.WanLatencyMs=47.0(LAST) result.JitterMs= VM.JitterMs=
+[07:04:58.317] [D-END] VM final: LatencyMs=1.5 WanLatencyMs=47.0 JitterMs=
+[07:05:01.947] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:05:01.950] 测速启动: gateway=192.168.1.1, adapters=1
+[07:05:02.082] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:05:02.083] 网关延迟测试启动: gateway=192.168.1.1
+[07:05:02.135] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:05:02.336] 延迟(192.168.1.1): UDP=4.6ms
+[07:05:02.336] [D-LAN] raw=4.6ms elapsed=0.4s added=NO count=0
+[07:05:02.336] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf ok=28812060B 683.46Mbps
+[07:05:02.469] 延迟(8.8.8.8): UDP=47.8ms
+[07:05:02.469] [D-WAN] raw=47.8ms elapsed=0.5s added=NO count=0
+[07:05:02.469] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:05:02.470] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:05:02.470] [D-URL] nic=以太网 2 url=https://8b06c261e77fac3dbe275a2430234968.dlied1.cdntips.net/dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a4202103_11.3.1.1_QBcYZh.apk?mkey=lego_ztc&f=00&sche_type=7&cip=223.73.170.221&proto=https&access_type=&sign=1780735353.5c763961604f533d2ce7f7816e383ecc.5693883960094723e88424a05f1681fb.z1b_o4oq97NX_KbHo47pgTRBQ_p4-62-B5ACHfpA7NA&tx_domain=dlied4.myapp.com&tx_path=%2Fmyapp%2F1104466820%2F&tx_id=6c9382a8c8 TIMEOUT
+[07:05:02.482] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:05:02.484] [D-URL] nic=以太网 2 url=https://ot2-gdown.baidu.com/appcenter/pkg/upload/8fef14924e8b969bf65011c55b7f0f94?md5hash=0d58cb32326e31818a07ce37fd84ae78&timestamp=1780905849 TIMEOUT
+[07:05:02.484] [D-URL] nic=以太网 2 url=https://media.steampowered.com/apps/steam-android/steam-3.10.9.apk TIMEOUT
+[07:05:02.484] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/Windows/WeChatSetup_x86.exe TIMEOUT
+[07:05:02.484] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/android/weixin8072android3100_0x28004835_arm64.apk TIMEOUT
+[07:05:02.485] [D-URL] nic=以太网 2 url=https://fc2-gdown.baidu.com/8Jx58_1gyUWI0AZ27VsE36lpWgIa_okJ5ZY9SC7fTCUD_QyN_y4D2Fr0aSYdIhHuilAqmjq3B6H85ph6O9Nw05_or1W3US8NMLG4Yivo9BQ=?dynamic=1&md5hash=69c393a0d81c47f6d3fa6dd8eadf65bf&rl=1&timestamp=1780905818 TIMEOUT
+[07:05:02.486] [D-FIN1] VM.LatencyMs=4.6 VM.WanLatencyMs=47.8 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:05:02.487] [D-FIN2] result.LatencyMs=4.6(AVG) VM.LatencyMs=4.6(LAST) result.WanLatencyMs=47.8(AVG) VM.WanLatencyMs=47.8(LAST) result.JitterMs= VM.JitterMs=
+[07:05:02.487] [D-END] VM final: LatencyMs=4.6 WanLatencyMs=47.8 JitterMs=
+[07:05:06.115] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:05:06.118] 测速启动: gateway=192.168.1.1, adapters=1
+[07:05:06.218] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:05:06.218] 网关延迟测试启动: gateway=192.168.1.1
+[07:05:06.270] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:05:06.289] 延迟(192.168.1.1): UDP=2.6ms
+[07:05:06.290] 延迟(8.8.8.8): UDP=48.9ms
+[07:05:06.290] [D-LAN] raw=2.6ms elapsed=0.2s added=NO count=0
+[07:05:06.290] [D-WAN] raw=48.9ms elapsed=0.2s added=NO count=0
+[07:05:06.290] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:05:06.291] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:05:06.299] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:05:06.302] [D-FIN1] VM.LatencyMs=2.6 VM.WanLatencyMs=48.9 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:05:06.303] [D-FIN2] result.LatencyMs=2.6(AVG) VM.LatencyMs=2.6(LAST) result.WanLatencyMs=48.9(AVG) VM.WanLatencyMs=48.9(LAST) result.JitterMs= VM.JitterMs=
+[07:05:06.303] [D-END] VM final: LatencyMs=2.6 WanLatencyMs=48.9 JitterMs=
+[07:05:09.924] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:05:09.927] 测速启动: gateway=192.168.1.1, adapters=1
+[07:05:10.027] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:05:10.027] 网关延迟测试启动: gateway=192.168.1.1
+[07:05:10.087] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:05:10.108] 延迟(192.168.1.1): UDP=1.3ms
+[07:05:10.108] [D-LAN] raw=1.3ms elapsed=0.2s added=NO count=0
+[07:05:10.109] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:05:10.109] 延迟(8.8.8.8): UDP=50.2ms
+[07:05:10.109] [D-WAN] raw=50.2ms elapsed=0.2s added=NO count=0
+[07:05:10.116] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:05:10.122] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:05:10.122] [D-URL] nic=以太网 2 url=https://fra-de-ping.vultr.com/vultr.com.100MB.bin TIMEOUT
+[07:05:10.144] [D-FIN1] VM.LatencyMs=1.3 VM.WanLatencyMs=50.2 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:05:10.145] [D-FIN2] result.LatencyMs=1.3(AVG) VM.LatencyMs=1.3(LAST) result.WanLatencyMs=50.2(AVG) VM.WanLatencyMs=50.2(LAST) result.JitterMs= VM.JitterMs=
+[07:05:10.148] [D-END] VM final: LatencyMs=1.3 WanLatencyMs=50.2 JitterMs=
+[07:05:13.763] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:05:13.769] 测速启动: gateway=192.168.1.1, adapters=1
+[07:05:13.873] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:05:13.873] 网关延迟测试启动: gateway=192.168.1.1
+[07:05:13.925] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:05:14.065] 延迟(192.168.1.1): UDP=1.9ms
+[07:05:14.066] [D-LAN] raw=1.9ms elapsed=0.3s added=NO count=0
+[07:05:14.068] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:05:14.073] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:05:14.074] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:05:14.074] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:05:14.074] 延迟(8.8.8.8): UDP=49.8ms
+[07:05:14.074] [D-WAN] raw=49.8ms elapsed=0.3s added=NO count=0
+[07:05:14.076] [D-FIN1] VM.LatencyMs=1.9 VM.WanLatencyMs=49.8 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:05:14.077] [D-FIN2] result.LatencyMs=1.9(AVG) VM.LatencyMs=1.9(LAST) result.WanLatencyMs=49.8(AVG) VM.WanLatencyMs=49.8(LAST) result.JitterMs= VM.JitterMs=
+[07:05:14.078] [D-END] VM final: LatencyMs=1.9 WanLatencyMs=49.8 JitterMs=
+[07:05:17.731] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:05:17.734] 测速启动: gateway=192.168.1.1, adapters=1
+[07:05:17.834] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:05:17.834] 网关延迟测试启动: gateway=192.168.1.1
+[07:05:17.885] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:05:17.931] 延迟(8.8.8.8): UDP=47.6ms
+[07:05:17.932] 延迟(192.168.1.1): UDP=2.6ms
+[07:05:17.932] [D-WAN] raw=47.6ms elapsed=0.2s added=NO count=0
+[07:05:17.932] [D-LAN] raw=2.6ms elapsed=0.2s added=NO count=0
+[07:05:17.933] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:05:17.934] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:05:17.934] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:05:17.935] [D-FIN1] VM.LatencyMs=2.6 VM.WanLatencyMs=47.6 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:05:17.935] [D-FIN2] result.LatencyMs=2.6(AVG) VM.LatencyMs=2.6(LAST) result.WanLatencyMs=47.6(AVG) VM.WanLatencyMs=47.6(LAST) result.JitterMs= VM.JitterMs=
+[07:05:17.936] [D-END] VM final: LatencyMs=2.6 WanLatencyMs=47.6 JitterMs=
+[07:05:21.570] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:05:21.573] 测速启动: gateway=192.168.1.1, adapters=1
+[07:05:21.663] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:05:21.663] 网关延迟测试启动: gateway=192.168.1.1
+[07:05:21.714] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:05:21.738] 延迟(8.8.8.8): UDP=51.2ms
+[07:05:21.738] 延迟(192.168.1.1): UDP=1.2ms
+[07:05:21.738] [D-WAN] raw=51.2ms elapsed=0.2s added=NO count=0
+[07:05:21.738] [D-LAN] raw=1.2ms elapsed=0.2s added=NO count=0
+[07:05:21.739] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:05:21.740] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:05:21.747] [D-URL] nic=以太网 2 url=https://dldir1v6.qq.com/weixin/android/weixin8072android3100_0x28004835_arm64.apk TIMEOUT
+[07:05:21.747] [D-URL] nic=以太网 2 url=https://d8.music.126.net/dmusic2/NeteaseCloudMusic_Music_official_3.1.36.205322_32.exe TIMEOUT
+[07:05:21.749] [D-FIN1] VM.LatencyMs=1.2 VM.WanLatencyMs=51.2 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:05:21.749] [D-FIN2] result.LatencyMs=1.2(AVG) VM.LatencyMs=1.2(LAST) result.WanLatencyMs=51.2(AVG) VM.WanLatencyMs=51.2(LAST) result.JitterMs= VM.JitterMs=
+[07:05:21.750] [D-END] VM final: LatencyMs=1.2 WanLatencyMs=51.2 JitterMs=
+[07:05:25.357] [D-START] lists cleared: lan=0 wan=0 jitter=0 delaySec=10
+[07:05:25.359] 测速启动: gateway=192.168.1.1, adapters=1
+[07:05:25.456] [NIC] 测速出口已绑定: 以太网 2 ip=192.168.1.8
+[07:05:25.456] 网关延迟测试启动: gateway=192.168.1.1
+[07:05:25.507] [D-LOSS] batch=5/5 (ICMP) total=5/5 loss=0.0%
+[07:05:25.558] 延迟(192.168.1.1): UDP=1.4ms
+[07:05:25.558] [D-LAN] raw=1.4ms elapsed=0.2s added=NO count=0
+[07:05:25.559] 延迟(8.8.8.8): UDP=51.2ms
+[07:05:25.559] [D-URL] nic=以太网 2 url=https://consumer.huawei.com/content/dam/huawei-cbg-site/cn/mkt/mobileservices/appgallery/%E3%80%90%E5%BA%94%E7%94%A8%E5%B8%82%E5%9C%BA%E3%80%912025%E5%B9%B4%E5%BA%A6%E5%AE%89%E5%85%A8%E4%B8%8E%E9%9A%90%E7%A7%81%E6%B2%BB%E7%90%86%E6%8A%A5%E5%91%8A.pdf TIMEOUT
+[07:05:25.559] [D-WAN] raw=51.2ms elapsed=0.2s added=NO count=0
+[07:05:25.560] [D-URL] nic=以太网 2 url=https://dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a2480356_8.2.1.9_F0BvnI.apk TIMEOUT
+[07:05:25.566] [D-URL] nic=以太网 2 url=https://yun.mcloud.139.com/hongseyunpan/2.43G.zip#enhanced TIMEOUT
+[07:05:25.568] [D-URL] nic=以太网 2 url=https://ot2-gdown.baidu.com/appcenter/pkg/upload/8fef14924e8b969bf65011c55b7f0f94?md5hash=0d58cb32326e31818a07ce37fd84ae78&timestamp=1780905849 TIMEOUT
+[07:05:25.569] [D-URL] nic=以太网 2 url=https://8b06c261e77fac3dbe275a2430234968.dlied1.cdntips.net/dlied4.myapp.com/myapp/1104466820/cos.release-40109/10040714_com.tencent.tmgp.sgame_a4202103_11.3.1.1_QBcYZh.apk?mkey=lego_ztc&f=00&sche_type=7&cip=223.73.170.221&proto=https&access_type=&sign=1780735353.5c763961604f533d2ce7f7816e383ecc.5693883960094723e88424a05f1681fb.z1b_o4oq97NX_KbHo47pgTRBQ_p4-62-B5ACHfpA7NA&tx_domain=dlied4.myapp.com&tx_path=%2Fmyapp%2F1104466820%2F&tx_id=6c9382a8c8 TIMEOUT
+[07:05:25.573] [D-FIN1] VM.LatencyMs=1.4 VM.WanLatencyMs=51.2 VM.JitterMs= lists: lan=0 wan=0 jitter=0
+[07:05:25.573] [D-FIN2] result.LatencyMs=1.4(AVG) VM.LatencyMs=1.4(LAST) result.WanLatencyMs=51.2(AVG) VM.WanLatencyMs=51.2(LAST) result.JitterMs= VM.JitterMs=
+[07:05:25.573] [D-END] VM final: LatencyMs=1.4 WanLatencyMs=51.2 JitterMs=
+[07:05:25.822] PersistSpeedOptions failed: The process cannot access the file 'C:\Users\Administrator\AppData\Local\NetSpeedTest\appsettings.json.tmp' because it is being used by another process.
+[07:05:25.822] PersistSpeedOptions failed: The process cannot access the file 'C:\Users\Administrator\AppData\Local\NetSpeedTest\appsettings.json.tmp' because it is being used by another process.
+[07:05:25.822] PersistSpeedOptions failed: The process cannot access the file 'C:\Users\Administrator\AppData\Local\NetSpeedTest\appsettings.json.tmp' because it is being used by another process.
+[07:05:25.823] PersistSpeedOptions failed: The process cannot access the file because it is being used by another process.
+[07:05:25.838] PersistSpeedOptions failed: The process cannot access the file 'C:\Users\Administrator\AppData\Local\NetSpeedTest\appsettings.json.tmp' because it is being used by another process.

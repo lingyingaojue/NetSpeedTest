@@ -1,0 +1,100 @@
+﻿
+=== Setup ===
+web.json seeded
+
+=== Launch ===
+launched pid=25200
+server ready (pid=25200)
+proceeding to checks
+
+=== F-01 token / static serving ===
+  PASS  index.html served  11703 bytes
+  PASS  F-01 placeholder replaced by per-run token  token=46B749BA... (64 hex)
+  PASS  F-01 static web.js carries no secret and sends header  no secret embedded; X-NST-Token wired
+  PASS  token differs from a literal guess  CSPRNG-shaped 256-bit token
+
+=== FN-06 security headers ===
+  PASS  FN-06 headers on JSON response  nosniff + DENY + no-referrer
+  PASS  FN-06 headers on static asset  nosniff present
+  PASS  FN-07/FN-06 error responses use fixed payload  404 + nosniff on error path
+
+=== Read APIs ===
+  PASS  /api/status idle  running=False port=8080
+  PASS  /api/adapters  count=1, selected=1
+  PASS  /api/history?page=1&pageSize=5  total=97 records=5
+  PASS  F-21 /api/server lanError sanitised  lanError length=0 port=8080
+  PASS  lanAccess/bindings exposed  lanAccess=True lanReady=True bindings=3
+
+=== Input validation ===
+  PASS  malformed JSON -> 400  400
+  PASS  oversized body -> 400  400
+  PASS  unknown route -> 404  404
+  PASS  F-05 loopback URL rejected  400
+  PASS  F-05 cloud metadata URL rejected  400
+  PASS  F-05 non-http scheme rejected  400
+  PASS  F-05 non-allowlisted port rejected  400
+  PASS  profile save rejects private URL  400
+
+=== Test lifecycle (FN-01 / F-09 / F-12) ===
+  PASS  POST /api/test/start -> 200 only once truly running  200 after 3686ms with running=True confirmed
+  PASS  second start while running -> 409  409 (already testing)
+  PASS  POST /api/test/stop -> 200  200
+  PASS  running=False after stop  stopped after ~250ms
+  PASS  server stays responsive during lifecycle  status answered in 9ms
+
+=== Rapid start/stop x20 (plan step 7) ===
+  PASS  20x start/stop, UI never blocks  20 cycles OK; worst start-response latency 3791ms
+
+=== Settings (F-10) ===
+  PASS  settings POST round-trips  threadCount=96 testTimeoutSec=45
+  PASS  settings persisted atomically to disk  valid JSON, no .tmp leftovers
+  PASS  8 concurrent settings POSTs all succeed  8/8 -> 200; final threadCount=96
+
+=== Availability under load (F-09 / F-12) ===
+  PASS  status stays available during concurrent polling  90 requests, all 200
+
+=== Runtime errors ===
+  PASS  no FATAL entries in debug.log  0 FATAL entries in 391 log lines
+  PASS  no unobserved-task or unhandled-exception markers  none
+
+=== Teardown ===
+
+=== Summary ===
+
+Test                                                  Result Detail                                           
+----                                                  ------ ------                                           
+index.html served                                     PASS   11703 bytes                                      
+F-01 placeholder replaced by per-run token            PASS   token=46B749BA... (64 hex)                       
+F-01 static web.js carries no secret and sends header PASS   no secret embedded; X-NST-Token wired            
+token differs from a literal guess                    PASS   CSPRNG-shaped 256-bit token                      
+FN-06 headers on JSON response                        PASS   nosniff + DENY + no-referrer                     
+FN-06 headers on static asset                         PASS   nosniff present                                  
+FN-07/FN-06 error responses use fixed payload         PASS   404 + nosniff on error path                      
+/api/status idle                                      PASS   running=False port=8080                          
+/api/adapters                                         PASS   count=1, selected=1                              
+/api/history?page=1&pageSize=5                        PASS   total=97 records=5                               
+F-21 /api/server lanError sanitised                   PASS   lanError length=0 port=8080                      
+lanAccess/bindings exposed                            PASS   lanAccess=True lanReady=True bindings=3          
+malformed JSON -> 400                                 PASS   400                                              
+oversized body -> 400                                 PASS   400                                              
+unknown route -> 404                                  PASS   404                                              
+F-05 loopback URL rejected                            PASS   400                                              
+F-05 cloud metadata URL rejected                      PASS   400                                              
+F-05 non-http scheme rejected                         PASS   400                                              
+F-05 non-allowlisted port rejected                    PASS   400                                              
+profile save rejects private URL                      PASS   400                                              
+POST /api/test/start -> 200 only once truly running   PASS   200 after 3686ms with running=True confirmed     
+second start while running -> 409                     PASS   409 (already testing)                            
+POST /api/test/stop -> 200                            PASS   200                                              
+running=False after stop                              PASS   stopped after ~250ms                             
+server stays responsive during lifecycle              PASS   status answered in 9ms                           
+20x start/stop, UI never blocks                       PASS   20 cycles OK; worst start-response latency 3791ms
+settings POST round-trips                             PASS   threadCount=96 testTimeoutSec=45                 
+settings persisted atomically to disk                 PASS   valid JSON, no .tmp leftovers                    
+8 concurrent settings POSTs all succeed               PASS   8/8 -> 200; final threadCount=96                 
+status stays available during concurrent polling      PASS   90 requests, all 200                             
+no FATAL entries in debug.log                         PASS   0 FATAL entries in 391 log lines                 
+no unobserved-task or unhandled-exception markers     PASS   none                                             
+
+
+Total=32 Pass=32 Fail=0

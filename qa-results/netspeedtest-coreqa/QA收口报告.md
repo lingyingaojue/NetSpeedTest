@@ -5,241 +5,195 @@
 | 项目 | 内容 |
 |---|---|
 | 测试对象 | NetSpeedTest（.NET 8 + WPF 网络测速工具箱） |
-| 版本 | v1.4.3（程序集 1.4.3.0，csproj / README / CHANGELOG / 关于页一致） |
-| 测试范围 | 全项目核心功能（测速引擎、Web 服务器与 API、安全、数据、18 合 1 工具箱、自动更新、稳定性） |
+| 版本 | v1.4.3（程序集 1.4.3.0，csproj / README / CHANGELOG / 关于页四处一致） |
+| 测试类型 | 全流程 QA 收口：需求基线 + 风险设计 + 单元测试 + 静态审查 + 真实端到端冒烟 |
 | 执行日期 | 2026-09-30 |
-| 执行方式 | 真实执行 `dotnet build` / `dotnet test` + 静态代码取证 + 只读网络探测 |
-| 用例规模 | 39 个业务用例；243 个自动化测试方法（其中本轮新增 31 个） |
-| **发布判断** | **undetermined（证据不足以下终审，非不通过）** |
+| 构建 | Debug、Release 两配置均 **0 错误 / 0 警告** |
+| 自动化测试 | **243 个方法：239 通过 / 0 失败 / 4 跳过**（跳过项为 4 个缺陷复现检查点） |
+| 端到端冒烟 | tools/smoke-test.ps1 驱动真实 Release 程序：**32 项检查全部 PASS / 0 失败**，运行日志 0 FATAL |
+| 业务用例 | 39 个：**通过 25 · 失败 5（均为已确认缺陷）· 阻塞 7（未执行）· 跳过 2** |
+| 开放缺陷 | **7 个：P2×4、P3×3，无 P0/P1，无 S1/S2** |
+| **发布判断** | **undetermined（证据不足，暂不定终审）——非 no_go；距 conditional_go 仅差一次完整真实测速与缺陷处置** |
 
 ---
 
 ## 1. 结论摘要
 
-- **构建**：Debug 与 Release 两个配置均构建成功，**0 错误、0 警告**。
-- **自动化测试**：全量 **243 个测试方法，239 通过、0 失败、4 跳过**；4 个跳过项是本轮为已确认缺陷预置的复现检查点（修复后取消 Skip 即转为回归测试）。
-- **核心安全与算法**：SSRF 防护（含重定向逐跳）、远程令牌认证、路径穿越、安全响应头、自适应并发上限、URL 负载均衡、上传响应校验、网卡出口解析、设置原子持久化、更新签名校验等 **P0/P1 机制的自动化验证全部通过**。
-- **发现缺陷 7 个**：P2 级 4 个、P3 级 3 个；严重程度 S3 级 4 个、S4 级 3 个；**无 S1/S2 致命/严重缺陷，无 P0/P1 阻断缺陷**。
-- **发布判断为 undetermined**：自动化与静态层证据充分且全绿，但本轮授权范围为 `dotnet build/test`，**真实 GUI 外网测速、跨设备局域网访问、`tools/smoke-test.ps1` 端到端等核心旅程尚未取得真实运行证据**，且 7 个缺陷未处置。在补齐端到端证据并处理 P2 缺陷前，不给出 go 终审；同时因无 P0/P1 缺陷、核心自动化全绿，也不构成 no_go。
+NetSpeedTest v1.4.3 的**构建质量、核心测速算法、远程 Web 安全、服务端生命周期与并发稳定性**均取得了充分且相互印证的证据，全部通过：
+
+- **构建**：Debug / Release 均 0 错误 0 警告，版本号四处一致。
+- **单元/逻辑层**：全量 243 个测试方法 239 通过、0 失败、4 跳过；跳过的 4 个是为已确认缺陷预置的复现用例（修复后启用即转为回归测试）。本轮新增 31 个测试方法。
+- **端到端真机层（本轮新增）**：用 `tools/smoke-test.ps1` 驱动真实 Release 程序（`--debug`，127.0.0.1:8080）跑完 **32 项检查全部 PASS**，覆盖令牌注入、安全响应头、固定错误体、读 API、输入校验与 SSRF 拦截、测试生命周期（200 不早于 running、重复 409、stop 复位）、20 次快速启停、设置原子持久化与 8 并发写、90 次并发轮询；运行日志 391 行 **0 FATAL、0 未观察异常/并发枚举修改**。
+- **缺陷**：静态审查与真实探测共锁定 7 个开放缺陷，最高 S3/P2，**没有 P0/P1 阻断级、没有 S1/S2 严重级**。其中 MTU 探测缺陷已用真实 `ping` 完成 L3 可复现取证。
+
+**为什么仍不是「可发布」**：产品最核心的「真实外网下载/上传/双向测速」还没有**完整跑完一次**去核对最终吞吐数值、平均窗口与 URL 明细（冒烟只验证到发起后真实进入运行态）；跨设备网段白名单、多网卡聚合、CSV/HBCS、GUI 准备阶段取消等人工/跨设备项未做；7 个缺陷尚未处置。因此按「零证据禁终审」原则维持 **undetermined**。由于无任何阻断级缺陷且 P0/P1 机制全绿，**不是 no_go**。
 
 ---
 
-## 2. 测试对象与范围
+## 2. 测试范围与对象
 
-### 2.1 纳入范围
+覆盖仓库 `D:\Program Files\DSH\NetSpeedTest` 全部核心功能：
 
-- 下载 / 上传 / 双向多线程测速引擎（自适应并发、URL 负载均衡、平均速率窗口、上传响应判定、URL 明细）。
-- 多网卡源 IP 绑定与出口解析、UDP 探测、网络质量（延迟/抖动/丢包）。
-- 内置 Web 服务器与 REST API（生命周期、状态、设置、历史、节点、网卡、SSRF 防护）。
-- 远程安全模型：回环免令牌 / 非回环 X-NST-Token、网段白名单、安全响应头、静态文件穿越防护。
-- SQLite 历史记录持久化与分页、节点管理、HBCS 配置、CSV 导出。
-- 18 合 1 工具箱（子网/带宽/MTU/Ping/DNS/HTTP/路由/端口/NAT 等）。
-- 自动更新（GitHub Release 资产选择、SHA256 校验、失败降级）。
-- 全局异常兜底、并发资源安全、测试任务取消与生命周期。
+1. 测速引擎：多 URL 并发下载、上传校验、双向同时测速、自适应并发、多网卡出口、延迟/抖动/丢包/UDP、DNS 预热、取消。
+2. 数据：SQLite 历史持久化与分页、CSV 导出、节点增删改、HBCS 导入导出。
+3. 内置 Web 服务器与 API：回环/局域网监听、单次令牌鉴权、安全响应头、SSRF/路径穿越防护、状态/网卡/历史/设置接口、测试生命周期、并发可用性、防火墙探测、wwwroot 兜底页。
+4. 18 合 1 工具箱（含 MTU 探测、子网/带宽计算等）。
+5. 自动更新（GitHub releases、资产选择、SHA256 校验）。
+6. 全局异常兜底、并发资源安全等非功能项。
 
-### 2.2 明确不覆盖（本轮）
-
-- WPF 控件像素级界面走查、主题与多语言渲染。
-- 安装包代码签名、GitHub Release 发布流水线、广告/赞助内容。
-- 依赖真实外网、第二台设备、多上联网卡的人工实测（见第 7 节）。
+不在本轮范围：安装包代码签名、GitHub Release 发布流水线、广告/赞助内容、WPF 控件像素级 UI 走查与主题/多语言渲染。
 
 ---
 
-## 3. 测试环境与执行方式
+## 3. 测试环境
 
 | 项 | 值 |
 |---|---|
-| 操作系统 | Windows（真实桌面环境，非沙箱） |
-| SDK | .NET SDK 8.0.425 |
-| 目标框架 | net8.0-windows（WPF，AnyCPU） |
-| 构建命令 | `dotnet build NetSpeedTest.sln -c Debug/Release` |
-| 测试命令 | `dotnet test NetSpeedTest.sln -c Release`（xUnit） |
-| 代码基线 | Git `771e23f docs: 发布 v1.4.3 正式版` |
-
-本轮为 QA 评审，**未修改任何产品代码**；仅新增测试文件与 QA 产物，缺陷修复留给项目作者决策。
+| 操作系统 | Windows（真实桌面，非容器/沙箱） |
+| .NET SDK | 8.0.425；目标框架 net8.0-windows（WPF），AnyCPU |
+| 构建配置 | Debug、Release |
+| 测试框架 | xUnit（`dotnet test`，trx 日志） |
+| 测试程序集可见性 | InternalsVisibleTo 已配置，可直接测 internal 与嵌套 internal 类 |
+| 端到端 | 真实 Release `NetSpeedTest.exe --debug`，HTTP 127.0.0.1:8080 |
+| 数据隔离 | 单元测试经反射切换临时 SQLite 库并清理；冒烟前后备份/恢复本地 appsettings.json、web.json |
 
 ---
 
-## 4. 执行结果总览
+## 4. 执行总览
 
-### 4.1 构建结果
-
-| 配置 | 结果 | 警告 | 错误 |
+| 阶段 | 命令 / 方式 | 结果 | 证据 |
 |---|---|---|---|
-| Debug | 成功 | 0 | 0 |
-| Release | 成功 | 0 | 0 |
+| 依赖还原 | `dotnet restore` | 成功 | build-release.log |
+| Release 构建 | `dotnet build NetSpeedTest.sln -c Release --nologo` | **退出码 0，0 警告 0 错误**（Debug 同为 0/0） | EVD-BUILD-001 |
+| 全量单元测试 | `dotnet test -c Release --logger trx` | **243 方法：239 通过 / 0 失败 / 4 跳过** | EVD-TEST-002（qa-final.trx、test-final.log） |
+| 静态代码审查 | 通读测速/Web/工具箱/数据/更新等核心源码与 XAML、README | 锁定 7 个缺陷候选并逐一取证 | evidence\ 各快照 |
+| MTU 真实复现 | `ping -i 1 8.8.8.8` 对比 `ping -i 30 8.8.8.8` | TTL=1 首跳 TTL expired、TTL=30 正常应答（TTL=107），证实 BUG-MTU-001 | EVD-MTU-PING-003（L3） |
+| **端到端冒烟** | `tools\smoke-test.ps1`（真实 Release exe） | **32/32 PASS、0 失败；debug.log 391 行 0 FATAL/异常** | **EVD-SMOKE-E2E-010、EVD-SMOKE-LOG-011（L4）** |
 
-### 4.2 自动化测试结果
+冒烟 32 项按类归并：
 
-| 指标 | 数值 |
-|---|---|
-| 测试方法总数 | 243 |
-| 通过 | 239 |
-| 失败 | 0 |
-| 跳过（缺陷复现检查点） | 4 |
-| 既有测试方法 | 212（全部通过） |
-| 本轮新增测试方法 | 31（27 通过 + 4 跳过） |
+| 检查组 | 检查数 | 结果 | 关键观测 |
+|---|---|---|---|
+| F-01 令牌 / 静态服务 | 4 | 全 PASS | index 注入 64hex 单次令牌、占位符已替换、web.js 带 X-NST-Token 且无内嵌密钥、令牌非全零 |
+| FN-06 安全头 / 固定错误体 | 3 | 全 PASS | nosniff + DENY + no-referrer；静态资源带 nosniff；404 固定文案且带安全头 |
+| 读 API | 5 | 全 PASS | status/adapters/history/server 正常；lanError 脱敏不泄漏 netsh/路径/异常；bindings=3、lanReady=true |
+| 输入校验 / SSRF | 8 | 全 PASS | 畸形 JSON、超大 body、未知路由、环回、云元数据、非 http、非白名单端口、私网 profile 均正确拒绝 |
+| 测试生命周期 | 5 | 全 PASS | start 3686ms 进入 running=true 才 200；重复 409；stop 200 后约 250ms 复位；期间 status 9ms |
+| 20 次快速启停 | 1 | PASS | start∈{200,409}、stop=200、status<2s；最差 start 3791ms（等待真实 running，符合「不得提前 200」） |
+| 设置 F-10 | 3 | 全 PASS | 往返一致、原子落盘合法 JSON 无 .tmp 残留、8 并发 POST 全 200 |
+| 负载可用性 | 1 | PASS | 90 次并发 GET /api/status 全部 200 |
+| 运行时错误 | 2 | 全 PASS | 391 行日志 0 FATAL、0 Unhandled/Unobserved/Collection was modified |
 
-### 4.3 业务用例与验收统计（来自 39 个用例）
-
-| 用例执行状态 | 数量 |
-|---|---|
-| 通过 | 22 |
-| 失败（确认缺陷） | 5 |
-| 阻塞（环境/授权，未执行） | 10 |
-| 不适用（缺陷复现用例 Skip） | 2 |
-| **合计** | **39** |
-
-| 验收检查（9 项） | 数量 |
-|---|---|
-| 通过 | 4 |
-| 未通过（关联开放缺陷） | 2 |
-| 阻塞（依赖未执行的真机/端到端用例） | 3 |
-
-> 说明：5 个"失败"用例为**静态/真实探测确认的缺陷**（BUG-MTU-001、BUG-BIDI-002、BUG-CLAMP-003、BUG-FW-006、BUG-FALLBACK-007），并非自动化回归失败；全量自动化测试 0 失败。10 个"阻塞"用例未执行，按规则不计失败、不伪装通过，统一列入第 7 节。
+> 副作用与清理：冒烟会启动真实程序、占用 8080、产生真实外网连接并改写本地 web.json/appsettings.json。执行前已备份、执行后已原样恢复（备份存 `config-backup/`），teardown 结束进程并释放端口，复核无残留。
 
 ---
 
-## 5. 核心能力验证结论
+## 5. 分模块验证结论
 
-### 5.1 测速引擎（核心）
-
-- **自适应并发**：高并发脉冲、缩容、双向合计等不变式下，当前/峰值线程数始终不突破硬上限（2–1024），槽位可回收、无死锁与枚举修改异常 —— 通过。
-- **URL 负载均衡（本轮新增覆盖）**：探索阶段覆盖全部 URL、探测后选择最快节点、连续失败与超时进入冷却避让、全部不健康时不返回空串、明细正确分类 —— 9 个用例通过。
-- **上传校验与明细**：仅 2xx 计成功，301/403/404/405/5xx/超时/断连均计失败；URL 明细正确标记拒收与超时 —— 通过。
-- **双向反馈**：取下载/上传瓶颈侧、双方向均起量后才观察、起始线程对半拆分 —— 通过。
-- **网卡出口解析（本轮新增覆盖）**：调用方注入、单卡多活动绑定、绑定失败显式 `BindFailed`、单卡单活动走默认路由、多卡不绑定五个分支 —— 5 个用例通过。
-- **UDP 探测**：ICMP `PortUnreachable` 正确计为主机可达，仅超时计丢包 —— 通过。
-- 遗留：双向测速聚合结果缺少 URL 明细（BUG-BIDI-002，P2）。
-
-### 5.2 远程安全（P0）
-
-- **SSRF 防护**：私网/环回/链路本地/云元数据地址、非 http(s)、非白名单端口、十进制/八进制/十六进制 IP 变体全部拒绝；**重定向逐跳做公网校验、最多 3 跳、自动重定向关闭**，恶意 `Location` 在跳转当跳被拦截 —— 通过。
-- **令牌认证**：非回环无令牌/错令牌的写操作被拒，回环免令牌，主页每次注入不可猜测的随机令牌，正式前端 `web.js` 携带 `X-NST-Token` —— 通过。
-- **路径穿越 / 安全头 / 错误体**：`../` 与编码穿越无法读取 wwwroot 之外文件；JSON、静态、错误响应均带 `nosniff / DENY / no-referrer`；404 返回固定文案，不泄露异常、路径或 netsh 输出 —— 通过。
-- 遗留：wwwroot 缺失时的内嵌兜底页未携带令牌（BUG-FALLBACK-007，P3，边缘场景）。
-
-### 5.3 Web 生命周期与设置
-
-- 测试启动在服务端真正进入 running 后才返回 200，重复启动返回 409，stop 后 running 复位；API 发起的测速不弹准备确认框、错误不经 UI 弹窗派发 —— 通过。
-- 设置采用"写临时文件 + 替换"原子持久化，往返一致、无 `.tmp` 残留，非法值被钳制或拒绝 —— 通过。
-- 遗留：API 钳制范围与 UI 滑块/README 有 2 项不一致（BUG-CLAMP-003，P2）；防火墙放行逻辑为死代码（BUG-FW-006，P2）。
-
-### 5.4 数据持久化（本轮新增覆盖）
-
-- SQLite 建表、25 条记录分页（首页/末页/越界页）、计数、删除、清空、字段往返 —— 5 个用例通过，使用临时库不污染用户数据。
-
-### 5.5 18 合 1 工具箱
-
-- 子网计算（/24、/30、/31、/32、非法 IP）与带宽换算（100/1000 Mbps、非数字）正确 —— 通过。
-- 遗留 3 个输入/逻辑缺陷：MTU 探测 TTL 硬编码（BUG-MTU-001，P2，已真实复现）、带宽 0/负数（BUG-BW-004，P3）、非连续子网掩码（BUG-SUBNET-005，P3）。
-
-### 5.6 自动更新
-
-版本判定、稳定版/预发布过滤、zip 资产选择、SHA256 不符拒绝、网络失败静默降级 —— 通过。
-
----
-
-## 6. 缺陷清单与定级
-
-本轮共录入 **7 个开放缺陷**，无 P0/P1 阻断项。完整 Bug 单见《测试用例与追踪矩阵.md》。
-
-| Bug ID | 模块 | 级别 | 优先级 | 证据等级 | 摘要 |
-|---|---|---|---|---|---|
-| BUG-MTU-001 | 工具箱·MTU 探测 | S3 | P2 | L3 可复现 | PingOptions TTL 硬编码为 1，跨网关目标必然"未找到可用 MTU"，且结果术语颠倒 |
-| BUG-BIDI-002 | 测速引擎·双向 | S3 | P2 | L2 观察 | 双向聚合结果 `UrlDetails` 恒空，缺下载/上传 URL 明细 |
-| BUG-CLAMP-003 | Web·设置 API | S3 | P2 | L2 观察 | testTimeoutSec、threadRampUpMs 钳制范围与 UI/README 不一致 |
-| BUG-FW-006 | Web·防火墙 | S3 | P2 | L2 观察 | 防火墙 add 入站规则为死代码，只删不建，就绪状态恒真 |
-| BUG-BW-004 | 工具箱·带宽换算 | S4 | P3 | L2 观察 | 0 显示"∞ 秒"、负数显示负耗时 |
-| BUG-SUBNET-005 | 工具箱·子网计算 | S4 | P3 | L2 观察 | 非连续掩码未拦截，输出错误 CIDR/网络地址 |
-| BUG-FALLBACK-007 | Web·兜底页 | S4 | P3 | L2 观察 | 兜底页 fetch 不带令牌，wwwroot 缺失时局域网 401/403 |
-
-**重点缺陷说明**
-
-- **BUG-MTU-001（唯一 L3 真实复现）**：`MoreViewModel.cs:203` 使用 `new PingOptions(1, dontFragment: true)`，TTL 固定 1。实测 `ping -i 1 8.8.8.8` 在第一跳网关即返回 `TTL expired in transit`，而 `ping -i 30 8.8.8.8` 正常收到应答（TTL=107），确定性证明默认目标下 MTU 探测必然失败；同网段目标因 1 跳可达而表现正常，具迷惑性。另 `:209` 将 ICMP 负载标为"路径 MTU"、负载+28 标为"IP MTU"，术语颠倒。
-- **BUG-FW-006**：`WebServerService.cs:513-524` 在执行 `delete rule` 后于第 519 行无条件 `return`，第 523 行 `add` 入站规则不可达；调用处 `_firewallReady=true` 恒成立，且该状态无 UI/前端消费者。每次启动会删除同名规则却不重建，与 README"自动探测防火墙放行状态"的宣称不符。是否自动 `netsh add` 需要管理员/UAC，属需作者拍板的产品决策。
-- **BUG-CLAMP-003（已据实修正范围）**：经逐项比对，10 个参数中**仅 2 项**不一致——后端 `testTimeoutSec` 下限为 5（UI/README 为 10）、`threadRampUpMs` 上限为 5000（UI/README 为 2000），其余 8 项三处一致。其中 `testTimeoutSec=5` 小于默认 10s 平均窗口，可能导致平均结果窗口尚未开启测速即结束。
-
----
-
-## 7. 未验证范围（阻塞用例与原因）
-
-以下 10 个用例本轮**未执行**，原因是超出"dotnet build/test"授权或依赖特定环境；不计失败，须在发布前补证：
-
-| 用例 | 未验证能力 | 原因 / 解锁方式 |
+| 模块 | 结论 | 依据 |
 |---|---|---|
-| TC-NETSPEEDTEST-018 | 真实外网下载测速吞吐与曲线 | 需启动 GUI 联网实测 |
-| TC-NETSPEEDTEST-019 | 多网卡真实绑定与聚合 | 需多张活动网卡 / 多上联 |
-| TC-NETSPEEDTEST-020 | 准备阶段取消的 GUI 行为 | 需 GUI 操作 |
-| TC-WEB-036 | 高并发 status 可用性（90 并发） | 需运行 smoke-test.ps1 |
-| TC-WEBACL-038 | 跨设备网段白名单 | 需第二台设备 |
-| TC-CSV-051 | CSV 导出内容 | 需 GUI 操作 |
-| TC-HBCS-052 | HBCS 导入导出往返 | 需 GUI 操作 |
-| TC-NETSPEEDTEST-065 | 依赖外网第三方接口的工具冒烟 | 需联网人工执行 |
-| TC-NETSPEEDTEST-080 | 真实运行日志无 FATAL | 需运行 smoke-test.ps1 产生 debug.log |
-| TC-NETSPEEDTEST-081 | 20 次快速启停稳定性 | 需运行 smoke-test.ps1 |
+| 解决方案构建 / 版本 / 文档 | ✅ 通过 | 两配置 0/0；版本号四处一致；README 声明均有实现对应 |
+| 测速引擎（自适应/URL 均衡/上传/网卡/UDP/重定向） | ✅ 逻辑层通过 | 31 个新增测试 + 既有测试全绿；覆盖 P0/P1 机制与边界 |
+| 真实外网测速最终结果 | ⛔ 未完整验证 | 冒烟证 start→running 可连真实节点，但未跑完核对最终速率/平均窗口/明细（TC-NETSPEEDTEST-018） |
+| Web 令牌鉴权 / 静态服务 | ✅ **端到端通过** | 单元测试 + 冒烟 F-01 真机印证 |
+| Web 安全（SSRF/路径穿越/安全头/错误体） | ✅ **端到端通过** | 60+ SSRF 形态单测 + 冒烟 8 项校验/3 项安全头真机印证 |
+| Web 生命周期 / 设置持久化 / 并发可用性 | ✅ **端到端通过** | 冒烟：生命周期 5 项、20 次快速启停、8 并发设置、90 并发 status 全 PASS |
+| 真实运行稳定性（FATAL/未观察异常） | ✅ **端到端通过（Web/服务端侧）** | 冒烟全流程后 391 行日志 0 FATAL/异常（TC-NETSPEEDTEST-080/081） |
+| 历史数据持久化 / 分页 | ✅ 通过 | DataServicePaginationTests 全绿；冒烟 /api/history 正常（total=97） |
+| CSV 导出 / HBCS 往返 | ⛔ 未执行 | 需 GUI 人工操作（TC-CSV-051、TC-HBCS-052） |
+| 跨设备网段白名单 / 兜底页 | ⛔ 未执行 | 需第二台设备（TC-WEBACL-038、BUG-FALLBACK-007） |
+| 18 合 1 工具箱 | ❌ 部分失败 | 子网/带宽等常规计算正确；MTU 探测（BUG-MTU-001）、带宽 0/负（004）、非法掩码（005）确认缺陷 |
+| 自动更新 | ✅ 通过 | 版本判定/资产选择/SHA256/失败降级测试全绿 |
+| 防火墙自动放行 | ❌ 静态确认缺陷 | add 为死代码、状态恒真（BUG-FW-006）；提权路径未实测 |
+| 双向测速 URL 明细 | ❌ 静态确认缺陷 | RunFullTestAsync 聚合 UrlDetails 恒空（BUG-BIDI-002），未真机复核 |
 
-> `tools/smoke-test.ps1` 可一次性覆盖 TC-WEB-036/080/081 等端到端项，但它会启动真实 Release GUI、占用 `127.0.0.1:8080`、改写 `%LOCALAPPDATA%\NetSpeedTest\web.json`、产生真实外网测速流量并可能结束已运行的 NetSpeedTest 进程，**须经显式授权后再运行**。
+---
+
+## 6. 开放缺陷清单（7 个，均未修复）
+
+| Bug ID | 模块 | S/P | 证据等级 | 一句话结论 |
+|---|---|---|---|---|
+| BUG-MTU-001 | 工具箱·MTU | S3/P2 | **L3 可复现** | PingOptions TTL 硬编码 1，跨网关目标首跳 TTL 过期，默认 8.8.8.8 恒「未找到可用 MTU」；术语颠倒 |
+| BUG-BIDI-002 | 测速·双向 | S3/P2 | L2 | RunFullTestAsync 返回 UrlDetails=new() 恒空，双向测速无 URL 明细 |
+| BUG-CLAMP-003 | Web·设置 API | S3/P2 | L2 | 仅 2 项钳制范围与 UI/README 不一致：testTimeoutSec（5–600 vs 10–600）、threadRampUpMs（0–5000 vs 0–2000） |
+| BUG-FW-006 | Web·防火墙 | S3/P2 | L2 | add 入站规则为死代码（删完即 return），只删不建、FirewallReady 恒真且无消费者 |
+| BUG-BW-004 | 工具箱·带宽 | S4/P3 | L2 | 带宽 0 显示「∞ 秒」、负数显示负耗时，未校验正数域 |
+| BUG-SUBNET-005 | 工具箱·子网 | S4/P3 | L2 | 不校验掩码位连续性，255.0.255.0 输出错误 CIDR/网络地址 |
+| BUG-FALLBACK-007 | Web·兜底页 | S4/P3 | L2 | 内嵌兜底页 fetch 不带 X-NST-Token，wwwroot 缺失时非回环 GET 401/POST 403 |
+
+> 完整复现步骤、根因分析与修复建议见《测试用例与追踪矩阵.md》第三节「Bug 单」。本轮为 QA 评审，**未改动任何产品代码**；4 个缺陷已在测试工程中以 `[Fact(Skip)]` 预置复现用例。
+
+---
+
+## 7. 未验证范围（本轮仍缺的证据）
+
+1. WPF 控件像素级 UI 走查、深色/浅色主题与中英文渲染未做人工全量核对；准备阶段取消（TC-NETSPEEDTEST-020）未在 GUI 人工执行。
+2. 真实外网**完整跑完**下载/上传/双向测速的最终吞吐数值、平均窗口、曲线与 URL 明细未实测；冒烟仅证 start→running=true 可连真实节点（约 3.7s 进入运行态），双向明细缺陷 BUG-BIDI-002 未真机复核（TC-NETSPEEDTEST-018）。
+3. 第二台设备跨网段访问、ACL 网段白名单拦截未实测（TC-WEBACL-038）；wwwroot 缺失兜底页非回环 401/403（BUG-FALLBACK-007）未在第二设备复现。
+4. 多网卡多宽带真实绑定与聚合未在多上联环境实测（TC-NETSPEEDTEST-019），绑定分支以纯逻辑测试覆盖。
+5. 防火墙 netsh 提权添加/删除规则未在管理员/非管理员环境分别实测（TC-WEB-082）；冒烟以回环访问，lanReady=true 不构成跨设备防火墙放行证据。
+6. CSV 导出、HBCS 往返、18 工具中依赖外网第三方接口（ip-api/ipify/STUN）的人工冒烟（TC-CSV-051、TC-HBCS-052、TC-NETSPEEDTEST-065）未执行。
+7. 安装包代码签名、GitHub Release 发布流水线、广告/赞助内容不在本轮范围。
 
 ---
 
 ## 8. 发布判断与放行条件
 
-**判断：undetermined（证据不足以下终审）**
+**判断：undetermined（证据不足，暂不定终审）。**
 
-依据：核心算法与安全的自动化证据充分且全绿、构建零警告、无 P0/P1 缺陷；但最核心的真实外网测速旅程、跨设备局域网访问与端到端稳定性缺少真实运行证据，且存在 4 个 P2 开放缺陷，不满足 go / conditional_go 对"决定性执行证据"的要求，同时也不构成 no_go。
+- 不判 **go**：核心外网完整测速结果、跨设备/多网卡/GUI 人工项缺决定性运行证据，且 7 个缺陷未处置。
+- 不判 **no_go**：所有 P0/P1 机制既有自动化又有真机端到端证据且全部通过，无 S1/S2、无 P0/P1 缺陷，阻断 Bug 集合为空。
+- 距离 **conditional_go** 仅差：一次完整真实测速结果核对 + 缺陷处置结论。
 
-**转为 conditional_go / go 需补齐：**
+转为可发布需满足（条件、责任与回滚已登记）：
 
-1. 授权并执行 `tools/smoke-test.ps1`（或等效真机步骤），取得生命周期、高并发可用性、安全头、日志无 FATAL 的端到端证据（TC-WEB-036/080/081）。
-2. 至少完成一次真实外网下载、上传、双向测速，核对速率与 URL 明细（TC-NETSPEEDTEST-018，双向同时验证 BUG-BIDI-002）。
-3. 用第二台设备验证局域网令牌与网段白名单（TC-WEBACL-038），并在 wwwroot 缺失场景验证兜底页（关联 BUG-FALLBACK-007）。
-4. 处置 4 个 P2 缺陷：BUG-MTU-001、BUG-BIDI-002、BUG-CLAMP-003、BUG-FW-006（其中 BUG-FW-006 需先确定 UAC/提权策略）。
-5. 修复后取消 4 个 `[Fact(Skip)]` 复现用例，确保全量测试转绿。
+1. 完成至少一次跑完的真实外网下载、上传、双向测速，核对最终吞吐、平均窗口/曲线与 URL 明细（TC-NETSPEEDTEST-018；双向同时真机复核 BUG-BIDI-002）。
+2. 用第二台设备验证局域网令牌与网段白名单（TC-WEBACL-038），并在 wwwroot 缺失场景验证兜底页（BUG-FALLBACK-007）。
+3. 处置 4 个 P2：BUG-MTU-001、BUG-BIDI-002、BUG-CLAMP-003、BUG-FW-006（防火墙项需先定 UAC 提权策略）。
+4. 修复后取消 4 个 `[Fact(Skip)]` 复现用例并确保全量测试转绿。
+5. 按需补齐多网卡（019）、CSV/HBCS（051/052）、GUI 准备取消（020）。
 
-**回滚**：缺陷均不影响回环本地测速；若修复引入回归，可 `git revert` 修复提交回到 `771e23f`（v1.4.3）。紧急情况下可暂不启用局域网 Web 与 MTU 探测工具。
+**监控与回滚**：冒烟已建立「端到端 32/32、debug.log 0 FATAL」基线，修复后重跑全量 `dotnet test` 与 smoke 比对；若引入回归可 git revert 修复提交回到 v1.4.3 基线，紧急时可暂不启用局域网 Web、不使用 MTU 探测工具（均不影响回环本地测速）。
 
 ---
 
 ## 9. 本轮新增测试资产
 
-| 测试文件 | 用例数 | 覆盖能力 |
+| 测试文件 | 用例数 | 覆盖点 |
 |---|---|---|
-| `NetSpeedTest.Tests/UrlBalancerTests.cs` | 9 | URL 探索覆盖、最快选择、失败/超时冷却、全不健康兜底、明细分类、大小写去重、上传轮转 |
-| `NetSpeedTest.Tests/NicEgressResolverTests.cs` | 5 | 出口 HttpClient 解析五个分支 |
-| `NetSpeedTest.Tests/ToolboxCalculationTests.cs` | 12（8 通过 + 4 Skip） | 子网/带宽正确路径 + BUG-MTU-001/BUG-BW-004/BUG-SUBNET-005 复现检查点 |
-| `NetSpeedTest.Tests/DataServicePaginationTests.cs` | 5 | SQLite 分页/计数/删除/清空/字段往返（临时库） |
-
-4 个 Skip 用例与缺陷一一对应，修复后取消 `Skip` 即可作为回归测试，符合"测试全部通过"的工程约定（Skip 不计失败）。
+| UrlBalancerTests.cs | 9 | URL 探索、最快选择、失败/超时冷却、单 URL、明细分类 |
+| NicEgressResolverTests.cs | 5 | 出口 HttpClient 解析五分支、绑定失败显式化 |
+| ToolboxCalculationTests.cs | 12（8 通过 + 4 Skip） | 子网/带宽常规计算 + MTU/带宽 0负/非法掩码缺陷复现 |
+| DataServicePaginationTests.cs | 5 | SQLite 分页/计数/删除/清空/字段往返（临时库，自动清理） |
 
 ---
 
 ## 10. 证据清单
 
-| 证据 ID | 类型 | 等级 | 文件 |
+| 证据 ID | 等级 | 形式 | 位置 |
 |---|---|---|---|
-| EVD-BUILD-001 | 构建日志 | L4 | `build-release.log` |
-| EVD-TEST-002 | 测试日志 | L4 | `test-full.log`、`qa-full.trx`（最终复核 `test-final.log`、`qa-final.trx`） |
-| EVD-MTU-PING-003 | 网络复现 | L3 | `mtu-ttl1.txt`、`mtu-ttl30.txt` |
-| EVD-MTU-SRC-004 | 源码取证 | L2 | `evidence/evidence-bug-mtu-001.txt` |
-| EVD-CLAMP-005 | 源码+UI 对照 | L2 | `evidence/evidence-bug-clamp-003.txt` |
-| EVD-FW-006 | 源码取证 | L2 | `evidence/evidence-bug-fw-006.txt` |
-| EVD-FALLBACK-007 | 源码取证 | L2 | `evidence/evidence-bug-fallback-007.txt` |
-| EVD-BIDI-008 | 源码取证 | L2 | `evidence/evidence-bug-bidi-002.txt` |
-| EVD-TOOLBOX-009 | 源码取证 | L2 | `evidence/evidence-bug-toolbox-004-005.txt` |
+| EVD-BUILD-001 | L4 | 构建日志 | build-release.log |
+| EVD-TEST-002 | L4 | 测试日志/trx | test-final.log、qa-final.trx（243：239/0/4） |
+| EVD-MTU-PING-003 | L3 | 真实 ping 输出 | mtu-ttl1.txt、mtu-ttl30.txt |
+| EVD-MTU-SRC-004 / BIDI-008 / CLAMP-005 / FW-006 / FALLBACK-007 / TOOLBOX-009 | L2 | 源码行号快照 | evidence\evidence-bug-*.txt |
+| **EVD-SMOKE-E2E-010** | **L4** | **端到端冒烟记录（32/32）** | **smoke-test.log** |
+| **EVD-SMOKE-LOG-011** | **L4** | **运行日志零致命错误** | **evidence\smoke-debug.log（391 行 0 FATAL）** |
+| 配置备份 | — | 数据清理记录 | config-backup\（appsettings.json、web.json，已恢复） |
 
 ---
 
-## 附：验收检查结果
+## 11. 验收检查结果（9 项：通过 5 · 未通过 2 · 阻塞 2）
 
-| 验收项 | 类型 | 结果 | 说明 |
+| 验收 ID | 验收项 | 阻断 | 结果 |
 |---|---|---|---|
-| AC-BUILD-001 可构建且版本/文档一致 | 发布配置 | 通过 | 构建 0/0，版本四处一致 |
-| AC-CORE-002 测速核心正确性 | 核心流程 | 通过 | 自适应/均衡/网卡/上传/重定向自动化全绿；真机实测见阻塞项 |
-| AC-SEC-003 远程 Web 安全 | 权限安全 | 通过 | SSRF/令牌/穿越/响应头全绿 |
-| AC-LIFE-004 生命周期/持久化/可用性 | 性能 | 阻塞 | 自动化逻辑通过；高并发与真机段待 smoke |
-| AC-DATA-005 历史与节点数据一致性 | 数据 | 通过 | 分页自动化通过；CSV/HBCS 人工待补 |
-| AC-TOOL-006 工具箱计算与输入校验 | 异常 | 未通过 | BUG-MTU-001/BUG-BW-004/BUG-SUBNET-005 |
-| AC-UPDATE-007 更新检查与签名 | 发布配置 | 通过 | 资产选择/签名不符拒绝/降级正确 |
-| AC-DEFECT-008 缺陷逐项复核定级 | 缺陷阻断 | 未通过 | 7 个开放缺陷待处置 |
-| AC-STAB-009 真实运行稳定性 | 核心流程 | 阻塞 | 待 smoke / 真机实测 |
+| AC-BUILD-001 | 可构建且版本/文档一致 | 是 | ✅ 通过 |
+| AC-CORE-002 | 测速核心正确性（逻辑层） | 是 | ✅ 通过（真机完整结果另计未验证） |
+| AC-SEC-003 | 远程 Web 安全 | 是 | ✅ 通过（单测 + 冒烟真机双证） |
+| AC-LIFE-004 | 生命周期/持久化/可用性 | 是 | ✅ **通过（冒烟端到端真机取证）** |
+| AC-UPDATE-007 | 更新检查与签名验证 | 否 | ✅ 通过 |
+| AC-DATA-005 | 历史与节点数据一致性 | 否 | ⛔ 阻塞（分页自动化通过；CSV/HBCS 待人工） |
+| AC-STAB-009 | 真实运行稳定性 | 否 | ⛔ 阻塞（Web/服务端已 0 FATAL；完整外网测速/GUI 取消待补） |
+| AC-TOOL-006 | 工具箱计算与输入校验 | 否 | ❌ 未通过（BUG-MTU-001/BUG-BW-004/BUG-SUBNET-005） |
+| AC-DEFECT-008 | 缺陷逐项复核定级 | 否 | ❌ 未通过（7 个开放缺陷待处置） |
+
+> 阻断项 AC-BUILD-001 / AC-CORE-002 / AC-SEC-003 / AC-LIFE-004 已全部通过；P0 阻断 Bug 集合为空，与 release_decision.blocking_bug_ids 一致。剩余阻塞集中在「完整真实测速结果」与跨设备/GUI 人工项，故维持 undetermined。

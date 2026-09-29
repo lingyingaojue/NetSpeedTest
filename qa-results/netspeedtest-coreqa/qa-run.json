@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "run_id": "qa-d90912c60289",
-  "revision": 5,
+  "revision": 6,
   "profile": "full",
   "test_intent": "non_ui_validation",
   "execution_level": "blocked",
@@ -118,6 +118,30 @@
       "state": "CLOSED",
       "checked_at": "2026-09-29T22:44:19.969492+00:00",
       "source_fingerprint": "sha256:e784847318644bbc4e326ac9bdb03bba19af71f3f9e7a661869f229bb06c47e4",
+      "warnings": 0
+    },
+    {
+      "stage": "baseline",
+      "revision": 6,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T23:10:47.044388+00:00",
+      "source_fingerprint": "sha256:f06f459a21bfa9338323c16e158d222cfdde0f2cce42548f468bd09eed1b3260",
+      "warnings": 0
+    },
+    {
+      "stage": "design",
+      "revision": 6,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T23:10:47.308334+00:00",
+      "source_fingerprint": "sha256:f06f459a21bfa9338323c16e158d222cfdde0f2cce42548f468bd09eed1b3260",
+      "warnings": 0
+    },
+    {
+      "stage": "execution",
+      "revision": 6,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T23:10:47.564872+00:00",
+      "source_fingerprint": "sha256:f06f459a21bfa9338323c16e158d222cfdde0f2cce42548f468bd09eed1b3260",
       "warnings": 0
     }
   ],
@@ -323,7 +347,7 @@
   "change_ledger": [
     {
       "id": "CHG-001",
-      "revision": 5,
+      "revision": 6,
       "action": "ADD",
       "object_type": "run",
       "added_ids": [
@@ -339,7 +363,7 @@
     },
     {
       "id": "CHG-002",
-      "revision": 5,
+      "revision": 6,
       "action": "ADD",
       "object_type": "requirement",
       "added_ids": [
@@ -369,7 +393,7 @@
     },
     {
       "id": "CHG-003",
-      "revision": 5,
+      "revision": 6,
       "action": "ADD",
       "object_type": "risk_mechanism",
       "added_ids": [
@@ -401,7 +425,7 @@
     },
     {
       "id": "CHG-004",
-      "revision": 5,
+      "revision": 6,
       "action": "ADD",
       "object_type": "case",
       "added_ids": [
@@ -455,7 +479,7 @@
     },
     {
       "id": "CHG-005",
-      "revision": 5,
+      "revision": 6,
       "action": "ADD",
       "object_type": "acceptance",
       "added_ids": [
@@ -479,7 +503,7 @@
     },
     {
       "id": "CHG-006",
-      "revision": 5,
+      "revision": 6,
       "action": "ADD",
       "object_type": "execution",
       "added_ids": [
@@ -533,47 +557,66 @@
     },
     {
       "id": "CHG-007",
-      "revision": 5,
+      "revision": 6,
       "action": "ADD",
       "object_type": "evidence",
       "added_ids": [
-        "EV-001",
-        "EV-002",
-        "EV-003",
-        "EV-004",
-        "EV-005",
-        "EV-006",
-        "EV-007",
-        "EV-008",
-        "EV-009"
+        "EVD-BUILD-001",
+        "EVD-TEST-002",
+        "EVD-MTU-PING-003",
+        "EVD-MTU-SRC-004",
+        "EVD-CLAMP-005",
+        "EVD-FW-006",
+        "EVD-FALLBACK-007",
+        "EVD-BIDI-008",
+        "EVD-TOOLBOX-009",
+        "EVD-SMOKE-E2E-010",
+        "EVD-SMOKE-LOG-011"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
-      "after_count": 9,
-      "delta_count": 9,
+      "after_count": 11,
+      "delta_count": 11,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     },
     {
       "id": "CHG-008",
-      "revision": 5,
+      "revision": 6,
       "action": "ADD",
       "object_type": "bug",
       "added_ids": [
-        "BUG-181MTU-001",
-        "BUG-NETSPEEDTEST-002",
-        "BUG-WEBAPI-003",
-        "BUG-181-004",
-        "BUG-181-005",
-        "BUG-WEB-006",
-        "BUG-WEB-007"
+        "BUG-MTU-001",
+        "BUG-BIDI-002",
+        "BUG-CLAMP-003",
+        "BUG-BW-004",
+        "BUG-SUBNET-005",
+        "BUG-FW-006",
+        "BUG-FALLBACK-007"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
       "after_count": 7,
       "delta_count": 7,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    },
+    {
+      "id": "CHG-009",
+      "revision": 6,
+      "action": "ADD",
+      "object_type": "delivery",
+      "added_ids": [
+        "QA收口报告.md",
+        "测试用例与追踪矩阵.md"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 2,
+      "delta_count": 2,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     }
@@ -2227,7 +2270,10 @@
       "attempt": 1,
       "started_at": "2026-09-30T00:00:00",
       "finished_at": "2026-09-30T06:33:17",
-      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+      "tester_notes": "smoke 生命周期中多次 POST /api/test/start（download）经约 3.7s 进入 running=true 并连接真实预设节点，证明端到端可启动并联网；但每次随即 stop，未等待完整平均窗口/最终吞吐速率与 URL 明细落库，故完整测速结果数值正确性、平均窗口与曲线仍未验证，维持阻塞，需补一次跑完的真实下载/上传/双向测速。",
+      "evidence_ids": [
+        "EVD-SMOKE-E2E-010"
+      ]
     },
     {
       "id": "EXE-NETSPEEDTEST-019",
@@ -2270,8 +2316,11 @@
       "started_at": "2026-09-30T00:00:00",
       "finished_at": "2026-09-30T06:33:17",
       "evidence_ids": [
-        "EVD-TEST-002"
-      ]
+        "EVD-TEST-002",
+        "EVD-SMOKE-E2E-010",
+        "EVD-SMOKE-LOG-011"
+      ],
+      "tester_notes": "smoke 真机印证：环回/云元数据/非 http 方案/非白名单端口/私网 profile 经 HTTP 实测均返回 400，畸形与超大 body 返回 400、未知路由 404"
     },
     {
       "id": "EXE-NETSPEEDTEST-031",
@@ -2286,8 +2335,11 @@
       "started_at": "2026-09-30T00:00:00",
       "finished_at": "2026-09-30T06:33:17",
       "evidence_ids": [
-        "EVD-TEST-002"
-      ]
+        "EVD-TEST-002",
+        "EVD-SMOKE-E2E-010",
+        "EVD-SMOKE-LOG-011"
+      ],
+      "tester_notes": "smoke 真机印证：index.html 注入 64hex 单次令牌、占位符已替换、web.js 携带 X-NST-Token 且无内嵌密钥、令牌非全零"
     },
     {
       "id": "EXE-NETSPEEDTEST-032",
@@ -2302,8 +2354,11 @@
       "started_at": "2026-09-30T00:00:00",
       "finished_at": "2026-09-30T06:33:17",
       "evidence_ids": [
-        "EVD-TEST-002"
-      ]
+        "EVD-TEST-002",
+        "EVD-SMOKE-E2E-010",
+        "EVD-SMOKE-LOG-011"
+      ],
+      "tester_notes": "smoke 真机印证：JSON 与静态资源均含 nosniff，X-Frame-Options=DENY、Referrer-Policy=no-referrer，404 错误路径使用固定文案并带安全头"
     },
     {
       "id": "EXE-NETSPEEDTEST-033",
@@ -2334,8 +2389,11 @@
       "started_at": "2026-09-30T00:00:00",
       "finished_at": "2026-09-30T06:33:17",
       "evidence_ids": [
-        "EVD-TEST-002"
-      ]
+        "EVD-TEST-002",
+        "EVD-SMOKE-E2E-010",
+        "EVD-SMOKE-LOG-011"
+      ],
+      "tester_notes": "smoke 真机印证：start 3686ms 进入 running=true 才 200、重复 409、stop 200 后约 250ms 复位、生命周期内 status 9ms"
     },
     {
       "id": "EXE-NETSPEEDTEST-035",
@@ -2350,22 +2408,29 @@
       "started_at": "2026-09-30T00:00:00",
       "finished_at": "2026-09-30T06:33:17",
       "evidence_ids": [
-        "EVD-TEST-002"
-      ]
+        "EVD-TEST-002",
+        "EVD-SMOKE-E2E-010",
+        "EVD-SMOKE-LOG-011"
+      ],
+      "tester_notes": "smoke 真机印证：设置往返一致、原子落盘为合法 JSON 无 .tmp 残留、8 并发 POST 全部 200"
     },
     {
       "id": "EXE-NETSPEEDTEST-036",
       "case_id": "TC-WEB-036",
-      "status": "blocked",
+      "status": "passed",
       "execution_level": "blocked",
       "validation_scope": "formal",
-      "execution_method": "manual",
+      "execution_method": "automated",
       "operator": "豆包 QA（doubao-product-qa 自动化执行）",
-      "actual_result": "smoke 负载段（20 次快速启停+90 次并发 status）未执行：需启动 Release GUI 并占用 8080",
+      "actual_result": "smoke 端到端：90 次并发 GET /api/status 全部 200；20 次快速 start/stop 中 start∈{200,409}、stop=200、每周期 status<2s，最差 start 响应 3791ms（等待真实 running，符合设计），无超时、无进程退出。",
       "attempt": 1,
-      "started_at": "2026-09-30T00:00:00",
-      "finished_at": "2026-09-30T06:33:17",
-      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+      "started_at": "2026-09-30T07:08:06",
+      "finished_at": "2026-09-30T07:10:06",
+      "tester_notes": "由 tools/smoke-test.ps1 对真实 Release exe 正式执行，覆盖高并发轮询与快速启停可用性。",
+      "evidence_ids": [
+        "EVD-SMOKE-E2E-010",
+        "EVD-SMOKE-LOG-011"
+      ]
     },
     {
       "id": "EXE-NETSPEEDTEST-037",
@@ -2589,30 +2654,38 @@
     {
       "id": "EXE-NETSPEEDTEST-080",
       "case_id": "TC-NETSPEEDTEST-080",
-      "status": "blocked",
+      "status": "passed",
       "execution_level": "blocked",
       "validation_scope": "formal",
-      "execution_method": "manual",
+      "execution_method": "automated",
       "operator": "豆包 QA（doubao-product-qa 自动化执行）",
-      "actual_result": "smoke 日志 FATAL 检查未执行：需真实 Release 运行产生 debug.log",
+      "actual_result": "smoke 端到端：--debug 日志 391 行，FATAL/Unhandled/Unobserved/Collection was modified 命中数均为 0。",
       "attempt": 1,
-      "started_at": "2026-09-30T00:00:00",
-      "finished_at": "2026-09-30T06:33:17",
-      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+      "started_at": "2026-09-30T07:08:06",
+      "finished_at": "2026-09-30T07:10:06",
+      "tester_notes": "真实 Release 运行全流程（含 20 次快速启停、8 并发设置、90 并发 status）后取证。",
+      "evidence_ids": [
+        "EVD-SMOKE-LOG-011",
+        "EVD-SMOKE-E2E-010"
+      ]
     },
     {
       "id": "EXE-NETSPEEDTEST-081",
       "case_id": "TC-NETSPEEDTEST-081",
-      "status": "blocked",
+      "status": "passed",
       "execution_level": "blocked",
       "validation_scope": "formal",
-      "execution_method": "manual",
+      "execution_method": "automated",
       "operator": "豆包 QA（doubao-product-qa 自动化执行）",
-      "actual_result": "smoke 20 次快速启停未执行",
+      "actual_result": "smoke 端到端：20 次快速 start/stop 循环全程不卡死、进程不退出，start∈{200,409}、stop=200、status 恒可用（<2s）。",
       "attempt": 1,
-      "started_at": "2026-09-30T00:00:00",
-      "finished_at": "2026-09-30T06:33:17",
-      "tester_notes": "环境/授权受限未执行，已列入 unverified 未覆盖范围，不计失败、不伪装通过"
+      "started_at": "2026-09-30T07:08:06",
+      "finished_at": "2026-09-30T07:10:06",
+      "tester_notes": "对应 smoke『Rapid start/stop x20』检查项 PASS。",
+      "evidence_ids": [
+        "EVD-SMOKE-E2E-010",
+        "EVD-SMOKE-LOG-011"
+      ]
     },
     {
       "id": "EXE-NETSPEEDTEST-082",
@@ -2719,6 +2792,22 @@
       "validation_scope": "formal",
       "path": "evidence/evidence-bug-toolbox-004-005.txt",
       "description": "MoreViewModel.cs CalcBandwidth 0/负数除零、CalcSubnet 未校验掩码连续性的源码片段"
+    },
+    {
+      "id": "EVD-SMOKE-E2E-010",
+      "type": "log",
+      "level": "L4_formal",
+      "validation_scope": "formal",
+      "path": "smoke-test.log",
+      "description": "tools/smoke-test.ps1 驱动真实 Release 程序（--debug，HTTP 127.0.0.1:8080）端到端 32 项检查全部 PASS、0 失败：①F-01 令牌：index.html 注入 64hex 单次令牌、占位符已替换、web.js 携带 X-NST-Token 且无内嵌密钥、令牌非全零；②FN-06 安全头：JSON/静态资源均含 nosniff，DENY、no-referrer 齐全，404 错误路径使用固定文案且带 nosniff；③读 API：status/adapters/history/server 正常，lanError 已脱敏不泄漏 netsh/路径/异常；④输入校验与 SSRF：畸形 JSON、超大 body、未知路由、环回 URL、云元数据 169.254.169.254、非 http 方案、非白名单端口、私网 profile 均正确 400/404；⑤生命周期：POST /api/test/start 经 3686ms 真正进入 running=true 才返回 200，运行中重复 start 返回 409，stop 返回 200 且约 250ms 内 running 归 false，期间 status 9ms 响应；⑥20 次快速 start/stop 全程 start∈{200,409}、stop=200、status<2s（最差 start 响应 3791ms 为等待真实 running，符合 FN-01 不得提前 200）；⑦设置：往返一致、原子落盘为合法 JSON 且无 .tmp 残留、8 并发 POST 全部 200；⑧可用性：90 次并发 GET /api/status 全部 200。副作用与数据清理：执行前备份、执行后恢复 %LOCALAPPDATA%\\NetSpeedTest 的 appsettings.json 与 web.json（备份见 config-backup/），teardown 已结束进程并释放 8080 端口，复核无残留进程/监听。"
+    },
+    {
+      "id": "EVD-SMOKE-LOG-011",
+      "type": "log",
+      "level": "L4_formal",
+      "validation_scope": "formal",
+      "path": "evidence/smoke-debug.log",
+      "description": "smoke 运行期 --debug 日志共 391 行；对 FATAL、Unhandled、Unobserved、Collection was modified 四类模式检索命中数均为 0，印证真实端到端运行无致命错误、未观察任务异常与枚举并发修改。"
     }
   ],
   "bugs": [
@@ -3172,14 +3261,13 @@
     "result_submission": []
   },
   "unverified": [
-    "WPF 控件像素级界面走查、深色/浅色主题与中英文渲染未做人工全量核对",
-    "真实外网测速的吞吐数值准确性未做联网实测（依赖实时网络质量与公网测速文件可用性），核心算法以无网络单元测试验证",
-    "真实手机/第二台设备跨网段访问、ACL 网段白名单拦截未做跨设备实测（TC-038/TC-040）",
-    "多网卡多宽带真实绑定与聚合未在多上联环境实测（TC-019），绑定分支以纯逻辑测试覆盖",
-    "tools/smoke-test.ps1 端到端需启动 Release GUI 并占用 127.0.0.1:8080，是否执行以本机环境为准；未执行则其覆盖项记为未验证",
-    "防火墙 netsh 提权添加/删除规则未在管理员/非管理员环境分别实测（TC-082），仅做静态代码取证",
-    "广告弹窗与赞助内容、安装包代码签名、GitHub Release 发布流水线不在本轮范围",
-    "CSV 导出、HBCS 往返、18 工具中依赖外网第三方接口（ip-api/ipify/STUN）的人工冒烟（TC-051/052/065）未执行"
+    "WPF 控件像素级界面走查、深色/浅色主题与中英文渲染未做人工全量核对；准备阶段取消（TC-NETSPEEDTEST-020）未在 GUI 人工执行",
+    "真实外网完整下载/上传/双向测速的最终吞吐数值、平均窗口、曲线与 URL 明细未做『跑完一次』的联网实测；smoke 仅验证 start→running=true 可连接真实节点（约 3.7s 进入运行态），双向测速 URL 明细缺陷 BUG-BIDI-002 亦未真机复核（TC-NETSPEEDTEST-018）",
+    "真实手机/第二台设备跨网段访问、ACL 网段白名单拦截未做跨设备实测（TC-WEBACL-038）；wwwroot 缺失兜底页非回环 401/403（BUG-FALLBACK-007）未在第二设备复现",
+    "多网卡多宽带真实绑定与聚合未在多上联环境实测（TC-NETSPEEDTEST-019），绑定分支以纯逻辑测试覆盖",
+    "防火墙 netsh 提权添加/删除规则未在管理员/非管理员环境分别实测（TC-WEB-082），仅做静态代码取证；smoke 以回环访问，lanReady=true 但不构成跨设备防火墙放行证据",
+    "CSV 导出、HBCS 往返、18 工具中依赖外网第三方接口（ip-api/ipify/STUN）的人工冒烟（TC-CSV-051/TC-HBCS-052/TC-NETSPEEDTEST-065）未执行",
+    "广告弹窗与赞助内容、安装包代码签名、GitHub Release 发布流水线不在本轮范围"
   ],
   "coverage": {
     "requirement_total": 15,
@@ -3191,45 +3279,45 @@
     "case_status_counts": {
       "不适用": 2,
       "失败": 5,
-      "通过": 22,
-      "阻塞": 10
+      "通过": 25,
+      "阻塞": 7
     },
     "acceptance_total": 9,
     "acceptance_status_counts": {
       "未通过": 2,
-      "通过": 4,
-      "阻塞": 3
+      "通过": 5,
+      "阻塞": 2
     }
   },
   "release_decision": {
     "decision": "undetermined",
-    "rationale": "自动化与静态层证据充分：Debug/Release 构建 0 错误 0 警告（EV-001），全量 243 个单元测试 239 通过、0 失败、4 个为缺陷复现 Skip（EV-002），覆盖自适应并发、URL 均衡、上传校验、网卡出口、SSRF/重定向、令牌、路径穿越、生命周期、持久化、更新校验、历史分页等 P0/P1 机制；另以真实 ping 对 MTU 缺陷完成 L3 复现（EV-003）。但本轮授权范围为 dotnet build/test，真实 GUI 外网下载/上传/双向测速（TC-018）、多网卡实测（TC-019）、跨设备局域网访问（TC-038）、tools/smoke-test.ps1 端到端（TC-036/080/081）等核心旅程缺少真实运行证据，且存在 5 个 P2、2 个 P3 开放缺陷（BUG-MTU-001/002/003/006 为 P2，BUG-BW-004/005/007 为 P3）。在核心端到端未实测、缺陷未处置前不做 go 终审；无 S1/S2 与 P0/P1 缺陷，故亦非 no_go，结论为 undetermined。",
+    "rationale": "证据较初版显著增强：Debug/Release 构建 0 错误 0 警告；全量 243 个单元测试 239 通过、0 失败、4 个为缺陷复现 Skip；并已用 tools/smoke-test.ps1 对真实 Release exe 完成端到端 32/32 全部 PASS（EVD-SMOKE-E2E-010），覆盖令牌注入、安全响应头、固定错误体、读 API、输入校验与 SSRF 拦截、测试生命周期（200 不早于 running、重复 409、stop 复位）、20 次快速启停、设置原子持久化与 8 并发写、90 次并发 status 全 200；运行日志 391 行 0 FATAL/未观察异常（EVD-SMOKE-LOG-011）。至此 Web/远程访问/生命周期/并发可用性等 P0/P1 机制既有自动化又有真机端到端证据且全部通过。但仍缺三类决定性证据，故不做 go 终审：①最核心的真实外网下载/上传/双向测速尚未『跑完一次』核对最终吞吐、平均窗口与 URL 明细（TC-NETSPEEDTEST-018），smoke 仅证 start→running 可连真实节点，双向明细缺陷 BUG-BIDI-002 未真机复核；②跨设备网段白名单（TC-WEBACL-038）、兜底页（BUG-FALLBACK-007）、多网卡聚合（TC-NETSPEEDTEST-019）、CSV/HBCS/GUI 准备取消等人工/跨设备项未执行；③7 个开放缺陷（4 个 P2、3 个 P3）尚未处置。无 S1/S2 与 P0/P1 缺陷、阻断 Bug 集合为空，故亦非 no_go，结论维持 undetermined；距 conditional_go 仅差一次完整真实测速与缺陷处置结论。",
     "blocking_bug_ids": [],
     "p0_open_bug_ids": [],
     "conditions": [
-      "授权并执行 tools/smoke-test.ps1（或等效真机步骤），取得生命周期/负载/安全头/日志无 FATAL 的端到端证据（TC-036/080/081）",
-      "完成至少一次真实外网下载、上传、双向测速并核对速率与 URL 明细（TC-018；双向同时验证 BUG-BIDI-002）",
-      "用第二台设备验证局域网令牌与网段白名单（TC-038），并在 wwwroot 缺失场景验证兜底页（关联 BUG-FALLBACK-007）",
-      "处置 4 个 P2 缺陷：BUG-MTU-001（MTU TTL）、BUG-BIDI-002（双向明细）、BUG-CLAMP-003（clamp 一致性）、BUG-FW-006（防火墙死代码，需定 UAC 策略）",
-      "修复后取消 4 个 [Fact(Skip)] 复现用例并确保全量测试转绿"
+      "完成至少一次跑完的真实外网下载、上传、双向测速，核对最终吞吐速率、平均窗口/曲线与 URL 明细（TC-NETSPEEDTEST-018；双向同时真机复核 BUG-BIDI-002）",
+      "用第二台设备验证局域网令牌与网段白名单拦截（TC-WEBACL-038），并在 wwwroot 缺失场景验证兜底页（关联 BUG-FALLBACK-007）",
+      "处置 4 个 P2 缺陷：BUG-MTU-001（MTU TTL）、BUG-BIDI-002（双向明细）、BUG-CLAMP-003（clamp 一致性）、BUG-FW-006（防火墙死代码，需先定 UAC 策略）",
+      "修复后取消 4 个 [Fact(Skip)] 复现用例并确保全量测试转绿",
+      "按需补充多网卡实测（TC-NETSPEEDTEST-019）、CSV 导出与 HBCS 往返（TC-CSV-051/TC-HBCS-052）、GUI 准备阶段取消（TC-NETSPEEDTEST-020）"
     ],
-    "responsible": "项目作者（凌影傲爵）修复缺陷；QA 提供复现用例与定级",
-    "monitoring": "修复后重跑全量 dotnet test 与 smoke-test.ps1，重点观察 debug.log 是否出现 FATAL/Unobserved/Collection was modified",
-    "rollback": "若修复引入回归，可 git revert 修复提交回到 771e23f（v1.4.3）；缺陷均不影响回环本地测速，紧急时可暂不启用局域网 Web 与 MTU 工具"
+    "responsible": "项目作者（凌影傲爵）决定缺陷修复与 UAC 策略并完成真机/跨设备项；QA 提供复现用例、定级与 smoke 基线",
+    "monitoring": "smoke 已建立端到端 32/32、debug.log 0 FATAL 的基线；缺陷修复后重跑全量 dotnet test 与 tools/smoke-test.ps1，比对是否仍为 32/32 且日志不出现 FATAL/Unobserved/Collection was modified。",
+    "rollback": "若修复引入回归，可 git revert 修复提交回到 v1.4.3 基线提交；已识别缺陷均不影响回环本地测速，紧急时可暂不启用局域网 Web、不使用 MTU 探测工具。"
   },
   "delivery_manifest": {
-    "source_revision": 5,
+    "source_revision": 6,
     "outputs": [
       {
         "purpose": "deliverable",
         "carrier": "local",
         "format": "markdown",
         "filename": "QA收口报告.md",
-        "source_revision": 5,
-        "sha256": "44b108cff56b5313ab375954e39fa4f6a5bbb348c4efbb7832d7ade16f9e1c85",
+        "source_revision": 6,
+        "sha256": "ee7b1df7337d3adaa0d16b15982ac0c82b46f82f6d71a9abd15b1253e6c55e57",
         "status": "validated",
         "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\qa-results\\netspeedtest-coreqa\\QA收口报告.md",
-        "readback_receipt": "9108 字符 / 246 行；约定章节齐全",
+        "readback_receipt": "9273 字符 / 200 行；约定章节齐全",
         "validated": true
       },
       {
@@ -3237,15 +3325,15 @@
         "carrier": "local",
         "format": "markdown",
         "filename": "测试用例与追踪矩阵.md",
-        "source_revision": 5,
-        "sha256": "e53fdbb59324fbe7baebdbf604fa5fb8dc8a2650257abfa2bebe9367b37af139",
+        "source_revision": 6,
+        "sha256": "9d318fbc712765aaf3941b79f9e0547d7597661271840a944df57a267c3141e1",
         "status": "validated",
         "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\qa-results\\netspeedtest-coreqa\\测试用例与追踪矩阵.md",
-        "readback_receipt": "14310 字符 / 207 行；约定章节齐全",
+        "readback_receipt": "16090 字符 / 219 行；约定章节齐全",
         "validated": true
       }
     ],
-    "fingerprint": "sha256:59034c9337b337b352281e4b9367b80b57519e853cecc856aaf2a420d3170d13"
+    "fingerprint": "sha256:f06f459a21bfa9338323c16e158d222cfdde0f2cce42548f468bd09eed1b3260"
   },
   "test_data": {
     "writes_allowed": false,
@@ -3305,6 +3393,8 @@
     "引用不存在的证据 EV-007（executions[].evidence_ids）",
     "引用不存在的证据 EV-003（executions[].evidence_ids）",
     "引用不存在的证据 EV-004（executions[].evidence_ids）",
-    "引用不存在的证据 EV-006（executions[].evidence_ids）"
+    "引用不存在的证据 EV-006（executions[].evidence_ids）",
+    "非法执行方法 scripted_e2e（executions[].execution_method）",
+    "非 stale/failed 产物必须匹配当前 revision（delivery_manifest.outputs[].source_revision）"
   ]
 }
