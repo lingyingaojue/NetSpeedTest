@@ -1,0 +1,496 @@
+﻿[
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  2.068738,
+        "downloadMbps":  null,
+        "uploadMbps":  null,
+        "totalMbps":  null,
+        "averageMbps":  null,
+        "averageDownloadMbps":  null,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  null,
+        "latencyMs":  2.86274,
+        "wanLatencyMs":  51.664060000000006,
+        "jitterMs":  null,
+        "packetLossPercent":  0,
+        "packetLossSent":  10,
+        "packetLossReceived":  10,
+        "totalBytes":  0,
+        "activeThreads":  19,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  4.0862884,
+        "downloadMbps":  1510.9435092489603,
+        "uploadMbps":  null,
+        "totalMbps":  1510.9435092489603,
+        "averageMbps":  null,
+        "averageDownloadMbps":  null,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  null,
+        "latencyMs":  2.86274,
+        "wanLatencyMs":  51.14334,
+        "jitterMs":  null,
+        "packetLossPercent":  0,
+        "packetLossSent":  20,
+        "packetLossReceived":  20,
+        "totalBytes":  411422071,
+        "activeThreads":  47,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  5.9212556,
+        "downloadMbps":  1821.2316548641109,
+        "uploadMbps":  null,
+        "totalMbps":  1821.2316548641109,
+        "averageMbps":  null,
+        "averageDownloadMbps":  null,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  null,
+        "latencyMs":  1.2262,
+        "wanLatencyMs":  51.14334,
+        "jitterMs":  null,
+        "packetLossPercent":  0,
+        "packetLossSent":  25,
+        "packetLossReceived":  25,
+        "totalBytes":  900407969,
+        "activeThreads":  83,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  7.9481367,
+        "downloadMbps":  1829.086687219615,
+        "uploadMbps":  null,
+        "totalMbps":  1829.086687219615,
+        "averageMbps":  null,
+        "averageDownloadMbps":  null,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  null,
+        "latencyMs":  1.2262,
+        "wanLatencyMs":  51.14334,
+        "jitterMs":  null,
+        "packetLossPercent":  2.857142857142857,
+        "packetLossSent":  35,
+        "packetLossReceived":  34,
+        "totalBytes":  1352913984,
+        "activeThreads":  87,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  10.0160439,
+        "downloadMbps":  1562.7138161668547,
+        "uploadMbps":  null,
+        "totalMbps":  1562.7138161668547,
+        "averageMbps":  null,
+        "averageDownloadMbps":  null,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  null,
+        "latencyMs":  1.7172,
+        "wanLatencyMs":  45.7564,
+        "jitterMs":  null,
+        "packetLossPercent":  2.5,
+        "packetLossSent":  40,
+        "packetLossReceived":  39,
+        "totalBytes":  1731366541,
+        "activeThreads":  87,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  12.0684646,
+        "downloadMbps":  1563.6540831136597,
+        "uploadMbps":  null,
+        "totalMbps":  1563.6540831136597,
+        "averageMbps":  1721.5745826793766,
+        "averageDownloadMbps":  1366.241106172148,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  1405.907435117925,
+        "latencyMs":  1.7172,
+        "wanLatencyMs":  45.7564,
+        "jitterMs":  null,
+        "packetLossPercent":  4,
+        "packetLossSent":  50,
+        "packetLossReceived":  48,
+        "totalBytes":  2159309256,
+        "activeThreads":  88,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  14.1030813,
+        "downloadMbps":  1705.8881584888575,
+        "uploadMbps":  null,
+        "totalMbps":  1705.8881584888575,
+        "averageMbps":  1644.9322591247765,
+        "averageDownloadMbps":  1544.806149321758,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  1589.5825733170177,
+        "latencyMs":  5.5758,
+        "wanLatencyMs":  45.7564,
+        "jitterMs":  null,
+        "packetLossPercent":  9.090909090909092,
+        "packetLossSent":  55,
+        "packetLossReceived":  50,
+        "totalBytes":  2589928237,
+        "activeThreads":  88,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  16.1563982,
+        "downloadMbps":  1609.948184794878,
+        "uploadMbps":  null,
+        "totalMbps":  1609.948184794878,
+        "averageMbps":  1591.3110412706403,
+        "averageDownloadMbps":  1542.2097967980285,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  1587.7636081183894,
+        "latencyMs":  5.5758,
+        "wanLatencyMs":  49.0837,
+        "jitterMs":  0.7908282240790255,
+        "packetLossPercent":  10,
+        "packetLossSent":  60,
+        "packetLossReceived":  54,
+        "totalBytes":  2991372397,
+        "activeThreads":  87,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  18.1800084,
+        "downloadMbps":  1383.5859782949904,
+        "uploadMbps":  null,
+        "totalMbps":  1383.5859782949904,
+        "averageMbps":  1505.53439234849,
+        "averageDownloadMbps":  1491.347668787575,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  1537.215512887121,
+        "latencyMs":  1.620566666666667,
+        "wanLatencyMs":  49.0837,
+        "jitterMs":  0.7908282240790255,
+        "packetLossPercent":  8.571428571428571,
+        "packetLossSent":  70,
+        "packetLossReceived":  64,
+        "totalBytes":  3343767897,
+        "activeThreads":  87,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  20.0485388,
+        "downloadMbps":  1341.4492616243897,
+        "uploadMbps":  null,
+        "totalMbps":  1341.4492616243897,
+        "averageMbps":  1459.0090291176264,
+        "averageDownloadMbps":  1461.173366720063,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  1506.665713450518,
+        "latencyMs":  1.620566666666667,
+        "wanLatencyMs":  49.0837,
+        "jitterMs":  1.531769775259973,
+        "packetLossPercent":  7.5,
+        "packetLossSent":  80,
+        "packetLossReceived":  74,
+        "totalBytes":  3692853041,
+        "activeThreads":  87,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  22.0711273,
+        "downloadMbps":  1293.0621816386933,
+        "uploadMbps":  null,
+        "totalMbps":  1293.0621816386933,
+        "averageMbps":  1418.660072786933,
+        "averageDownloadMbps":  1431.1322006176288,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  1476.5279119652487,
+        "latencyMs":  2.5149500000000002,
+        "wanLatencyMs":  52.7473,
+        "jitterMs":  1.531769775259973,
+        "packetLossPercent":  9.411764705882353,
+        "packetLossSent":  85,
+        "packetLossReceived":  77,
+        "totalBytes":  4030190923,
+        "activeThreads":  87,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  true,
+        "status":  "30 个 URL · 下载测速中...",
+        "elapsedSeconds":  24.1306051,
+        "downloadMbps":  1273.5833714447979,
+        "uploadMbps":  null,
+        "totalMbps":  1273.5833714447979,
+        "averageMbps":  1386.1187660167568,
+        "averageDownloadMbps":  1404.2892718145195,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  1449.3256167484426,
+        "latencyMs":  2.5149500000000002,
+        "wanLatencyMs":  47.82135999999999,
+        "jitterMs":  1.37679477371175,
+        "packetLossPercent":  8.88888888888889,
+        "packetLossSent":  90,
+        "packetLossReceived":  82,
+        "totalBytes":  4393696692,
+        "activeThreads":  87,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    },
+    {
+        "running":  false,
+        "status":  "测速完成 · 4/30 成功 · 26 失败/超时",
+        "elapsedSeconds":  24.9374797,
+        "downloadMbps":  1273.7606600705137,
+        "uploadMbps":  null,
+        "totalMbps":  1273.7606600705137,
+        "averageMbps":  1373.5476956235452,
+        "averageDownloadMbps":  1396.268528188868,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  1441.2345331702795,
+        "latencyMs":  6.137849999999999,
+        "wanLatencyMs":  47.82135999999999,
+        "jitterMs":  1.37679477371175,
+        "packetLossPercent":  9.473684210526315,
+        "packetLossSent":  95,
+        "packetLossReceived":  86,
+        "totalBytes":  4561577864,
+        "activeThreads":  88,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  null
+    }
+]

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "run_id": "qa-d90912c60289",
-  "revision": 6,
+  "revision": 7,
   "profile": "full",
   "test_intent": "non_ui_validation",
   "execution_level": "blocked",
@@ -142,6 +142,30 @@
       "state": "CLOSED",
       "checked_at": "2026-09-29T23:10:47.564872+00:00",
       "source_fingerprint": "sha256:f06f459a21bfa9338323c16e158d222cfdde0f2cce42548f468bd09eed1b3260",
+      "warnings": 0
+    },
+    {
+      "stage": "baseline",
+      "revision": 7,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T23:35:15.911453+00:00",
+      "source_fingerprint": "sha256:f5d5cea05bcd32a0b6484881047f4f77ee3878d178f468e71d29b0466d809ad0",
+      "warnings": 0
+    },
+    {
+      "stage": "design",
+      "revision": 7,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T23:35:16.125348+00:00",
+      "source_fingerprint": "sha256:f5d5cea05bcd32a0b6484881047f4f77ee3878d178f468e71d29b0466d809ad0",
+      "warnings": 0
+    },
+    {
+      "stage": "execution",
+      "revision": 7,
+      "state": "CLOSED",
+      "checked_at": "2026-09-29T23:35:16.352773+00:00",
+      "source_fingerprint": "sha256:f5d5cea05bcd32a0b6484881047f4f77ee3878d178f468e71d29b0466d809ad0",
       "warnings": 0
     }
   ],
@@ -347,7 +371,7 @@
   "change_ledger": [
     {
       "id": "CHG-001",
-      "revision": 6,
+      "revision": 7,
       "action": "ADD",
       "object_type": "run",
       "added_ids": [
@@ -363,7 +387,7 @@
     },
     {
       "id": "CHG-002",
-      "revision": 6,
+      "revision": 7,
       "action": "ADD",
       "object_type": "requirement",
       "added_ids": [
@@ -393,7 +417,7 @@
     },
     {
       "id": "CHG-003",
-      "revision": 6,
+      "revision": 7,
       "action": "ADD",
       "object_type": "risk_mechanism",
       "added_ids": [
@@ -425,7 +449,7 @@
     },
     {
       "id": "CHG-004",
-      "revision": 6,
+      "revision": 7,
       "action": "ADD",
       "object_type": "case",
       "added_ids": [
@@ -467,19 +491,20 @@
         "TC-NETSPEEDTEST-080",
         "TC-NETSPEEDTEST-081",
         "TC-WEB-082",
-        "TC-NETSPEEDTEST-083"
+        "TC-NETSPEEDTEST-083",
+        "TC-WEB-084"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
-      "after_count": 39,
-      "delta_count": 39,
+      "after_count": 40,
+      "delta_count": 40,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     },
     {
       "id": "CHG-005",
-      "revision": 6,
+      "revision": 7,
       "action": "ADD",
       "object_type": "acceptance",
       "added_ids": [
@@ -503,7 +528,7 @@
     },
     {
       "id": "CHG-006",
-      "revision": 6,
+      "revision": 7,
       "action": "ADD",
       "object_type": "execution",
       "added_ids": [
@@ -545,19 +570,20 @@
         "EXE-NETSPEEDTEST-080",
         "EXE-NETSPEEDTEST-081",
         "EXE-NETSPEEDTEST-082",
-        "EXE-NETSPEEDTEST-083"
+        "EXE-NETSPEEDTEST-083",
+        "EXE-NETSPEEDTEST-084"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
-      "after_count": 39,
-      "delta_count": 39,
+      "after_count": 40,
+      "delta_count": 40,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     },
     {
       "id": "CHG-007",
-      "revision": 6,
+      "revision": 7,
       "action": "ADD",
       "object_type": "evidence",
       "added_ids": [
@@ -571,19 +597,21 @@
         "EVD-BIDI-008",
         "EVD-TOOLBOX-009",
         "EVD-SMOKE-E2E-010",
-        "EVD-SMOKE-LOG-011"
+        "EVD-SMOKE-LOG-011",
+        "EVD-REAL-E2E-012",
+        "EVD-APISAVE-SRC-014"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
-      "after_count": 11,
-      "delta_count": 11,
+      "after_count": 13,
+      "delta_count": 13,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     },
     {
       "id": "CHG-008",
-      "revision": 6,
+      "revision": 7,
       "action": "ADD",
       "object_type": "bug",
       "added_ids": [
@@ -593,30 +621,14 @@
         "BUG-BW-004",
         "BUG-SUBNET-005",
         "BUG-FW-006",
-        "BUG-FALLBACK-007"
+        "BUG-FALLBACK-007",
+        "BUG-API-SAVE-008"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
-      "after_count": 7,
-      "delta_count": 7,
-      "source": "qa_flow.py normalize",
-      "summary": "根据当前 canonical 重建机械计数台账"
-    },
-    {
-      "id": "CHG-009",
-      "revision": 6,
-      "action": "ADD",
-      "object_type": "delivery",
-      "added_ids": [
-        "QA收口报告.md",
-        "测试用例与追踪矩阵.md"
-      ],
-      "removed_ids": [],
-      "modified_ids": [],
-      "before_count": 0,
-      "after_count": 2,
-      "delta_count": 2,
+      "after_count": 8,
+      "delta_count": 8,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     }
@@ -948,7 +960,8 @@
         "TC-WEB-034",
         "TC-WEB-036",
         "TC-WEB-037",
-        "TC-NETSPEEDTEST-081"
+        "TC-NETSPEEDTEST-081",
+        "TC-WEB-084"
       ],
       "priority": "P1",
       "status": "designed"
@@ -1032,7 +1045,8 @@
       ],
       "case_ids": [
         "TC-NETSPEEDTEST-050",
-        "TC-CSV-051"
+        "TC-CSV-051",
+        "TC-WEB-084"
       ],
       "priority": "P2",
       "status": "designed"
@@ -2077,6 +2091,31 @@
         "SpeedTestService.cs:1794 源码、双向结果观察"
       ],
       "manual_reason": "需真实双向测速观察界面"
+    },
+    {
+      "id": "TC-WEB-084",
+      "module": "Web API/持久化",
+      "title": "Web API 发起的测速结果应写入历史并更新最近结果",
+      "priority": "P2",
+      "type": "API/数据持久化",
+      "steps": [
+        "启用 Web，POST /api/test/start {mode:download}，等待 running 由 true 归 false",
+        "记录测速前 GET /api/history 的 total",
+        "完成后再次 GET /api/history 核对总数与最新记录，GET /api/status 核对 recentResult"
+      ],
+      "test_data": "真实 Release exe，127.0.0.1:8080，默认预设节点，testTimeoutSec=25",
+      "expected_result": "完成后 history.total 应 +1 且最新记录含速率/字节；status.recentResult 应反映本次结果",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-007",
+        "REQ-NETSPEEDTEST-010"
+      ],
+      "risk_mechanism_ids": [
+        "RM-DATA-013",
+        "RM-LIFECYCLE-008"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": "测速前后 history total 对比、recentResult 快照、FinishTest 保存路径源码",
+      "release_blocking_reason": "非 P0：实时速率仍经 /api/status 返回、GUI 手动测速正常存档；但远程测速结果不留存，Web 远程场景的历史/复核能力缺失"
     }
   ],
   "executions": [
@@ -2261,18 +2300,19 @@
     {
       "id": "EXE-NETSPEEDTEST-018",
       "case_id": "TC-NETSPEEDTEST-018",
-      "status": "blocked",
-      "execution_level": "blocked",
+      "status": "passed",
+      "execution_level": "full_automation",
       "validation_scope": "formal",
-      "execution_method": "manual",
+      "execution_method": "automated",
       "operator": "豆包 QA（doubao-product-qa 自动化执行）",
-      "actual_result": "真实外网下载测速未实测：授权范围为 dotnet build/test，未启动 GUI 做联网测速",
+      "actual_result": "真实外网下载完整跑完：峰值 1829.09 Mbps、平均下载 1396.27 Mbps（avgTotal 1441.23）、传输 4.56GB、峰值 88 线程；速率随线程爬升连续、约 10s 后平均窗口出现并稳定；start 约 3.6s 进入 running。另完整跑通上传（峰值 285.68/均值 200.30 Mbps、1.39GB）与双向（峰值下载 1291.31/上传 273.85、均值下载 1222.19/上传 185.32、4.10GB）。",
       "attempt": 1,
       "started_at": "2026-09-30T00:00:00",
-      "finished_at": "2026-09-30T06:33:17",
-      "tester_notes": "smoke 生命周期中多次 POST /api/test/start（download）经约 3.7s 进入 running=true 并连接真实预设节点，证明端到端可启动并联网；但每次随即 stop，未等待完整平均窗口/最终吞吐速率与 URL 明细落库，故完整测速结果数值正确性、平均窗口与曲线仍未验证，维持阻塞，需补一次跑完的真实下载/上传/双向测速。",
+      "finished_at": "2026-09-30T07:29:57",
+      "tester_notes": "由 real-speedtest.ps1 对真实 Release exe 正式执行并轮询曲线；速率/平均窗口/字节数 oracle 满足。URL 明细在 API/历史不落库另见 BUG-API-SAVE-008，双向明细缺失见 BUG-BIDI-002。",
       "evidence_ids": [
-        "EVD-SMOKE-E2E-010"
+        "EVD-SMOKE-E2E-010",
+        "EVD-REAL-E2E-012"
       ]
     },
     {
@@ -2714,10 +2754,30 @@
       "actual_result": "静态确认 RunFullTestAsync 双向结果 UrlDetails 恒空 → BUG-002",
       "attempt": 1,
       "started_at": "2026-09-30T00:00:00",
-      "finished_at": "2026-09-30T06:33:17",
+      "finished_at": "2026-09-30T07:29:57",
       "evidence_ids": [
-        "EVD-BIDI-008"
-      ]
+        "EVD-BIDI-008",
+        "EVD-REAL-E2E-012"
+      ],
+      "tester_notes": "真机复核：双向实测传输 4.10GB、速率正常，完成状态却显示『0 成功』，与 UrlDetails=new() 根因吻合，证据升级 L3"
+    },
+    {
+      "id": "EXE-NETSPEEDTEST-084",
+      "case_id": "TC-WEB-084",
+      "attempt": 1,
+      "status": "failed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "download/upload/full 三模式经 API 完整跑完且速率真实，但测速前 history total=97、全部完成后 total 仍=97（无新记录），status.recentResult 全程为空；FinishTest 第 976 行 if(showDialog) 在 API 发起（showDialog=false）时跳过第 978 行 SaveResult 与最近结果更新。",
+      "started_at": "2026-09-30T07:29:57",
+      "finished_at": "2026-09-30T07:29:57",
+      "evidence_ids": [
+        "EVD-REAL-E2E-012",
+        "EVD-APISAVE-SRC-014"
+      ],
+      "tester_notes": "三模式均复现（repro_attempts=3）；多网卡 FinishMultiNicTest 第 1072 行无条件保存作对照。"
     }
   ],
   "evidence": [
@@ -2808,6 +2868,22 @@
       "validation_scope": "formal",
       "path": "evidence/smoke-debug.log",
       "description": "smoke 运行期 --debug 日志共 391 行；对 FATAL、Unhandled、Unobserved、Collection was modified 四类模式检索命中数均为 0，印证真实端到端运行无致命错误、未观察任务异常与枚举并发修改。"
+    },
+    {
+      "id": "EVD-REAL-E2E-012",
+      "type": "log",
+      "level": "L4_formal",
+      "validation_scope": "formal",
+      "path": "real-speedtest.log",
+      "description": "real-speedtest.ps1 驱动真实 Release exe（testTimeoutSec 临时设 25s，跑完恢复）依次完整跑完 download/upload/full 并轮询速率曲线、等待完成、核对落库：下载峰值 1829.09 Mbps、平均下载 1396.27 Mbps、avgTotal 1441.23、传输 4,561,577,864 字节、峰值 88 线程，状态『测速完成·4/30 成功·26 失败/超时』；上传峰值 285.68 Mbps、平均上传 200.30 Mbps、传输 1,392,574,934 字节、峰值 231 线程；双向峰值下载 1291.31/上传 273.85 Mbps、平均下载 1222.19/上传 185.32、avgTotal 1407.51、传输 4,102,732,404 字节、峰值 317 线程，状态却为『测速完成·0 成功』。三模式 start 均约 3.6s 进入 running 才 200。关键异常：测速前 history total=97，三模式全部完成后 total 仍=97（无新记录），且轮询期间 status.recentResult 始终为空——API 发起的单网卡测速结果未持久化、未更新最近结果（见 BUG-API-SAVE-008）。原始曲线与历史响应见同目录 realcurve-download.json/upload.json/full.json、realsummary.json、realhistory.json。"
+    },
+    {
+      "id": "EVD-APISAVE-SRC-014",
+      "type": "log",
+      "level": "L2_observation",
+      "validation_scope": "formal",
+      "path": "evidence/evidence-bug-api-save-008.txt",
+      "description": "MainViewModel.FinishTest 源码快照：第 959 行 ConsumeApiInitiatedTest() 命中即 showDialog=false，而 SaveResult（第 978 行）、_lastResult/RecentRecords 更新（979-988 行）整体位于第 976 行 if(showDialog) 块内，API 发起时被整段跳过；对照 FinishMultiNicTest 第 1072 行 SaveResult 在多网卡路径无条件执行（不受该标记门控），证明单网卡路径属遗漏而非有意设计。"
     }
   ],
   "bugs": [
@@ -2859,7 +2935,7 @@
     {
       "status": "open",
       "reproducibility": "always",
-      "repro_attempts": 1,
+      "repro_attempts": 2,
       "first_failure_preserved": true,
       "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3",
       "id": "BUG-BIDI-002",
@@ -2874,18 +2950,19 @@
         "发起双向测速",
         "测速完成后查看结果 URL 明细/历史详情/远程返回"
       ],
-      "actual_result": "RunFullTestAsync（SpeedTestService.cs:1794）返回的 SpeedTestResult.UrlDetails = new()，不包含下载与上传两侧的 URL 成败、字节、错误信息",
+      "actual_result": "RunFullTestAsync（SpeedTestService.cs:1794）返回 UrlDetails=new()。真机复核：双向实测传输 4.10GB、下载/上传速率正常，但 FinishTest 第 990 行 ok=UrlDetails.Count(未失败)=0，状态文本显示『测速完成·0 成功』，与根因吻合。",
       "expected_result": "应合并下载与上传两侧 UrlDetails（或分别暴露），与单下载/单上传模式一致，供界面与远程排障显示",
-      "evidence_grade": "L2_observation",
+      "evidence_grade": "L3_reproducible",
       "evidence_ids": [
-        "EVD-BIDI-008"
+        "EVD-BIDI-008",
+        "EVD-REAL-E2E-012"
       ],
       "impact": "双向测速下无法定位是哪个节点失败/拖慢，远程 Web 与历史详情缺少 URL 级证据",
       "independent_failure_signature": "RunFullTestAsync→SpeedTestResult.UrlDetails=new()（空集合），与两侧 inner.UrlDetails 未合并",
       "analysis": {
         "classification": "missing_aggregation",
         "trigger_hypothesis": "双向聚合重构时合并了速率指标但遗漏 UrlDetails 集合",
-        "change_correlation": "v1.4.3 现存，未做 git bisect",
+        "change_correlation": "v1.4.3 现存；静态定位后已经真实 full 测速复现用户可见表现（0 成功）",
         "blast_radius": "仅双向测速结果明细；单下载/单上传不受影响",
         "confidence": "high"
       },
@@ -3118,6 +3195,53 @@
         "TC-WEB-040"
       ],
       "risk_mechanism_id": "RM-FALLBACK-017"
+    },
+    {
+      "status": "open",
+      "reproducibility": "always",
+      "repro_attempts": 3,
+      "first_failure_preserved": true,
+      "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3，真实 Release exe + Web API 127.0.0.1:8080",
+      "id": "BUG-API-SAVE-008",
+      "title": "经 Web API 发起的单网卡测速结果不写入历史、不更新最近结果",
+      "module": "Web服务器-API持久化",
+      "severity": "S3",
+      "severity_basis": "测速本身正确、实时速率经 /api/status 正常返回且不崩溃，GUI 手动测速正常存档；但远程发起的结果整体不持久化，属 Web 远程场景的数据丢失/功能缺失",
+      "priority": "P2",
+      "category": "state",
+      "preconditions": "启用内置 Web，经 HTTP API（而非 GUI 按钮）发起单网卡下载/上传/双向测速",
+      "steps": [
+        "GET /api/history 记录 total（实测=97）",
+        "POST /api/test/start {mode:download|upload|full}，等待 running 归 false",
+        "再次 GET /api/history 与 GET /api/status 核对"
+      ],
+      "actual_result": "三模式完成后 history.total 均不增加（97→97），无新记录；status.recentResult 为空。FinishTest 第 959 行将 API 发起置 showDialog=false，第 978 行 SaveResult 与 979-988 行最近结果更新因位于第 976 行 if(showDialog) 块内被整段跳过。",
+      "expected_result": "API 发起仅应跳过模态结果窗（第 1004 行 dlg.ShowDialog），SaveResult、_lastResult、RecentRecords 等与弹窗无关的持久化/状态更新应照常执行。",
+      "evidence_grade": "L3_reproducible",
+      "evidence_ids": [
+        "EVD-REAL-E2E-012",
+        "EVD-APISAVE-SRC-014"
+      ],
+      "impact": "手机/网页等远程方式发起的测速不留历史、不出现在历史页与导出、recentResult 恒空，远程测速无法事后复核，等同『远程白测』；多网卡路径 FinishMultiNicTest（第 1072 行）无条件保存，行为不一致。",
+      "independent_failure_signature": "FinishTest: if(ConsumeApiInitiatedTest()) showDialog=false → SaveResult 被包裹在 if(showDialog) 内而跳过；history.total 三模式后零增长",
+      "analysis": {
+        "classification": "logic_error",
+        "trigger_hypothesis": "为避免 API 发起时模态结果窗阻塞 UI 线程（导致 Web API 超时）而引入 showDialog=false，但误把数据持久化与最近结果更新连同弹窗一起放进 if(showDialog) 块，条件包裹范围过大。",
+        "change_correlation": "随 Web 远程/MarkApiInitiatedTest 能力引入，v1.4.3 现存，未做 git bisect",
+        "blast_radius": "所有经 Web API 的单网卡下载/上传/双向测速结果不入库、recentResult 不更新；多网卡与 GUI 手动路径不受影响",
+        "confidence": "high"
+      },
+      "workaround": "临时用 GUI 手动测速（正常存档），或由 API 调用方自行记录 /api/status 速率；修复应将 SaveResult 与最近结果更新移出 if(showDialog)，仅保留 dlg.ShowDialog 受门控，并补『API 发起后 history +1』回归测试。",
+      "related_ids": [
+        "RM-DATA-013",
+        "RM-LIFECYCLE-008",
+        "TC-WEB-084",
+        "BUG-BIDI-002"
+      ],
+      "case_ids": [
+        "TC-WEB-084"
+      ],
+      "risk_mechanism_id": "RM-DATA-013"
     }
   ],
   "bug_candidates": [],
@@ -3229,7 +3353,8 @@
         "TC-NETSPEEDTEST-063",
         "TC-NETSPEEDTEST-064",
         "TC-WEB-082",
-        "TC-NETSPEEDTEST-083"
+        "TC-NETSPEEDTEST-083",
+        "TC-WEB-084"
       ],
       "blocking": false,
       "notes": "BUG-001~007 证据、定级、修复/规避建议齐备；P0 集合必须与阻断集合相等"
@@ -3262,12 +3387,13 @@
   },
   "unverified": [
     "WPF 控件像素级界面走查、深色/浅色主题与中英文渲染未做人工全量核对；准备阶段取消（TC-NETSPEEDTEST-020）未在 GUI 人工执行",
-    "真实外网完整下载/上传/双向测速的最终吞吐数值、平均窗口、曲线与 URL 明细未做『跑完一次』的联网实测；smoke 仅验证 start→running=true 可连接真实节点（约 3.7s 进入运行态），双向测速 URL 明细缺陷 BUG-BIDI-002 亦未真机复核（TC-NETSPEEDTEST-018）",
+    "下载/上传/双向的真实速率、平均窗口与传输字节已真机实测通过（TC-NETSPEEDTEST-018）；但 GUI 手动测速的结果窗 URL 明细展示、以及历史记录 BytesDownloaded/BytesUploaded/PeakMbps 三列需一次 GUI 手动落库核对（API 路径因 BUG-API-SAVE-008 不落库，无法据此验证该三列）",
+    "历史既有记录（2026-09-29 批次）BytesDownloaded/BytesUploaded/PeakMbps 三列均为 0；SpeedTestService 第 283/290、1617、1794 行显示 v1.4.3 已对这些字段赋值，疑似旧版本迁移数据，待 GUI 手动落库新记录证实/证伪，暂不立缺陷",
     "真实手机/第二台设备跨网段访问、ACL 网段白名单拦截未做跨设备实测（TC-WEBACL-038）；wwwroot 缺失兜底页非回环 401/403（BUG-FALLBACK-007）未在第二设备复现",
-    "多网卡多宽带真实绑定与聚合未在多上联环境实测（TC-NETSPEEDTEST-019），绑定分支以纯逻辑测试覆盖",
-    "防火墙 netsh 提权添加/删除规则未在管理员/非管理员环境分别实测（TC-WEB-082），仅做静态代码取证；smoke 以回环访问，lanReady=true 但不构成跨设备防火墙放行证据",
+    "多网卡多宽带真实绑定与聚合未在多上联环境实测（TC-NETSPEEDTEST-019）；注：多网卡完成路径 FinishMultiNicTest 无条件保存，与单网卡 BUG-API-SAVE-008 行为不同，需真机一并确认",
+    "防火墙 netsh 提权添加/删除规则未在管理员/非管理员环境分别实测（TC-WEB-082）；冒烟/真机均以回环访问，不构成跨设备防火墙放行证据",
     "CSV 导出、HBCS 往返、18 工具中依赖外网第三方接口（ip-api/ipify/STUN）的人工冒烟（TC-CSV-051/TC-HBCS-052/TC-NETSPEEDTEST-065）未执行",
-    "广告弹窗与赞助内容、安装包代码签名、GitHub Release 发布流水线不在本轮范围"
+    "安装包代码签名、GitHub Release 发布流水线、广告/赞助内容不在本轮范围"
   ],
   "coverage": {
     "requirement_total": 15,
@@ -3275,12 +3401,12 @@
     "requirement_unlinked": 0,
     "p0_requirement_total": 0,
     "p0_requirement_linked": 0,
-    "case_total": 39,
+    "case_total": 40,
     "case_status_counts": {
       "不适用": 2,
-      "失败": 5,
-      "通过": 25,
-      "阻塞": 7
+      "失败": 6,
+      "通过": 26,
+      "阻塞": 6
     },
     "acceptance_total": 9,
     "acceptance_status_counts": {
@@ -3291,33 +3417,34 @@
   },
   "release_decision": {
     "decision": "undetermined",
-    "rationale": "证据较初版显著增强：Debug/Release 构建 0 错误 0 警告；全量 243 个单元测试 239 通过、0 失败、4 个为缺陷复现 Skip；并已用 tools/smoke-test.ps1 对真实 Release exe 完成端到端 32/32 全部 PASS（EVD-SMOKE-E2E-010），覆盖令牌注入、安全响应头、固定错误体、读 API、输入校验与 SSRF 拦截、测试生命周期（200 不早于 running、重复 409、stop 复位）、20 次快速启停、设置原子持久化与 8 并发写、90 次并发 status 全 200；运行日志 391 行 0 FATAL/未观察异常（EVD-SMOKE-LOG-011）。至此 Web/远程访问/生命周期/并发可用性等 P0/P1 机制既有自动化又有真机端到端证据且全部通过。但仍缺三类决定性证据，故不做 go 终审：①最核心的真实外网下载/上传/双向测速尚未『跑完一次』核对最终吞吐、平均窗口与 URL 明细（TC-NETSPEEDTEST-018），smoke 仅证 start→running 可连真实节点，双向明细缺陷 BUG-BIDI-002 未真机复核；②跨设备网段白名单（TC-WEBACL-038）、兜底页（BUG-FALLBACK-007）、多网卡聚合（TC-NETSPEEDTEST-019）、CSV/HBCS/GUI 准备取消等人工/跨设备项未执行；③7 个开放缺陷（4 个 P2、3 个 P3）尚未处置。无 S1/S2 与 P0/P1 缺陷、阻断 Bug 集合为空，故亦非 no_go，结论维持 undetermined；距 conditional_go 仅差一次完整真实测速与缺陷处置结论。",
+    "rationale": "核心功能证据已闭环：Debug/Release 构建 0/0；243 个单元测试 239 通过/0 失败/4 跳过；smoke 端到端 32/32、0 FATAL；并经 real-speedtest.ps1 完整真机跑完下载（峰值 1829.09/均值 1396.27 Mbps、4.56GB）、上传（峰值 285.68/均值 200.30 Mbps、1.39GB）、双向（峰值下载 1291.31/上传 273.85、均值 1222.19/185.32、4.10GB），速率随线程爬升、平均窗口约 10s 后稳定，测速引擎真实可用（TC-NETSPEEDTEST-018 转通过）。但真实测速同时暴露并确认一个新的 P2 缺陷 BUG-API-SAVE-008：经 Web API 发起的单网卡测速结果不写入历史、不更新最近结果（三模式后 history total 97→97、recentResult 恒空，根因 FinishTest 把 SaveResult 误置于 if(showDialog) 块）；BUG-BIDI-002 获真机印证（双向传 4.1GB 却提示『0 成功』）升级 L3。开放缺陷增至 8 个（P2×5：MTU/BIDI/CLAMP/FW/API-SAVE，P3×3：BW/SUBNET/FALLBACK），均非 P0/P1、无 S1/S2。另两项不阻断但需跟进：历史字节/峰值三列待 GUI 手动落库确认（倾向旧数据迁移）、预设节点 30 个仅 4 个成功建议清理。跨设备白名单/兜底页、多网卡、CSV/HBCS/GUI 取消等人工项仍未执行。核心速率虽已验证，但远程结果不保存属功能缺失且缺陷未处置，不做 go/conditional_go；无阻断级失败故非 no_go，维持 undetermined。",
     "blocking_bug_ids": [],
     "p0_open_bug_ids": [],
     "conditions": [
-      "完成至少一次跑完的真实外网下载、上传、双向测速，核对最终吞吐速率、平均窗口/曲线与 URL 明细（TC-NETSPEEDTEST-018；双向同时真机复核 BUG-BIDI-002）",
-      "用第二台设备验证局域网令牌与网段白名单拦截（TC-WEBACL-038），并在 wwwroot 缺失场景验证兜底页（关联 BUG-FALLBACK-007）",
-      "处置 4 个 P2 缺陷：BUG-MTU-001（MTU TTL）、BUG-BIDI-002（双向明细）、BUG-CLAMP-003（clamp 一致性）、BUG-FW-006（防火墙死代码，需先定 UAC 策略）",
-      "修复后取消 4 个 [Fact(Skip)] 复现用例并确保全量测试转绿",
-      "按需补充多网卡实测（TC-NETSPEEDTEST-019）、CSV 导出与 HBCS 往返（TC-CSV-051/TC-HBCS-052）、GUI 准备阶段取消（TC-NETSPEEDTEST-020）"
+      "修复 BUG-API-SAVE-008：将 SaveResult 与最近结果更新移出 FinishTest 的 if(showDialog)，仅门控结果弹窗；补『API 发起后 history +1、recentResult 更新』回归测试并重跑 real-speedtest 验证 total 增长",
+      "修复其余 4 个 P2：BUG-MTU-001、BUG-BIDI-002（双向 UrlDetails 合并，顺带修正『0 成功』计数）、BUG-CLAMP-003、BUG-FW-006（先定 UAC 策略）",
+      "用第二台设备验证局域网令牌与网段白名单（TC-WEBACL-038）及 wwwroot 缺失兜底页（BUG-FALLBACK-007）",
+      "做一次 GUI 手动测速落库，确认历史 BytesDownloaded/BytesUploaded/PeakMbps 与结果窗 URL 明细正常，并核对多网卡路径持久化",
+      "修复后取消 4 个 [Fact(Skip)] 复现用例、全量 dotnet test 转绿，并重跑 smoke-test.ps1 与 real-speedtest.ps1",
+      "清理/更新预设测速节点（实测下载 30 URL 仅 4 个成功）；按需补 CSV/HBCS（051/052）、GUI 准备取消（020）、多网卡（019）"
     ],
-    "responsible": "项目作者（凌影傲爵）决定缺陷修复与 UAC 策略并完成真机/跨设备项；QA 提供复现用例、定级与 smoke 基线",
-    "monitoring": "smoke 已建立端到端 32/32、debug.log 0 FATAL 的基线；缺陷修复后重跑全量 dotnet test 与 tools/smoke-test.ps1，比对是否仍为 32/32 且日志不出现 FATAL/Unobserved/Collection was modified。",
-    "rollback": "若修复引入回归，可 git revert 修复提交回到 v1.4.3 基线提交；已识别缺陷均不影响回环本地测速，紧急时可暂不启用局域网 Web、不使用 MTU 探测工具。"
+    "responsible": "项目作者（凌影傲爵）决定缺陷修复、UAC 策略与节点更新并完成跨设备/GUI 项；QA 提供复现用例、定级与 smoke/real 基线",
+    "monitoring": "回归判据：smoke 保持 32/32、debug.log 0 FATAL；real-speedtest 三模式速率>0 且每次 API 测速后 history.total 恰好 +1、recentResult 非空；双向完成状态成功计数与实际传输一致（不再『0 成功』）；关注预设节点成功率。",
+    "rollback": "若修复引入回归可 git revert 回到 v1.4.3 基线；缺陷均不影响回环本地 GUI 手动测速与实时速率显示，紧急时可暂不使用 Web 远程发起、不使用 MTU 探测工具。"
   },
   "delivery_manifest": {
-    "source_revision": 6,
+    "source_revision": 7,
     "outputs": [
       {
         "purpose": "deliverable",
         "carrier": "local",
         "format": "markdown",
         "filename": "QA收口报告.md",
-        "source_revision": 6,
-        "sha256": "ee7b1df7337d3adaa0d16b15982ac0c82b46f82f6d71a9abd15b1253e6c55e57",
+        "source_revision": 7,
+        "sha256": "f7c6611a924edf00174f21843cbf0719eb01c2d8edefcb42e0e48d0329894314",
         "status": "validated",
         "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\qa-results\\netspeedtest-coreqa\\QA收口报告.md",
-        "readback_receipt": "9273 字符 / 200 行；约定章节齐全",
+        "readback_receipt": "9048 字符 / 200 行；约定章节齐全",
         "validated": true
       },
       {
@@ -3325,15 +3452,15 @@
         "carrier": "local",
         "format": "markdown",
         "filename": "测试用例与追踪矩阵.md",
-        "source_revision": 6,
-        "sha256": "9d318fbc712765aaf3941b79f9e0547d7597661271840a944df57a267c3141e1",
+        "source_revision": 7,
+        "sha256": "6ec267885e753487c3e037ffd4fadfbc8673e16f73bab38dd330df795b75067d",
         "status": "validated",
         "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\qa-results\\netspeedtest-coreqa\\测试用例与追踪矩阵.md",
-        "readback_receipt": "16090 字符 / 219 行；约定章节齐全",
+        "readback_receipt": "14129 字符 / 253 行；约定章节齐全",
         "validated": true
       }
     ],
-    "fingerprint": "sha256:f06f459a21bfa9338323c16e158d222cfdde0f2cce42548f468bd09eed1b3260"
+    "fingerprint": "sha256:f5d5cea05bcd32a0b6484881047f4f77ee3878d178f468e71d29b0466d809ad0"
   },
   "test_data": {
     "writes_allowed": false,

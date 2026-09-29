@@ -1,0 +1,58 @@
+﻿
+=== Setup ===
+
+=== Launch ===
+launched pid=25488
+server ready
+settings testTimeoutSec=25 -> 200
+history total before = 97
+
+=== TEST download ===
+start -> 200 after 3660ms
+  t=  2s run=True dl= ul= avgDl= avgUl= threads=19 bytes=0 :: 30 个 URL · 下载测速中...
+  t=  8s run=True dl=1829.086687219615 ul= avgDl= avgUl= threads=87 bytes=1352913984 :: 30 个 URL · 下载测速中...
+  t= 14s run=True dl=1705.8881584888575 ul= avgDl=1544.806149321758 avgUl= threads=88 bytes=2589928237 :: 30 个 URL · 下载测速中...
+  t= 20s run=True dl=1341.4492616243897 ul= avgDl=1461.173366720063 avgUl= threads=87 bytes=3692853041 :: 30 个 URL · 下载测速中...
+  t= 25s run=False dl=1273.7606600705137 ul= avgDl=1396.268528188868 avgUl= threads=88 bytes=4561577864 :: 测速完成 · 4/30 成功 · 26 失败/超时
+PEAK dl=1829.08668721961 ul= avgDl=1396.268528188868 avgUl= avgTotal=1441.2345331702795 peakThreads=88 maxBytes=4561577864
+
+=== TEST upload ===
+start -> 200 after 3631ms
+  t=  2s run=True dl= ul= avgDl= avgUl= threads=19 bytes=0 :: 15 个 URL · 上传测速中...
+  t=  8s run=True dl= ul=73.8055147874086 avgDl= avgUl= threads=119 bytes=62962232 :: 15 个 URL · 上传测速中...
+  t= 14s run=True dl= ul=253.30329209618898 avgDl= avgUl=233.4757662167032 threads=201 bytes=333576234 :: 15 个 URL · 上传测速中...
+  t= 20s run=True dl= ul=182.75324878482857 avgDl= avgUl=223.34919356862775 threads=127 bytes=765569423 :: 15 个 URL · 上传测速中...
+PEAK dl= ul=285.675298196353 avgDl= avgUl=200.3037451256078 avgTotal=697.9480594522295 peakThreads=231 maxBytes=1392574934
+
+=== TEST full ===
+start -> 200 after 3602ms
+  t=  2s run=True dl= ul= avgDl= avgUl= threads=35 bytes=0 :: 45 个 URL · 双向测速中...
+  t=  8s run=True dl=1235.1198965116596 ul=108.50031271496842 avgDl= avgUl= threads=180 bytes=1176285165 :: 45 个 URL · 双向测速中...
+  t= 14s run=True dl=1236.942748999277 ul=206.85758100234816 avgDl=1092.1507376082636 avgUl=182.61373834977516 threads=261 bytes=2083069234 :: 45 个 URL · 双向测速中...
+  t= 20s run=True dl=1288.3560859760305 ul=189.77006990926904 avgDl=1214.3454618853468 avgUl=213.35171667691952 threads=316 bytes=3234627074 :: 45 个 URL · 双向测速中...
+  t= 25s run=False dl=1213.3307582052005 ul=119.42320825481964 avgDl=1222.1897433488111 avgUl=185.31760299361872 threads=61 bytes=4102732404 :: 测速完成 · 0 成功
+PEAK dl=1291.31056914924 ul=273.852528562162 avgDl=1222.1897433488111 avgUl=185.31760299361872 avgTotal=1407.5073463424299 peakThreads=317 maxBytes=4102732404
+
+=== HISTORY (new rows) ===
+history total after = 97
+  2026-09-29T20:54:28.0664819+08:00 type=下载 dl=1294.3834017395284 ul= peak=0 avgTotal=1264.2587073390278 bytesDl=0 bytesUl=0 dur=20.7650451s err=''
+  2026-09-29T20:53:55.714497+08:00 type=下载 dl=1777.213180751963 ul= peak=0 avgTotal=1834.350450164733 bytesDl=0 bytesUl=0 dur=550.2393024s err=''
+  2026-09-29T20:43:41.2306272+08:00 type=双向 dl=1293.6152365162482 ul=168.8422998629117 peak=0 avgTotal=1471.7696900140568 bytesDl=0 bytesUl=0 dur=32.4014457s err=''
+  2026-09-29T20:43:00.9488463+08:00 type=下载 dl=1277.1195003301202 ul= peak=0 avgTotal=1289.7170364197375 bytesDl=0 bytesUl=0 dur=100.7163317s err=''
+  2026-09-29T20:37:13.3772684+08:00 type=下载 dl=1745.9267300795486 ul= peak=0 avgTotal=0 bytesDl=0 bytesUl=0 dur=3.1428831s err=''
+  2026-09-29T20:36:59.6592154+08:00 type=下载 dl=0.05392103705068804 ul= peak=0 avgTotal=0.08696067782753664 bytesDl=0 bytesUl=0 dur=11.4737695s err=''
+
+=== Summary ===
+
+mode     startCode   peakDl  peakUl              avgDl avgUl                        avgTotal peakThreads   maxBytes rec
+                                                                                                                    ent
+                                                                                                                    Dl 
+----     ---------   ------  ------              ----- -----                        -------- -----------   -------- ---
+download       200 1829.087       0  1396.268528188868                    1441.2345331702795          88 4561577864    
+upload         200        0 285.675                    200.3037451256078   697.9480594522295         231 1392574934    
+full           200 1291.311 273.853 1222.1897433488111 185.31760299361872 1407.5073463424299         317 4102732404    
+
+
+
+=== Teardown ===
+done

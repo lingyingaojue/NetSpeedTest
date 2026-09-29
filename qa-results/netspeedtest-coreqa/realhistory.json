@@ -1,0 +1,297 @@
+﻿{
+    "total":  97,
+    "page":  1,
+    "pageSize":  10,
+    "records":  [
+                    {
+                        "id":  97,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-29T20:54:28.0664819+08:00",
+                        "downloadMbps":  1294.3834017395284,
+                        "peakMbps":  0,
+                        "uploadMbps":  null,
+                        "wanLatencyMs":  48.1958,
+                        "averageTotalMbps":  1264.2587073390278,
+                        "totalBytes":  3151793000,
+                        "testType":  "下载",
+                        "latencyMs":  1.4453277777777778,
+                        "jitterMs":  1.296110923440546,
+                        "packetLoss":  4.444444444444445,
+                        "nodeName":  "全球节点",
+                        "networkAdapterName":  "以太网 2",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  0,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  20.7650451,
+                        "threadCount":  62,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    },
+                    {
+                        "id":  96,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-29T20:53:55.714497+08:00",
+                        "downloadMbps":  1777.213180751963,
+                        "peakMbps":  0,
+                        "uploadMbps":  null,
+                        "wanLatencyMs":  141.44486,
+                        "averageTotalMbps":  1834.350450164733,
+                        "totalBytes":  129480823180,
+                        "testType":  "下载",
+                        "latencyMs":  7.62637,
+                        "jitterMs":  null,
+                        "packetLoss":  8.102893890675242,
+                        "nodeName":  "全球节点",
+                        "networkAdapterName":  "以太网 2, WLAN",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  0,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  550.2393024,
+                        "threadCount":  242,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    },
+                    {
+                        "id":  95,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-29T20:43:41.2306272+08:00",
+                        "downloadMbps":  1293.6152365162482,
+                        "peakMbps":  0,
+                        "uploadMbps":  168.8422998629117,
+                        "wanLatencyMs":  51.0308,
+                        "averageTotalMbps":  1471.7696900140568,
+                        "totalBytes":  5520159208,
+                        "testType":  "双向",
+                        "latencyMs":  1.9891805555555555,
+                        "jitterMs":  null,
+                        "packetLoss":  9,
+                        "nodeName":  "全球节点",
+                        "networkAdapterName":  "以太网 2",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  0,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  32.4014457,
+                        "threadCount":  297,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    },
+                    {
+                        "id":  94,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-29T20:43:00.9488463+08:00",
+                        "downloadMbps":  1277.1195003301202,
+                        "peakMbps":  0,
+                        "uploadMbps":  null,
+                        "wanLatencyMs":  48.38206000000001,
+                        "averageTotalMbps":  1289.7170364197375,
+                        "totalBytes":  16305657173,
+                        "testType":  "下载",
+                        "latencyMs":  1.518534782608696,
+                        "jitterMs":  1.8466489227679554,
+                        "packetLoss":  2.4615384615384617,
+                        "nodeName":  "全球节点",
+                        "networkAdapterName":  "以太网 2",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  0,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  100.7163317,
+                        "threadCount":  44,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    },
+                    {
+                        "id":  93,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-29T20:37:13.3772684+08:00",
+                        "downloadMbps":  1745.9267300795486,
+                        "peakMbps":  0,
+                        "uploadMbps":  null,
+                        "wanLatencyMs":  46.9754,
+                        "averageTotalMbps":  0,
+                        "totalBytes":  244136048,
+                        "testType":  "下载",
+                        "latencyMs":  2.95715,
+                        "jitterMs":  null,
+                        "packetLoss":  0,
+                        "nodeName":  "全球节点",
+                        "networkAdapterName":  "以太网 2",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  0,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  3.1428831,
+                        "threadCount":  31,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    },
+                    {
+                        "id":  92,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-29T20:36:59.6592154+08:00",
+                        "downloadMbps":  0.05392103705068804,
+                        "peakMbps":  0,
+                        "uploadMbps":  null,
+                        "wanLatencyMs":  52.175340000000006,
+                        "averageTotalMbps":  0.08696067782753664,
+                        "totalBytes":  136605,
+                        "testType":  "下载",
+                        "latencyMs":  1.2923,
+                        "jitterMs":  null,
+                        "packetLoss":  0,
+                        "nodeName":  "全球节点",
+                        "networkAdapterName":  "以太网 2",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  0,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  11.4737695,
+                        "threadCount":  123,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    },
+                    {
+                        "id":  91,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-29T20:35:41.0813423+08:00",
+                        "downloadMbps":  1848.8327245071998,
+                        "peakMbps":  0,
+                        "uploadMbps":  null,
+                        "wanLatencyMs":  46.23072,
+                        "averageTotalMbps":  1618.0853337001472,
+                        "totalBytes":  26567968293,
+                        "testType":  "下载",
+                        "latencyMs":  5.032059139784945,
+                        "jitterMs":  2.2456485968318676,
+                        "packetLoss":  53.529411764705884,
+                        "nodeName":  "全球节点",
+                        "networkAdapterName":  "以太网 2",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  0,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  130.8601548,
+                        "threadCount":  128,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    },
+                    {
+                        "id":  90,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-18T09:45:36.1487552+08:00",
+                        "downloadMbps":  1296.0262115803607,
+                        "peakMbps":  0,
+                        "uploadMbps":  null,
+                        "wanLatencyMs":  47.692940625,
+                        "averageTotalMbps":  1275.6364124685945,
+                        "totalBytes":  3999070433,
+                        "testType":  "下载",
+                        "latencyMs":  1.3601125,
+                        "jitterMs":  1.8130118362698158,
+                        "packetLoss":  0,
+                        "nodeName":  "全球节点",
+                        "networkAdapterName":  "以太网 2",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  0,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  25.6066409,
+                        "threadCount":  42,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    },
+                    {
+                        "id":  89,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-18T09:44:48.1535932+08:00",
+                        "downloadMbps":  1374.0756066230383,
+                        "peakMbps":  793.1628184156112,
+                        "uploadMbps":  null,
+                        "wanLatencyMs":  null,
+                        "averageTotalMbps":  1388.8128868044785,
+                        "totalBytes":  8348252853,
+                        "testType":  "下载",
+                        "latencyMs":  1.4199333333333333,
+                        "jitterMs":  2.1487379265357927,
+                        "packetLoss":  7.333333333333333,
+                        "nodeName":  "全球节点",
+                        "networkAdapterName":  "以太网 2",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  2064180858,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  45.0232783,
+                        "threadCount":  98,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    },
+                    {
+                        "id":  88,
+                        "batchId":  null,
+                        "errorMessage":  null,
+                        "timestamp":  "2026-09-15T22:12:37.0028584+08:00",
+                        "downloadMbps":  1295.0278648672354,
+                        "peakMbps":  0,
+                        "uploadMbps":  null,
+                        "wanLatencyMs":  195.38118,
+                        "averageTotalMbps":  0,
+                        "totalBytes":  843262049,
+                        "testType":  "下载",
+                        "latencyMs":  2.0498000000000003,
+                        "jitterMs":  null,
+                        "packetLoss":  16,
+                        "nodeName":  "合并配置",
+                        "networkAdapterName":  "以太网 2",
+                        "networkAdapterId":  null,
+                        "bytesDownloaded":  0,
+                        "bytesUploaded":  0,
+                        "durationSeconds":  6.4305693,
+                        "threadCount":  62,
+                        "downloadRateHistory":  [
+
+                                                ],
+                        "urlDetails":  [
+
+                                       ]
+                    }
+                ]
+}

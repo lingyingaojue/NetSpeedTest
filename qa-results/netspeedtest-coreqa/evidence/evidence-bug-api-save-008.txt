@@ -1,0 +1,72 @@
+﻿# evidence-bug-api-save-008
+# source: NetSpeedTest/ViewModels/MainViewModel.cs
+# BUG-API-SAVE-008 Web API initiated single-adapter test result is never persisted
+
+  955:             RecentRecords.Insert(0, result);
+  956:             while (RecentRecords.Count > 20)
+  957:                 RecentRecords.RemoveAt(RecentRecords.Count - 1);
+  958:         }
+  959:         var ok = result.UrlDetails.Count(d => !d.IsFailed);
+  960:         var fail = result.UrlDetails.Count(d => d.IsFailed);
+  961:         StatusText = _currentTestMode switch
+  962:         {
+  963:             // 涓婁紶涓庝笅杞藉叡鐢ㄥ悓涓€濂楃粨鏋滆涔夛細閮借鑳界湅鍑哄け璐?瓒呮椂鐨?URL 鏁帮紝
+  964:             // 鍚﹀垯鏈嶅姟鍣ㄥ叏閮ㄦ嫆鏀舵椂浠嶆樉绀衡€滄祴閫熷畬鎴愨€濓紝绛夊悓浜庡亣鎴愬姛銆?            "涓嬭浇" => $"娴嬮€熷畬鎴?路 {ok}/{_startUrlCount} 鎴愬姛{(fail > 0 ? $" 路 {fail} 澶辫触/瓒呮椂" : "")}",
+  965:             "涓婁紶" => $"娴嬮€熷畬鎴?路 {ok}/{_startUrlCount} 鎴愬姛{(fail > 0 ? $" 路 {fail} 澶辫触/瓒呮椂" : "")}",
+  966:             "鍙屽悜" => fail > 0
+  967:                 ? $"娴嬮€熷畬鎴?路 {ok} 鎴愬姛 路 {fail} 澶辫触/瓒呮椂"
+  968:                 : $"娴嬮€熷畬鎴?路 {ok} 鎴愬姛",
+  969:             _ => $"娴嬮€熷畬鎴?路 {ok} 鎴愬姛{(fail > 0 ? $" 路 {fail} 澶辫触/瓒呮椂" : "")}"
+  970:         };
+  971: 
+  972:         if (showDialog)
+  973:         {
+  974:             var dlg = new Views.TestResultWindow(
+  975:                 _currentTestMode, ElapsedSeconds ?? 0,
+  976:                 result.DownloadMbps ?? 0, result.UploadMbps,
+  977:                 TotalBytes ?? 0,
+  978:                 AverageTotalMbps ?? double.NaN, result.LatencyMs, result.WanLatencyMs ?? double.NaN,
+  979:                 result.JitterMs ?? double.NaN,
+  980:                 result.PacketLoss,
+  981:                 ExportResult)
+  982:             {
+  983:                 Owner = Application.Current.MainWindow
+  984:             };
+  985:             dlg.ShowDialog();
+  986: 
+  987:             TestCompletedNotify?.Invoke(
+  988:                 "NetSpeedTest",
+  989:                 $"涓嬭浇 {FormatHelper.FormatRate(result.DownloadMbps)} | 涓婁紶 {FormatHelper.FormatRate(result.UploadMbps)} | 鎬诲潎閫?{FormatHelper.FormatRate(AverageTotalMbps ?? 0)}");
+  990:         }
+  991:     }
+  992: 
+  993:     private void FinishMultiNicTest(List<SpeedTestResult> results)
+  994:     {
+  995:         if (results == null || results.Count == 0) { StatusText = "澶氱綉鍗℃祴閫熸棤缁撴灉"; return; }
+  996:         var apiInitiated = ConsumeApiInitiatedTest();
+  997: 
+  998:         var batchId = Guid.NewGuid().ToString("N");
+  999:         var aggregate = new SpeedTestResult
+ 1000:         {
+ 1001:             Timestamp = DateTime.Now,
+ 1002:             DownloadMbps = results.Sum(r => r.DownloadMbps ?? 0),
+
+
+# --- contrast: multi-adapter FinishMultiNicTest saves UNCONDITIONALLY (no showDialog gate) ---
+
+ 1059:             _currentTestMode, ElapsedSeconds ?? 0,
+ 1060:             aggregate.DownloadMbps ?? 0, aggregate.UploadMbps,
+ 1061:             TotalBytes ?? 0,
+ 1062:             aggregate.AverageTotalMbps, aggregate.LatencyMs, aggregate.WanLatencyMs ?? double.NaN,
+ 1063:             aggregate.JitterMs ?? double.NaN,
+ 1064:             aggregate.PacketLoss,
+ 1065:             ExportResult,
+ 1066:             results)
+ 1067:         { Owner = Application.Current.MainWindow };
+ 1068: 
+ 1069:         // API 鍙戣捣鐨勬祴閫熶笉寮规ā鎬佺粨鏋滅獥锛堝悓涓婏級銆?        if (!apiInitiated) dlg.ShowDialog();
+ 1070: 
+ 1071:         TestCompletedNotify?.Invoke("NetSpeedTest",
+ 1072:             $"涓嬭浇 {FormatHelper.FormatRate(aggregate.DownloadMbps)} | 涓婁紶 {FormatHelper.FormatRate(aggregate.UploadMbps)} | 鎬诲潎閫?{FormatHelper.FormatRate(aggregate.AverageTotalMbps)}");
+ 1073:     }
+ 1074:     private void CleanupTest()
