@@ -1,0 +1,35 @@
+批1真机回归证据（BUG-BIDI-002 / BUG-API-SAVE-008）
+日期：2026-10-01　构建：Release net8.0-windows（含 commit 34f5e13、5b8596a）　接口：http://127.0.0.1:8080
+配套日志：../smoke-batch1.log、../real-speedtest-batch1.log、../realsummary.json、../realcurve-{download,upload,full}.json、../realhistory-clean.json
+
+一、冒烟（tools/smoke-test.ps1，回环）
+- Total=32 Pass=32 Fail=0；debug.log 366 行 0 FATAL；无 unobserved-task / unhandled-exception 标记。
+- 20 次快速启停最坏启动响应 3652ms，生命周期内 /api/status 全程 200。
+
+二、真实三模式联网测速（real-speedtest.ps1，临时 testTimeoutSec=25，跑完已还原）
+- 下载 download：start=200；峰值 1900.9 Mbps、均速 1711.4 Mbps；maxBytes=5,213,323,853；recentResult.downloadMbps=1640.35（非空）。
+- 上传 upload：start=200；峰值 262.9 Mbps、均速 221.6 Mbps；maxBytes=778,105,985；recentResult.uploadMbps=211.39（非空）。
+- 双向 full：start=200；峰值 dl=1618.3 / ul=271.3 Mbps；maxBytes=4,752,898,972；
+  结果窗提示“25 成功 · 20 失败/超时”——修复前为“0 成功”（实传数 GB 却计 0）。BUG-BIDI-002 验证通过。
+  recentResult.downloadMbps=1317.27 / uploadMbps=182.78（非空）。
+- 三模式各落库 1 条、recentResult 结束即可读非空：BUG-API-SAVE-008（已升 P1）验证通过（修复前 history 97→97、recentResult 恒空）。
+- 最新 3 行 BytesDownloaded/BytesUploaded/PeakMbps 按方向正确且非 0：
+  双向 bDl=4,091,871,218 bUl=345,585,377 peak=1784.84；上传 bDl=0 bUl=398,798,757 peak=272.09；下载 bDl=1,617,721,228 bUl=0 peak=733.16。
+  D10“历史三列全 0”在本次新记录上不复现（根因定位留批7）。
+
+三、测试数据清理（副作用说明与处置）
+- smoke 的生命周期用例（1 次 /api/test/start 后 stop）与“快速 start/stop×20”共触发 21 次下载测速并在毫秒级停止。
+  修复前这些 API 发起的结果不落库（即 BUG-API-SAVE-008）；修复后 API 路径与 GUI 路径对齐，会落库 21 条空记录
+  （Id 98–118，08:18:42–08:19:58，时长 0.13–0.23s，BytesDownloaded=BytesUploaded=PeakMbps=0，ErrorMessage 为空）。
+- 该“启动后立即停止也保存空结果”本就是 GUI 路径既有行为，非本次修复引入的新缺陷；是否对空/取消结果跳过落库属独立产品决策，记为观察项，不在本次 8 缺陷范围。
+- 已按【当天 + TestType=下载 + DurationSeconds<1 + 双向字节=0 + 时间早于 08:21:19】精准删除这 21 条 smoke 垃圾，real 三条真实结果（Id119–121）未受影响。
+  删除前已备份数据库文件（db-before-smoke-cleanup）。清理后 history total=100（原 97 + real 3），快照见 realhistory-clean.json。
+
+四、环境还原
+- appsettings.json 还原 ThreadCount=64 / TestTimeoutSec=600；web.json 还原 LastActualPort=8081。
+- 无残留 NetSpeedTest 进程，8080 端口已释放。
+
+五、自动化测试
+- dotnet test -c Release：249 个方法 = 245 通过 / 0 失败 / 4 跳过（4 Skip 为批2/3 的 BW×2、SUBNET、MTU 占位，待转正）。
+- dotnet build -c Release：0 警告 0 错误。
+- 提交：34f5e13（BIDI-002）、5b8596a（API-SAVE-008）。

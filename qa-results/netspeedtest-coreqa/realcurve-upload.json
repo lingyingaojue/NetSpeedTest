@@ -2,7 +2,7 @@
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  2.0355757,
+        "elapsedSeconds":  2.0294616,
         "downloadMbps":  null,
         "uploadMbps":  null,
         "totalMbps":  null,
@@ -10,8 +10,8 @@
         "averageDownloadMbps":  null,
         "averageUploadMbps":  null,
         "averageTotalMbps":  null,
-        "latencyMs":  1.58232,
-        "wanLatencyMs":  44.96714000000001,
+        "latencyMs":  1.27244,
+        "wanLatencyMs":  48.23486,
         "jitterMs":  null,
         "packetLossPercent":  0,
         "packetLossSent":  10,
@@ -35,27 +35,31 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  3.8644592,
+        "elapsedSeconds":  3.8657588,
         "downloadMbps":  null,
-        "uploadMbps":  28.378311642628194,
-        "totalMbps":  28.378311642628194,
+        "uploadMbps":  27.870005404107275,
+        "totalMbps":  27.870005404107275,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
         "averageUploadMbps":  null,
         "averageTotalMbps":  null,
-        "latencyMs":  1.58232,
-        "wanLatencyMs":  48.87572000000001,
+        "latencyMs":  1.27244,
+        "wanLatencyMs":  47.36004,
         "jitterMs":  null,
         "packetLossPercent":  0,
         "packetLossSent":  20,
         "packetLossReceived":  20,
-        "totalBytes":  9482562,
-        "activeThreads":  43,
+        "totalBytes":  9087984,
+        "activeThreads":  47,
         "adapterMetrics":  [
                                {
                                    "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
@@ -73,26 +77,30 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  5.8986669,
+        "elapsedSeconds":  5.8986476,
         "downloadMbps":  null,
-        "uploadMbps":  58.27670769898583,
-        "totalMbps":  58.27670769898583,
+        "uploadMbps":  61.881284539247424,
+        "totalMbps":  61.881284539247424,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
         "averageUploadMbps":  null,
         "averageTotalMbps":  null,
-        "latencyMs":  1.11385,
-        "wanLatencyMs":  47.368759999999995,
+        "latencyMs":  1.1465,
+        "wanLatencyMs":  44.349959999999996,
         "jitterMs":  null,
         "packetLossPercent":  0,
         "packetLossSent":  30,
         "packetLossReceived":  30,
-        "totalBytes":  36007628,
+        "totalBytes":  33434240,
         "activeThreads":  81,
         "adapterMetrics":  [
                                {
@@ -111,26 +119,72 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  7.937275,
+        "elapsedSeconds":  7.929359,
         "downloadMbps":  null,
-        "uploadMbps":  73.8055147874086,
-        "totalMbps":  73.8055147874086,
+        "uploadMbps":  78.55014155487025,
+        "totalMbps":  78.55014155487025,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
         "averageUploadMbps":  null,
         "averageTotalMbps":  null,
-        "latencyMs":  1.11385,
-        "wanLatencyMs":  49.10452,
+        "latencyMs":  1.1465,
+        "wanLatencyMs":  48.90806,
         "jitterMs":  null,
         "packetLossPercent":  0,
         "packetLossSent":  40,
         "packetLossReceived":  40,
-        "totalBytes":  62962232,
+        "totalBytes":  60735776,
+        "activeThreads":  115,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
+    },
+    {
+        "running":  true,
+        "status":  "15 个 URL · 上传测速中...",
+        "elapsedSeconds":  10.0137622,
+        "downloadMbps":  null,
+        "uploadMbps":  79.52084364293982,
+        "totalMbps":  79.52084364293982,
+        "averageMbps":  null,
+        "averageDownloadMbps":  null,
+        "averageUploadMbps":  null,
+        "averageTotalMbps":  null,
+        "latencyMs":  1.8444,
+        "wanLatencyMs":  46.59176,
+        "jitterMs":  null,
+        "packetLossPercent":  0,
+        "packetLossSent":  50,
+        "packetLossReceived":  50,
+        "totalBytes":  89524176,
         "activeThreads":  119,
         "adapterMetrics":  [
                                {
@@ -149,26 +203,30 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  9.9703322,
+        "elapsedSeconds":  12.0427154,
         "downloadMbps":  null,
-        "uploadMbps":  89.583889442746,
-        "totalMbps":  89.583889442746,
+        "uploadMbps":  145.31230873311162,
+        "totalMbps":  145.31230873311162,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
-        "averageUploadMbps":  null,
-        "averageTotalMbps":  null,
-        "latencyMs":  3.0762,
-        "wanLatencyMs":  51.188100000000006,
-        "jitterMs":  null,
+        "averageUploadMbps":  179.60778544574103,
+        "averageTotalMbps":  409.2540472524563,
+        "latencyMs":  1.8444,
+        "wanLatencyMs":  47.7529,
+        "jitterMs":  1.6414918239820726,
         "packetLossPercent":  0,
-        "packetLossSent":  50,
-        "packetLossReceived":  50,
-        "totalBytes":  100124411,
+        "packetLossSent":  60,
+        "packetLossReceived":  60,
+        "totalBytes":  185142236,
         "activeThreads":  135,
         "adapterMetrics":  [
                                {
@@ -187,26 +245,30 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  12.022286,
+        "elapsedSeconds":  14.0710992,
         "downloadMbps":  null,
-        "uploadMbps":  142.5216554945681,
-        "totalMbps":  142.5216554945681,
+        "uploadMbps":  262.9104639097611,
+        "totalMbps":  262.9104639097611,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
-        "averageUploadMbps":  142.13712524259975,
-        "averageTotalMbps":  299.3500209286267,
-        "latencyMs":  3.0762,
-        "wanLatencyMs":  50.54408,
-        "jitterMs":  0.20746512960012684,
+        "averageUploadMbps":  244.64902455039902,
+        "averageTotalMbps":  473.04122989866494,
+        "latencyMs":  1.4035000000000002,
+        "wanLatencyMs":  50.89984,
+        "jitterMs":  1.6414918239820726,
         "packetLossPercent":  0,
-        "packetLossSent":  60,
-        "packetLossReceived":  60,
-        "totalBytes":  180220617,
+        "packetLossSent":  70,
+        "packetLossReceived":  70,
+        "totalBytes":  314807051,
         "activeThreads":  163,
         "adapterMetrics":  [
                                {
@@ -225,65 +287,31 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  14.0691666,
+        "elapsedSeconds":  16.115975,
         "downloadMbps":  null,
-        "uploadMbps":  253.30329209618898,
-        "totalMbps":  253.30329209618898,
+        "uploadMbps":  249.35607136867944,
+        "totalMbps":  249.35607136867944,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
-        "averageUploadMbps":  233.4757662167032,
-        "averageTotalMbps":  488.0273334126484,
-        "latencyMs":  1.0181499999999999,
-        "wanLatencyMs":  49.270140000000005,
-        "jitterMs":  0.20746512960012684,
-        "packetLossPercent":  0,
-        "packetLossSent":  70,
-        "packetLossReceived":  70,
-        "totalBytes":  333576234,
-        "activeThreads":  201,
-        "adapterMetrics":  [
-                               {
-                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
-                                   "adapterName":  "以太网 2",
-                                   "ipAddress":  "192.168.1.8",
-                                   "latencyMs":  null,
-                                   "wanLatencyMs":  null,
-                                   "jitterMs":  null
-                               }
-                           ],
-        "packetLossScope":  "global",
-        "serverPort":  8080,
-        "serverUrl":  "http://127.0.0.1:8080",
-        "selectedAdapters":  [
-                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
-                             ],
-        "currentProfile":  "全球节点",
-        "recentResult":  null
-    },
-    {
-        "running":  true,
-        "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  15.929991,
-        "downloadMbps":  null,
-        "uploadMbps":  285.67529819635314,
-        "totalMbps":  285.67529819635314,
-        "averageMbps":  null,
-        "averageDownloadMbps":  null,
-        "averageUploadMbps":  240.26108996329432,
-        "averageTotalMbps":  443.3861984669645,
-        "latencyMs":  1.0181499999999999,
-        "wanLatencyMs":  49.270140000000005,
-        "jitterMs":  0.20746512960012684,
+        "averageUploadMbps":  244.1447642530253,
+        "averageTotalMbps":  419.93359096444107,
+        "latencyMs":  1.4035000000000002,
+        "wanLatencyMs":  50.89984,
+        "jitterMs":  1.6414918239820726,
         "packetLossPercent":  0,
         "packetLossSent":  75,
         "packetLossReceived":  75,
-        "totalBytes":  426738823,
-        "activeThreads":  231,
+        "totalBytes":  399597016,
+        "activeThreads":  187,
         "adapterMetrics":  [
                                {
                                    "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
@@ -301,27 +329,31 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  17.9687334,
+        "elapsedSeconds":  17.9678382,
         "downloadMbps":  null,
-        "uploadMbps":  231.85618902560438,
-        "totalMbps":  231.85618902560438,
+        "uploadMbps":  242.53209447781498,
+        "totalMbps":  242.53209447781498,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
-        "averageUploadMbps":  235.53813881212497,
-        "averageTotalMbps":  421.9844971802166,
-        "latencyMs":  1.2818666666666667,
-        "wanLatencyMs":  48.05466,
-        "jitterMs":  0.20746512960012684,
-        "packetLossPercent":  2.3529411764705883,
+        "averageUploadMbps":  244.17329317967034,
+        "averageTotalMbps":  396.78859231986866,
+        "latencyMs":  1.1242,
+        "wanLatencyMs":  50.89984,
+        "jitterMs":  1.4066210051840518,
+        "packetLossPercent":  4.705882352941177,
         "packetLossSent":  85,
-        "packetLossReceived":  83,
-        "totalBytes":  518898201,
-        "activeThreads":  224,
+        "packetLossReceived":  81,
+        "totalBytes":  484800648,
+        "activeThreads":  128,
         "adapterMetrics":  [
                                {
                                    "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
@@ -339,26 +371,30 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  20.0174988,
+        "elapsedSeconds":  19.9941145,
         "downloadMbps":  null,
-        "uploadMbps":  182.75324878482857,
-        "totalMbps":  182.75324878482857,
+        "uploadMbps":  221.2204486574423,
+        "totalMbps":  221.2204486574423,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
-        "averageUploadMbps":  223.34919356862775,
-        "averageTotalMbps":  540.748478105427,
-        "latencyMs":  1.2818666666666667,
-        "wanLatencyMs":  52.47378,
-        "jitterMs":  0.20746512960012684,
-        "packetLossPercent":  2.2222222222222223,
+        "averageUploadMbps":  236.92792764579858,
+        "averageTotalMbps":  398.3673040199749,
+        "latencyMs":  1.1242,
+        "wanLatencyMs":  49.2145,
+        "jitterMs":  1.4066210051840518,
+        "packetLossPercent":  6.666666666666667,
         "packetLossSent":  90,
-        "packetLossReceived":  88,
-        "totalBytes":  765569423,
+        "packetLossReceived":  84,
+        "totalBytes":  587204713,
         "activeThreads":  127,
         "adapterMetrics":  [
                                {
@@ -377,26 +413,30 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  true,
         "status":  "15 个 URL · 上传测速中...",
-        "elapsedSeconds":  23.4257303,
+        "elapsedSeconds":  22.0615523,
         "downloadMbps":  null,
-        "uploadMbps":  160.69006490385115,
-        "totalMbps":  160.69006490385115,
+        "uploadMbps":  221.1883886966391,
+        "totalMbps":  221.1883886966391,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
-        "averageUploadMbps":  205.29860744747637,
-        "averageTotalMbps":  677.6462635650613,
-        "latencyMs":  1.1827,
-        "wanLatencyMs":  52.21382,
-        "jitterMs":  0.20746512960012684,
-        "packetLossPercent":  1.9047619047619047,
-        "packetLossSent":  105,
-        "packetLossReceived":  103,
-        "totalBytes":  1270394592,
+        "averageUploadMbps":  233.99185837317503,
+        "averageTotalMbps":  390.500121003167,
+        "latencyMs":  1.21745,
+        "wanLatencyMs":  50.54934,
+        "jitterMs":  1.4066210051840518,
+        "packetLossPercent":  6,
+        "packetLossSent":  100,
+        "packetLossReceived":  94,
+        "totalBytes":  676719921,
         "activeThreads":  127,
         "adapterMetrics":  [
                                {
@@ -415,27 +455,73 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
+    },
+    {
+        "running":  true,
+        "status":  "15 个 URL · 上传测速中...",
+        "elapsedSeconds":  24.1123561,
+        "downloadMbps":  null,
+        "uploadMbps":  198.10545889885296,
+        "totalMbps":  198.10545889885296,
+        "averageMbps":  null,
+        "averageDownloadMbps":  null,
+        "averageUploadMbps":  227.51286034035803,
+        "averageTotalMbps":  376.93213238813183,
+        "latencyMs":  1.21745,
+        "wanLatencyMs":  45.05918,
+        "jitterMs":  1.4066210051840518,
+        "packetLossPercent":  5.454545454545454,
+        "packetLossSent":  110,
+        "packetLossReceived":  104,
+        "totalBytes":  752658384,
+        "activeThreads":  127,
+        "adapterMetrics":  [
+                               {
+                                   "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
+                                   "adapterName":  "以太网 2",
+                                   "ipAddress":  "192.168.1.8",
+                                   "latencyMs":  null,
+                                   "wanLatencyMs":  null,
+                                   "jitterMs":  null
+                               }
+                           ],
+        "packetLossScope":  "global",
+        "serverPort":  8080,
+        "serverUrl":  "http://127.0.0.1:8080",
+        "selectedAdapters":  [
+                                 "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
+                             ],
+        "currentProfile":  "全球节点",
+        "recentResult":  {
+                             "downloadMbps":  1640.3501599915726,
+                             "uploadMbps":  null,
+                             "latencyMs":  2.4221416666666666
+                         }
     },
     {
         "running":  false,
         "status":  "测速完成 · 5/30 成功 · 10 失败/超时",
-        "elapsedSeconds":  25,
+        "elapsedSeconds":  24.9255784,
         "downloadMbps":  null,
-        "uploadMbps":  159.1284006561972,
-        "totalMbps":  159.1284006561972,
+        "uploadMbps":  174.99360114311776,
+        "totalMbps":  174.99360114311776,
         "averageMbps":  null,
         "averageDownloadMbps":  null,
-        "averageUploadMbps":  200.3037451256078,
-        "averageTotalMbps":  697.9480594522295,
-        "latencyMs":  2.4002,
-        "wanLatencyMs":  50.85598,
-        "jitterMs":  0.20746512960012684,
-        "packetLossPercent":  1.8181818181818181,
+        "averageUploadMbps":  221.58025440415048,
+        "averageTotalMbps":  364.664799508277,
+        "latencyMs":  1.8761,
+        "wanLatencyMs":  49.905566666666665,
+        "jitterMs":  1.4066210051840518,
+        "packetLossPercent":  5.454545454545454,
         "packetLossSent":  110,
-        "packetLossReceived":  108,
-        "totalBytes":  1392574934,
-        "activeThreads":  127,
+        "packetLossReceived":  104,
+        "totalBytes":  778105985,
+        "activeThreads":  128,
         "adapterMetrics":  [
                                {
                                    "adapterId":  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}",
@@ -453,6 +539,10 @@
                                  "{DEC0004C-7514-4A87-8476-E33C69FA24A3}"
                              ],
         "currentProfile":  "全球节点",
-        "recentResult":  null
+        "recentResult":  {
+                             "downloadMbps":  null,
+                             "uploadMbps":  211.3879739599471,
+                             "latencyMs":  1.4053125
+                         }
     }
 ]
