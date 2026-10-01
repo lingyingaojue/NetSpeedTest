@@ -1,4 +1,4 @@
-# Verify the v1.4.3 version string reaches every runtime surface.
+# Verify the v1.4.4 version string reaches every runtime surface.
 $ErrorActionPreference = 'Stop'
 $repo   = 'D:\Program Files\DSH\NetSpeedTest'
 $exe    = Join-Path $repo 'NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'

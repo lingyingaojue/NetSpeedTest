@@ -195,7 +195,7 @@
     "保存": "Save",
     "复制成功": "Copied!",
     "复制失败": "Copy failed",
-    "v1.4.3 已发布 · 检查更新修复与预发布回退": "v1.4.3 released · Update check fix & prerelease fallback",
+    "v1.4.4 已发布 · 9 项缺陷修复与启动权限加固": "v1.4.4 released · 9 defect fixes & startup-elevation hardening",
     "v1.4.3 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。": "v1.4.3 UI: choose a mode, check NICs, start with one click.",
     "🖥️ v1.4.3 主界面": "🖥️ v1.4.3 main UI",
     "自适应线程调度：线性加压，最高 1024 线程": "Adaptive threading: linear ramp-up to 1024 threads",

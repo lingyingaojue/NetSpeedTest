@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
-  <assemblyIdentity version="1.4.3.0" name="NetSpeedTest.app" />
+  <assemblyIdentity version="1.4.4.0" name="NetSpeedTest.app" />
 
   <!-- 决策 D8①：Web 服务需 netsh 写入站防火墙规则 / URL ACL，强制以管理员身份启动（每次启动弹一次 UAC）。 -->
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">

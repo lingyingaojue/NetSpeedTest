@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8-512BD4?logo=dotnet)](https://dotnet.microsoft.com)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
-[![Release](https://img.shields.io/badge/release-v1.4.3-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
+[![Release](https://img.shields.io/badge/release-v1.4.4-green)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![AI](https://img.shields.io/badge/AI-DeepSeek-4D6BFE)](https://www.deepseek.com)
 [![Stars](https://img.shields.io/github/stars/lingyingaojue/NetSpeedTest?color=yellow)](https://github.com/lingyingaojue/NetSpeedTest/stargazers)
 [![Downloads](https://img.shields.io/github/downloads/lingyingaojue/NetSpeedTest/total?color=blue)](https://github.com/lingyingaojue/NetSpeedTest/releases)
@@ -339,7 +339,7 @@ dotnet publish NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-con
 
 ## 📝 更新日志
 
-最近三个版本变更记录请查看 [CHANGELOG.md](CHANGELOG.md)。当前版本 **v1.4.3** 重点修复了检查更新在 Release 全部为预发布时返回 404、更新资产选择错误等问题。
+最近三个版本变更记录请查看 [CHANGELOG.md](CHANGELOG.md)。当前版本 **v1.4.4** 集中修复了远程测速结果不保存、双向测速提示「0 成功」、中途停止记录流量为 0、MTU 跨网关探测失败、设置边界不一致、防火墙入站规则只删不建等 9 项缺陷；程序现默认请求管理员权限（每次启动弹 UAC）以自动放行防火墙。
 
 ---
 
