@@ -65,6 +65,13 @@ public partial class MainViewModel : ObservableObject
         _apiInitiatedTest = false;
         return value;
     }
+
+    /// <summary>
+    /// 结果落库动作的可替换缝（仅测试用）。生产为 null 时走 <see cref="DataService.SaveResult"/>；
+    /// 单元测试注入委托以截获落库，从而无需构造完整 VM、也不写真实 SQLite。
+    /// </summary>
+    internal Action<SpeedTestResult>? PersistHook;
+
     private CancellationTokenSource? _cts;
     private DispatcherTimer? _elapsedTimer;
     private EventHandler? _elapsedTickHandler;
@@ -973,20 +980,11 @@ public partial class MainViewModel : ObservableObject
         if (_currentTestMode == "上传") result.DownloadMbps = null;
         if (_currentTestMode == "下载") result.UploadMbps = null;
         UrlTestDetails = new ObservableCollection<UrlTestDetail>(result.UrlDetails);
-        if (showDialog)
-        {
-            _ = Task.Run(() => { try { _dataService.SaveResult(result); } catch (Exception ex) { Logger.Log($"SaveResult failed: {ex.Message}"); } });
-            _lastMultiNicResults = null;
-            _lastResult = result;
-            OnPropertyChanged(nameof(HasRecentResult));
-            OnPropertyChanged(nameof(RecentDownloadMbps));
-            OnPropertyChanged(nameof(RecentUploadMbps));
-            OnPropertyChanged(nameof(RecentLatencyMs));
-            OnPropertyChanged(nameof(RecentPacketLossDisplay));
-            RecentRecords.Insert(0, result);
-            while (RecentRecords.Count > 20)
-                RecentRecords.RemoveAt(RecentRecords.Count - 1);
-        }
+
+        // 落库与“最近结果/历史列表”属于数据正确性，与是否弹模态窗无关：GUI 与 Web API 两条路径都必须执行。
+        // 只有下方的结果窗（ShowDialog）才允许受 showDialog/API 标记门控。修复 BUG-API-SAVE-008。
+        PersistResultAndUpdateRecent(result);
+
         var ok = result.UrlDetails.Count(d => !d.IsFailed);
         var fail = result.UrlDetails.Count(d => d.IsFailed);
         StatusText = _currentTestMode switch
@@ -1020,6 +1018,28 @@ public partial class MainViewModel : ObservableObject
                 "NetSpeedTest",
                 $"下载 {FormatHelper.FormatRate(result.DownloadMbps)} | 上传 {FormatHelper.FormatRate(result.UploadMbps)} | 总均速 {FormatHelper.FormatRate(AverageTotalMbps ?? 0)}");
         }
+    }
+
+    /// <summary>
+    /// 落库本次结果并刷新“最近结果/历史列表”。不触碰任何 WPF 模态窗口，故 GUI 与 Web API
+    /// （showDialog=false）路径都必须无条件调用（修复 BUG-API-SAVE-008：此前整段被误置于弹窗门控内，
+    /// API 发起的测速既不落库也不更新最近结果）。落库走后台线程、失败只记日志，不反杀 UI 状态；
+    /// _lastResult/RecentRecords 在调用线程同步赋值，使 /api/status.recentResult 结束即可读、不等 DB flush。
+    /// </summary>
+    internal void PersistResultAndUpdateRecent(SpeedTestResult result)
+    {
+        var persist = PersistHook ?? _dataService.SaveResult;
+        _ = Task.Run(() => { try { persist(result); } catch (Exception ex) { Logger.Log($"SaveResult failed: {ex.Message}"); } });
+        _lastMultiNicResults = null;
+        _lastResult = result;
+        OnPropertyChanged(nameof(HasRecentResult));
+        OnPropertyChanged(nameof(RecentDownloadMbps));
+        OnPropertyChanged(nameof(RecentUploadMbps));
+        OnPropertyChanged(nameof(RecentLatencyMs));
+        OnPropertyChanged(nameof(RecentPacketLossDisplay));
+        RecentRecords.Insert(0, result);
+        while (RecentRecords.Count > 20)
+            RecentRecords.RemoveAt(RecentRecords.Count - 1);
     }
 
     private void FinishMultiNicTest(List<SpeedTestResult> results)
