@@ -196,17 +196,21 @@ public partial class MoreViewModel : ObservableObject
         {
             var sb = new StringBuilder(); sb.AppendLine($"MTU 探测: {MtuHost}"); sb.AppendLine(new string('-', 40));
             using var ping = new Ping();
+            // BUG-MTU-001：TTL 必须足够大，让 DF 探测包能到达跨网关目标。此前硬编码为 1，包在第一跳即
+            // TtlExpired，8.8.8.8 等跨网关目标永远“未找到可用 MTU”。固定 64（覆盖公网常见 ≤30 跳路径）；
+            // 按决策 D5 不在 UI 暴露该值。
+            const int MtuTtl = 64;
             int lo = 68, hi = 1500, found = -1;
             while (lo <= hi)
             {
                 int mid = (lo + hi) / 2;
-                var opt = new PingOptions(1, dontFragment: true);
+                var opt = new PingOptions(MtuTtl, dontFragment: true);
                 try { var reply = await ping.SendPingAsync(MtuHost, 2000, new byte[mid], opt); if (reply.Status == IPStatus.Success) { found = mid; lo = mid + 1; } else { hi = mid - 1; } }
                 catch { hi = mid - 1; }
                 sb.AppendLine($"测试 MTU={mid}: {(found == mid ? "通过" : "失败")} (当前最大={found})");
                 MtuResult = sb.ToString(); await Task.Delay(50);
             }
-            sb.AppendLine(new string('-', 40)); sb.AppendLine(found > 0 ? $"路径 MTU = {found} bytes (+28 头 = {found + 28} IP MTU)" : "未找到可用 MTU");
+            sb.AppendLine(new string('-', 40)); sb.AppendLine(found > 0 ? $"路径 MTU = {found + 28} bytes（ICMP 净荷 {found} + 28 字节 IP/ICMP 头）" : "未找到可用 MTU（目标不可达或链路不支持该包长）");
             MtuResult = sb.ToString();
         }
         catch (Exception ex) { MtuResult = $"MTU 探测失败: {ex.Message}"; }

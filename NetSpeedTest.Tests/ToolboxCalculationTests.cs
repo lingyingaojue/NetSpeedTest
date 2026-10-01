@@ -127,7 +127,7 @@ public class ToolboxCalculationTests
         Assert.Contains("掩码", r);
     }
 
-    [Fact(Skip = "BUG-MTU-001 复现：MTU 探测 PingOptions TTL 硬编码为 1，跨网关目标在第一跳 TTL 过期，必然“未找到可用 MTU”")]
+    [Fact]
     public void MtuProbe_UsesTtlLargeEnoughToReachRemoteTarget()
     {
         var source = ReadToolboxSource();
@@ -135,6 +135,10 @@ public class ToolboxCalculationTests
         // 合法的路径 MTU 探测必须允许包到达远端（路由追踪最多 30 跳），TTL 不得固定为 1。
         Assert.DoesNotContain("new PingOptions(1,", startMtu);
         Assert.Contains("PingOptions(", startMtu);
+        // BUG-MTU-001：固定为足以跨网关的 TTL（64），且结果正确区分“路径 MTU = ICMP 净荷 + 28”。
+        Assert.Contains("const int MtuTtl = 64", startMtu);
+        Assert.Contains("new PingOptions(MtuTtl", startMtu);
+        Assert.Contains("found + 28", startMtu);
     }
 
     // ===== 批2：BUG-BW-004 修复后新增边界用例 =====
