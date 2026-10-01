@@ -8,6 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Resources\app.ico</ApplicationIcon>
+    <!-- 决策 D8①：requireAdministrator，使 Web 服务具备 netsh 写防火墙规则 / URL ACL 权限。 -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>

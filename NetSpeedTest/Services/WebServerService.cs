@@ -450,8 +450,10 @@ public void Stop()
 
         try
         {
-            EnsureFirewallRule(port);
-            _firewallReady = true;
+            // BUG-FW-006：就绪状态必须反映真实探测结果，不再无条件置 true。
+            _firewallReady = EnsureFirewallRule(port);
+            if (!_firewallReady && string.IsNullOrWhiteSpace(_lanError))
+                _lanError = LocalizationService.Get("WebServer_LanNeedAdmin");
         }
         catch (Exception ex)
         {
@@ -507,23 +509,50 @@ public void Stop()
     private void EnsureUrlAcl(int port)
     {
         var user = $"{Environment.UserDomainName}\\{Environment.UserName}";
-        RunNetsh($"http add urlacl url=http://+:{port}/ user=\"{user}\"");
+        _ = RunNetsh($"http add urlacl url=http://+:{port}/ user=\"{user}\"");
     }
 
-    private void EnsureFirewallRule(int port)
+    internal const string FirewallRuleName = "NetSpeedTest Web Server";
+
+    private bool EnsureFirewallRule(int port) => EnsureFirewallRule(port, RunNetsh);
+
+    /// <summary>
+    /// 同名规则幂等地重建为放行本端口的入站规则，并在 add 后真实探测确认（BUG-FW-006 / 决策 D8①）。
+    /// 进程经 app.manifest 强制管理员运行；netsh 无权限时 add 抛异常（调用方据此置 FirewallReady=false），
+    /// 不再吞掉异常后无条件报就绪。netsh 调用抽象为委托，便于单测注入「无权限 / show 无匹配 / 端口漂移」等情形。
+    /// </summary>
+    internal static bool EnsureFirewallRule(int port, Func<string, string> runNetsh)
     {
-        const string ruleName = "NetSpeedTest Web Server";
-        try
-        {
-            try { RunNetsh($"advfirewall firewall delete rule name=\"{ruleName}\""); } catch { }
-            return;
-        }
-        catch { }
+        // 先 delete 清理同名旧规则（可能本就不存在，容忍失败），再 add，端口漂移也能被修正；规则长期驻留、停止服务不删。
+        try { runNetsh($"advfirewall firewall delete rule name=\"{FirewallRuleName}\""); } catch { /* 规则可能本就不存在 */ }
 
-        RunNetsh($"advfirewall firewall add rule name=\"{ruleName}\" dir=in action=allow protocol=TCP localport={port} profile=any");
+        // 无管理员权限时这里会抛，绝不静默成功。
+        runNetsh($"advfirewall firewall add rule name=\"{FirewallRuleName}\" dir=in action=allow protocol=TCP localport={port} profile=any");
+
+        var showOutput = runNetsh($"advfirewall firewall show rule name=\"{FirewallRuleName}\"");
+        return ParseFirewallRulePresent(showOutput, port);
     }
 
-    private static void RunNetsh(string arguments)
+    /// <summary>
+    /// 解析 `netsh advfirewall firewall show rule` 输出，判定本产品规则是否存在且放行指定端口。
+    /// netsh 字段名/枚举在中文系统会本地化，故只依赖固定 ASCII 规则名与不本地化的端口数字，并兼容中英文「无匹配 / Block」提示。
+    /// </summary>
+    internal static bool ParseFirewallRulePresent(string? netshOutput, int port)
+    {
+        if (string.IsNullOrWhiteSpace(netshOutput)) return false;
+        if (netshOutput.Contains("No rules match", StringComparison.OrdinalIgnoreCase) ||
+            netshOutput.Contains("没有与指定标准匹配", StringComparison.Ordinal))
+            return false;
+        if (!netshOutput.Contains(FirewallRuleName, StringComparison.Ordinal)) return false;
+        // 我们只创建 allow 规则；若输出显示 Block/阻止则不放行。
+        if (netshOutput.Contains("Block", StringComparison.OrdinalIgnoreCase) ||
+            netshOutput.Contains("阻止", StringComparison.Ordinal))
+            return false;
+        // 端口数字独立出现（LocalPort 字段本地化，但数字本身不本地化），避免 8080 误匹配 80800。
+        return System.Text.RegularExpressions.Regex.IsMatch(netshOutput, $@"(?<![0-9]){port}(?![0-9])");
+    }
+
+    private static string RunNetsh(string arguments)
     {
         var psi = new ProcessStartInfo("netsh.exe", arguments)
         {
@@ -540,6 +569,7 @@ public void Stop()
         var error = process.StandardError.ReadToEnd();
         if (process.ExitCode != 0)
             throw new InvalidOperationException(string.IsNullOrWhiteSpace(error) ? output.Trim() : error.Trim());
+        return string.IsNullOrWhiteSpace(error) ? output : output + Environment.NewLine + error;
     }
 
     private sealed class WebServerSettings
