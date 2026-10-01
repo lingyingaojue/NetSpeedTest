@@ -809,6 +809,21 @@ public class SpeedTestService
         }
     }
 
+    /// <summary>
+    /// 合并双向测速的下载/上传逐 URL 明细（BUG-BIDI-002 修复）。
+    /// 跨方向不去重：同一 URL 在下载、上传是两个独立动作，各保留一条并靠 <see cref="UrlTestDetail.Direction"/> 区分；
+    /// 各侧的成败/超时标记原样保留，使结果窗“成功/失败”计数等于两侧之和，而不是恒为 0。
+    /// 入参为 <see cref="UrlBalancer.BuildDetails"/> 新建的快照，就地设置 Direction 不会回写均衡器内部状态。
+    /// </summary>
+    internal static List<UrlTestDetail> MergeFullUrlDetails(
+        IEnumerable<UrlTestDetail> downloadDetails, IEnumerable<UrlTestDetail> uploadDetails)
+    {
+        var merged = new List<UrlTestDetail>();
+        foreach (var d in downloadDetails) { d.Direction = "下载"; merged.Add(d); }
+        foreach (var u in uploadDetails) { u.Direction = "上传"; merged.Add(u); }
+        return merged;
+    }
+
     private sealed class LongRef { public long Value; }
 
     /// <summary>
@@ -1791,7 +1806,7 @@ Action<long>? onTotalBytes = null, Action<PacketLossSample>? onPacketLoss = null
         if (nicState.R) { var e = Math.Max(ts_ - _options.AverageDelaySec, 0.1); var drop = _options.CompensationEnabled ? nicState.TotalDropDuration : 0; var adj = Math.Max(e - drop, 0.1); dl_ = Math.Max(0, (nicState.AR - nicState.BR) * 8.0 / (adj * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.BS) * 8.0 / (adj * 1_000_000.0)); }
         else { dl_ = Math.Max(0, (nicState.AR - nicState.FR) * 8.0 / (ts_ * 1_000_000.0)); ul_ = Math.Max(0, (nicState.AS - nicState.FS) * 8.0 / (ts_ * 1_000_000.0)); }
         long dlBytes_ = bytesDl.Value, ulBytes_ = Math.Max(0, nicState.R ? nicState.AS - nicState.BS : nicState.AS - nicState.FS);
-        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = useAdaptive ? Math.Max(1, combinedActivePeak) : threadCount, UrlDetails = new() };
+        return new SpeedTestResult { Timestamp = DateTime.Now, DownloadMbps = dl_, UploadMbps = ul_, PeakMbps = nicState.PeakRate, LatencyMs = 0, JitterMs = 0, PacketLoss = 0, NodeName = profileName, NetworkAdapterName = string.Join(", ", adapters.Select(a => a.Name ?? "")), BytesDownloaded = dlBytes_, BytesUploaded = ulBytes_, DurationSeconds = ts_, ThreadCount = useAdaptive ? Math.Max(1, combinedActivePeak) : threadCount, UrlDetails = MergeFullUrlDetails(dlBalancer.BuildDetails(), ulBalancer.BuildDetails()) };
     }
 
 

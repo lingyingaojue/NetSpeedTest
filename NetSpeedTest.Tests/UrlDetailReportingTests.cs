@@ -137,4 +137,83 @@ public class UrlDetailReportingTests
         await System.Threading.Tasks.Task.WhenAll(tasks.Append(reader));
         Assert.Equal(urls.Length, balancer.BuildDetails().Count);
     }
+
+    // ===== BUG-BIDI-002：双向测速必须合并下载/上传两侧明细，不能丢空 =====
+
+    private static void ReportAllSuccess(SpeedTestService.UrlBalancer balancer, params string[] urls)
+    {
+        for (var i = 0; i < urls.Length; i++)
+        {
+            _ = balancer.GetUrlForWorker(i);
+            balancer.ReportSuccess(urls[i], 10 + i, 1);
+        }
+    }
+
+    [Fact]
+    public void MergeFullUrlDetails_concatenates_download_and_upload_without_cross_dedup()
+    {
+        var dlUrls = new[] { "https://d1.example/x", "https://d2.example/x", "https://d3.example/x" };
+        var ulUrls = new[] { "https://u1.example/x", "https://u2.example/x" };
+        var dl = NewBalancer(dlUrls);
+        var ul = NewBalancer(ulUrls);
+        ReportAllSuccess(dl, dlUrls);
+        ReportAllSuccess(ul, ulUrls);
+
+        var merged = SpeedTestService.MergeFullUrlDetails(dl.BuildDetails(), ul.BuildDetails());
+
+        Assert.Equal(5, merged.Count);
+        Assert.Equal(3, merged.Count(d => d.Direction == "下载"));
+        Assert.Equal(2, merged.Count(d => d.Direction == "上传"));
+        Assert.All(merged, d => Assert.False(d.IsFailed));
+    }
+
+    [Fact]
+    public void MergeFullUrlDetails_keeps_same_url_on_both_directions_as_two_entries()
+    {
+        const string same = "https://same.example/x";
+        var dl = NewBalancer(same);
+        _ = dl.GetUrlForWorker(0);
+        dl.ReportSuccess(same, 10, 1);
+        var ul = NewBalancer(same);
+        _ = ul.GetUrlForWorker(0);
+        ul.ReportSuccess(same, 4, 1);
+
+        var merged = SpeedTestService.MergeFullUrlDetails(dl.BuildDetails(), ul.BuildDetails());
+
+        Assert.Equal(2, merged.Count(d => d.Url == same));
+        Assert.Contains(merged, d => d.Url == same && d.Direction == "下载");
+        Assert.Contains(merged, d => d.Url == same && d.Direction == "上传");
+    }
+
+    [Fact]
+    public void MergeFullUrlDetails_preserves_failed_items_from_either_side()
+    {
+        var dl = NewBalancer("https://ok-dl.example/x", "https://bad-dl.example/x");
+        _ = dl.GetUrlForWorker(0);
+        dl.ReportSuccess("https://ok-dl.example/x", 10, 1);
+        _ = dl.GetUrlForWorker(1);
+        dl.ReportFailure("https://bad-dl.example/x");
+
+        var ul = NewBalancer("https://ok-ul.example/x", "https://slow-ul.example/x");
+        _ = ul.GetUrlForWorker(0);
+        ul.ReportSuccess("https://ok-ul.example/x", 5, 1);
+        _ = ul.GetUrlForWorker(1);
+        ul.ReportTimeout("https://slow-ul.example/x");
+
+        var merged = SpeedTestService.MergeFullUrlDetails(dl.BuildDetails(), ul.BuildDetails());
+
+        Assert.Equal(4, merged.Count);
+        Assert.Equal(2, merged.Count(d => !d.IsFailed));
+        Assert.Equal(2, merged.Count(d => d.IsFailed));
+
+        var badDl = merged.Single(d => d.Url == "https://bad-dl.example/x");
+        Assert.True(badDl.IsFailed);
+        Assert.Equal("下载", badDl.Direction);
+        Assert.Contains("Rejected", badDl.ErrorMessage!, System.StringComparison.OrdinalIgnoreCase);
+
+        var slowUl = merged.Single(d => d.Url == "https://slow-ul.example/x");
+        Assert.True(slowUl.IsFailed);
+        Assert.Equal("上传", slowUl.Direction);
+        Assert.Contains("Timeout", slowUl.ErrorMessage!, System.StringComparison.OrdinalIgnoreCase);
+    }
 }

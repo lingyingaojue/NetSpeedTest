@@ -36,6 +36,11 @@ public class UrlTestDetail
     public double DurationSeconds { get; set; }
 
     /// <summary>
+    /// 明细方向：下载 / 上传（仅内存，不入库；默认“下载”以兼容纯下载路径的既有构造）
+    /// </summary>
+    public string Direction { get; set; } = "下载";
+
+    /// <summary>
     /// 是否超时/失败
     /// </summary>
     public bool IsFailed { get; set; }
