@@ -1,11 +1,11 @@
 {
   "schema_version": 2,
   "run_id": "qa-d90912c60289",
-  "revision": 7,
+  "revision": 8,
   "profile": "full",
   "test_intent": "non_ui_validation",
   "execution_level": "blocked",
-  "selected_path": "undetermined",
+  "selected_path": "manual_handoff",
   "created_at": "2026-09-29T22:04:15.544810+00:00",
   "target": {
     "type": "attachment_or_directory",
@@ -166,6 +166,30 @@
       "state": "CLOSED",
       "checked_at": "2026-09-29T23:35:16.352773+00:00",
       "source_fingerprint": "sha256:f5d5cea05bcd32a0b6484881047f4f77ee3878d178f468e71d29b0466d809ad0",
+      "warnings": 0
+    },
+    {
+      "stage": "baseline",
+      "revision": 8,
+      "state": "CLOSED",
+      "checked_at": "2026-10-01T01:51:50.079133+00:00",
+      "source_fingerprint": "sha256:e85e4a89ca343346e1998d705efde5135e07ebd724456fba2fc1638abc69997e",
+      "warnings": 0
+    },
+    {
+      "stage": "design",
+      "revision": 8,
+      "state": "CLOSED",
+      "checked_at": "2026-10-01T01:51:50.364068+00:00",
+      "source_fingerprint": "sha256:e85e4a89ca343346e1998d705efde5135e07ebd724456fba2fc1638abc69997e",
+      "warnings": 0
+    },
+    {
+      "stage": "execution",
+      "revision": 8,
+      "state": "CLOSED",
+      "checked_at": "2026-10-01T01:51:50.673669+00:00",
+      "source_fingerprint": "sha256:e85e4a89ca343346e1998d705efde5135e07ebd724456fba2fc1638abc69997e",
       "warnings": 0
     }
   ],
@@ -371,7 +395,7 @@
   "change_ledger": [
     {
       "id": "CHG-001",
-      "revision": 7,
+      "revision": 8,
       "action": "ADD",
       "object_type": "run",
       "added_ids": [
@@ -387,7 +411,7 @@
     },
     {
       "id": "CHG-002",
-      "revision": 7,
+      "revision": 8,
       "action": "ADD",
       "object_type": "requirement",
       "added_ids": [
@@ -417,7 +441,7 @@
     },
     {
       "id": "CHG-003",
-      "revision": 7,
+      "revision": 8,
       "action": "ADD",
       "object_type": "risk_mechanism",
       "added_ids": [
@@ -449,7 +473,7 @@
     },
     {
       "id": "CHG-004",
-      "revision": 7,
+      "revision": 8,
       "action": "ADD",
       "object_type": "case",
       "added_ids": [
@@ -492,19 +516,20 @@
         "TC-NETSPEEDTEST-081",
         "TC-WEB-082",
         "TC-NETSPEEDTEST-083",
-        "TC-WEB-084"
+        "TC-WEB-084",
+        "TC-NETSPEEDTEST-085"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
-      "after_count": 40,
-      "delta_count": 40,
+      "after_count": 41,
+      "delta_count": 41,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     },
     {
       "id": "CHG-005",
-      "revision": 7,
+      "revision": 8,
       "action": "ADD",
       "object_type": "acceptance",
       "added_ids": [
@@ -528,7 +553,7 @@
     },
     {
       "id": "CHG-006",
-      "revision": 7,
+      "revision": 8,
       "action": "ADD",
       "object_type": "execution",
       "added_ids": [
@@ -571,19 +596,28 @@
         "EXE-NETSPEEDTEST-081",
         "EXE-NETSPEEDTEST-082",
         "EXE-NETSPEEDTEST-083",
-        "EXE-NETSPEEDTEST-084"
+        "EXE-NETSPEEDTEST-084",
+        "EXE-FIX-MTU-062",
+        "EXE-FIX-BIDI-083",
+        "EXE-FIX-CLAMP-039",
+        "EXE-FIX-BW-063",
+        "EXE-FIX-SUBNET-064",
+        "EXE-FIX-FW-082",
+        "EXE-FIX-FALLBACK-040",
+        "EXE-FIX-APISAVE-084",
+        "EXE-FIX-CANCEL-085"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
-      "after_count": 40,
-      "delta_count": 40,
+      "after_count": 49,
+      "delta_count": 49,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     },
     {
       "id": "CHG-007",
-      "revision": 7,
+      "revision": 8,
       "action": "ADD",
       "object_type": "evidence",
       "added_ids": [
@@ -599,19 +633,25 @@
         "EVD-SMOKE-E2E-010",
         "EVD-SMOKE-LOG-011",
         "EVD-REAL-E2E-012",
-        "EVD-APISAVE-SRC-014"
+        "EVD-APISAVE-SRC-014",
+        "EVD-FIX-BUILD-015",
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-SMOKE-017",
+        "EVD-FIX-E2E-018",
+        "EVD-FIX-REAL1-019",
+        "EVD-FIX-REALHIST-020"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
-      "after_count": 13,
-      "delta_count": 13,
+      "after_count": 19,
+      "delta_count": 19,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     },
     {
       "id": "CHG-008",
-      "revision": 7,
+      "revision": 8,
       "action": "ADD",
       "object_type": "bug",
       "added_ids": [
@@ -622,13 +662,31 @@
         "BUG-SUBNET-005",
         "BUG-FW-006",
         "BUG-FALLBACK-007",
-        "BUG-API-SAVE-008"
+        "BUG-API-SAVE-008",
+        "BUG-CANCEL-009"
       ],
       "removed_ids": [],
       "modified_ids": [],
       "before_count": 0,
-      "after_count": 8,
-      "delta_count": 8,
+      "after_count": 9,
+      "delta_count": 9,
+      "source": "qa_flow.py normalize",
+      "summary": "根据当前 canonical 重建机械计数台账"
+    },
+    {
+      "id": "CHG-009",
+      "revision": 8,
+      "action": "ADD",
+      "object_type": "delivery",
+      "added_ids": [
+        "QA收口报告.md",
+        "测试用例与追踪矩阵.md"
+      ],
+      "removed_ids": [],
+      "modified_ids": [],
+      "before_count": 0,
+      "after_count": 2,
+      "delta_count": 2,
       "source": "qa_flow.py normalize",
       "summary": "根据当前 canonical 重建机械计数台账"
     }
@@ -1081,7 +1139,8 @@
         "TC-NETSPEEDTEST-001",
         "TC-NETSPEEDTEST-020",
         "TC-NETSPEEDTEST-080",
-        "TC-NETSPEEDTEST-081"
+        "TC-NETSPEEDTEST-081",
+        "TC-NETSPEEDTEST-085"
       ],
       "priority": "P2",
       "status": "designed"
@@ -1480,7 +1539,8 @@
       "evidence_expected": [
         "多网卡结果截图、日志 [NIC] 测速出口已绑定"
       ],
-      "manual_reason": "需要多张活动网卡与多条上联，环境依赖强"
+      "manual_reason": "多网卡/多宽带真实绑定、按指定网卡出口与流量聚合需多上联物理网络环境。",
+      "assigned_to": "项目维护者（凌影傲爵）"
     },
     {
       "id": "TC-NETSPEEDTEST-020",
@@ -1503,7 +1563,9 @@
       "execution_mode": "manual",
       "evidence_expected": [
         "取消操作录屏/日志"
-      ]
+      ],
+      "assigned_to": "项目维护者（凌影傲爵）",
+      "manual_reason": "准备阶段取消的 UI 行为（不进入测速、无残留）需在 GUI 人工操作观察。"
     },
     {
       "id": "TC-WEBSSRF-030",
@@ -1719,8 +1781,9 @@
       "evidence_expected": [
         "两台设备访问结果截图"
       ],
-      "manual_reason": "需要第二台设备跨网段访问",
-      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件"
+      "manual_reason": "网段白名单的同网段放行与跨网段拦截需第二台设备分别从白名单内/外发起访问。",
+      "release_blocking_reason": "主要功能/数据错误会使该能力不可信，作为发布必要条件",
+      "assigned_to": "项目维护者（凌影傲爵）"
     },
     {
       "id": "TC-WEB-039",
@@ -1767,7 +1830,8 @@
       "evidence_expected": [
         "DefaultIndexHtml 源码对照（报告 BUG-007）"
       ],
-      "manual_reason": "需构造 wwwroot 缺失并跨设备访问"
+      "manual_reason": "内嵌兜底页需在移走 wwwroot 后由第二台同网段设备打开并执行写操作，单机回环豁免令牌无法复现拒绝路径。",
+      "assigned_to": "项目维护者（凌影傲爵）"
     },
     {
       "id": "TC-NETSPEEDTEST-050",
@@ -1811,7 +1875,9 @@
       "execution_mode": "manual",
       "evidence_expected": [
         "导出的 CSV 文件"
-      ]
+      ],
+      "assigned_to": "项目维护者（凌影傲爵）",
+      "manual_reason": "CSV 导出需在 GUI 实际导出并用表格软件打开核对表头与内容一致性。"
     },
     {
       "id": "TC-HBCS-052",
@@ -1835,7 +1901,8 @@
       "evidence_expected": [
         "导入导出文件、节点列表截图"
       ],
-      "manual_reason": "文件对话框与真实配置往返适合人工验证"
+      "manual_reason": "HBCS 配置导入导出往返需在 GUI 操作并核对私网 URL 过滤。",
+      "assigned_to": "项目维护者（凌影傲爵）"
     },
     {
       "id": "TC-NETSPEEDTEST-060",
@@ -1903,7 +1970,8 @@
         "MtuProbe_UsesTtlLargeEnoughToReachRemoteTarget（Skip 待修复）",
         "ping -i 1/-i 30 真实输出"
       ],
-      "manual_reason": "TTL 硬编码在私有方法，结合真实 ping 观察取证"
+      "manual_reason": "跨网关路径 MTU（期望 1500/1480）需对 8.8.8.8 等真实目标探测，单元测试仅覆盖 TTL 与换算逻辑。",
+      "assigned_to": "项目维护者（凌影傲爵）"
     },
     {
       "id": "TC-NETSPEEDTEST-063",
@@ -1970,7 +2038,8 @@
       "evidence_expected": [
         "各工具结果截图"
       ],
-      "manual_reason": "多数工具依赖外网与第三方接口，适合人工冒烟"
+      "manual_reason": "18 工具中依赖 ip-api/ipify/STUN 等第三方公网接口的结果需联网人工冒烟核对。",
+      "assigned_to": "项目维护者（凌影傲爵）"
     },
     {
       "id": "TC-NETSPEEDTEST-070",
@@ -2066,7 +2135,8 @@
       "evidence_expected": [
         "WebServerService.cs:462-477 源码、全仓 FirewallReady 引用检索"
       ],
-      "manual_reason": "是否自动添加规则涉及 UAC 产品决策，需作者确认预期"
+      "manual_reason": "防火墙跨设备放行与 requireAdministrator 提权交互需管理员/标准账户与第二台局域网设备实测，单机回环与 netsh 规则存在不构成跨设备证据。",
+      "assigned_to": "项目维护者（凌影傲爵）"
     },
     {
       "id": "TC-NETSPEEDTEST-083",
@@ -2116,6 +2186,32 @@
       "execution_mode": "automated",
       "evidence_expected": "测速前后 history total 对比、recentResult 快照、FinishTest 保存路径源码",
       "release_blocking_reason": "非 P0：实时速率仍经 /api/status 返回、GUI 手动测速正常存档；但远程测速结果不留存，Web 远程场景的历史/复核能力缺失"
+    },
+    {
+      "id": "TC-NETSPEEDTEST-085",
+      "module": "测速核心",
+      "title": "测速进行中停止/取消时，结果记录分方向字节与峰值完整落库",
+      "priority": "P1",
+      "type": "异常路径",
+      "steps": [
+        "经 GUI 或 Web API 发起下载/上传/双向测速",
+        "产生实际流量后于完成前点击停止/取消",
+        "打开历史页或查询 SpeedTestRecords 最新记录字段"
+      ],
+      "test_data": "Web API /api/test/start 与 /api/test/stop；SQLite 表 SpeedTestRecords（BytesDownloaded/BytesUploaded/PeakMbps/TotalBytes）",
+      "expected_result": "取消记录按测速模式回填分方向字节（下载填下载侧、上传填上侧、双向两侧）与分方向峰值；极早取消确无流量时为 0，不得伪造。",
+      "requirement_ids": [
+        "REQ-NETSPEEDTEST-001"
+      ],
+      "risk_mechanism_ids": [
+        "RM-CANCEL-015"
+      ],
+      "execution_mode": "automated",
+      "evidence_expected": [
+        "CancelledResultCountersTests 4 项通过",
+        "真机取消后最新记录 BytesDownloaded/PeakMbps 非 0（final-e2e Id143）"
+      ],
+      "release_blocking_reason": "取消路径长期漏填会使历史与 CSV 导出的流量/峰值统计系统性偏低（库中已见 82 条）。"
     }
   ],
   "executions": [
@@ -2778,6 +2874,174 @@
         "EVD-APISAVE-SRC-014"
       ],
       "tester_notes": "三模式均复现（repro_attempts=3）；多网卡 FinishMultiNicTest 第 1072 行无条件保存作对照。"
+    },
+    {
+      "id": "EXE-FIX-MTU-062",
+      "case_id": "TC-MTU-062",
+      "attempt": 2,
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "TTL 固定 64 与路径MTU=净荷+28 术语修复后，MTU 专项单测转正通过；Release 全量 297 通过 0 跳过。",
+      "started_at": "2026-10-01T09:15:00+08:00",
+      "finished_at": "2026-10-01T09:40:00+08:00",
+      "evidence_ids": [
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_of": "EXE-NETSPEEDTEST-062",
+      "tester_notes": "缺陷修复后的回归执行；原失败执行保留作为首次失败证据。"
+    },
+    {
+      "id": "EXE-FIX-BIDI-083",
+      "case_id": "TC-NETSPEEDTEST-083",
+      "attempt": 2,
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "MergeFullUrlDetails 合并双向明细后 12 项单测通过；批1真机双向 25 成功/20 失败、maxBytes 4.75GB，不再提示 0 成功。",
+      "started_at": "2026-10-01T09:15:00+08:00",
+      "finished_at": "2026-10-01T09:40:00+08:00",
+      "evidence_ids": [
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-REAL1-019"
+      ],
+      "retest_of": "EXE-NETSPEEDTEST-083",
+      "tester_notes": "缺陷修复后的回归执行；原失败执行保留作为首次失败证据。"
+    },
+    {
+      "id": "EXE-FIX-CLAMP-039",
+      "case_id": "TC-WEB-039",
+      "attempt": 2,
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "SpeedOptionLimits 统一三套边界 + 交叉非法 400 回滚不落盘：17 项单测通过；final-e2e 非法 400/回滚 45-10/合法 200 持久化 60。",
+      "started_at": "2026-10-01T09:15:00+08:00",
+      "finished_at": "2026-10-01T09:40:00+08:00",
+      "evidence_ids": [
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-E2E-018"
+      ],
+      "retest_of": "EXE-NETSPEEDTEST-039",
+      "tester_notes": "缺陷修复后的回归执行；原失败执行保留作为首次失败证据。"
+    },
+    {
+      "id": "EXE-FIX-BW-063",
+      "case_id": "TC-NETSPEEDTEST-063",
+      "attempt": 2,
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "带宽 0/负/NaN/空白校验修复后专项单测转正通过。",
+      "started_at": "2026-10-01T09:15:00+08:00",
+      "finished_at": "2026-10-01T09:40:00+08:00",
+      "evidence_ids": [
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_of": "EXE-NETSPEEDTEST-063",
+      "tester_notes": "缺陷修复后的回归执行；原失败执行保留作为首次失败证据。"
+    },
+    {
+      "id": "EXE-FIX-SUBNET-064",
+      "case_id": "TC-NETSPEEDTEST-064",
+      "attempt": 2,
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "掩码连续性校验与 /0 特别提示修复后专项单测转正通过。",
+      "started_at": "2026-10-01T09:15:00+08:00",
+      "finished_at": "2026-10-01T09:40:00+08:00",
+      "evidence_ids": [
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_of": "EXE-NETSPEEDTEST-064",
+      "tester_notes": "缺陷修复后的回归执行；原失败执行保留作为首次失败证据。"
+    },
+    {
+      "id": "EXE-FIX-FW-082",
+      "case_id": "TC-WEB-082",
+      "attempt": 2,
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "add 死代码修活、状态机真实反映就绪：16 项单测通过；final-e2e netsh 规则真实存在 In/TCP/8080/Allow。跨设备放行与非管理员 UAC 另列手动验收。",
+      "started_at": "2026-10-01T09:15:00+08:00",
+      "finished_at": "2026-10-01T09:40:00+08:00",
+      "evidence_ids": [
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-E2E-018"
+      ],
+      "retest_of": "EXE-NETSPEEDTEST-082",
+      "tester_notes": "缺陷修复后的回归执行；原失败执行保留作为首次失败证据。"
+    },
+    {
+      "id": "EXE-FIX-FALLBACK-040",
+      "case_id": "TC-WEB-040",
+      "attempt": 2,
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "兜底页 api() 补 X-NST-Token 后 WebSecurityTests 累计 27 项通过；第二设备兜底页写操作另列手动验收。",
+      "started_at": "2026-10-01T09:15:00+08:00",
+      "finished_at": "2026-10-01T09:40:00+08:00",
+      "evidence_ids": [
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_of": "EXE-NETSPEEDTEST-040",
+      "tester_notes": "缺陷修复后的回归执行；原失败执行保留作为首次失败证据。"
+    },
+    {
+      "id": "EXE-FIX-APISAVE-084",
+      "case_id": "TC-WEB-084",
+      "attempt": 2,
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "持久化移出弹窗门控后 3 项单测通过；批1真机 API 发起三模式各落库 1 条、recentResult 非空。",
+      "started_at": "2026-10-01T09:15:00+08:00",
+      "finished_at": "2026-10-01T09:40:00+08:00",
+      "evidence_ids": [
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-REAL1-019",
+        "EVD-FIX-REALHIST-020"
+      ],
+      "retest_of": "EXE-NETSPEEDTEST-084",
+      "tester_notes": "缺陷修复后的回归执行；原失败执行保留作为首次失败证据。"
+    },
+    {
+      "id": "EXE-FIX-CANCEL-085",
+      "case_id": "TC-NETSPEEDTEST-085",
+      "attempt": 1,
+      "status": "passed",
+      "execution_level": "full_automation",
+      "validation_scope": "formal",
+      "execution_method": "automated",
+      "operator": "豆包 QA（doubao-product-qa 自动化执行）",
+      "actual_result": "ApplyCancelledTrafficCounters 修复后 4 项单测通过；真机测速中取消 Id143 带 BytesDownloaded=589269888、PeakMbps=1261.92。",
+      "started_at": "2026-10-01T09:15:00+08:00",
+      "finished_at": "2026-10-01T09:40:00+08:00",
+      "evidence_ids": [
+        "EVD-FIX-E2E-018",
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_of": null,
+      "tester_notes": "缺陷修复后的回归执行；原失败执行保留作为首次失败证据。"
     }
   ],
   "evidence": [
@@ -2884,11 +3148,59 @@
       "validation_scope": "formal",
       "path": "evidence/evidence-bug-api-save-008.txt",
       "description": "MainViewModel.FinishTest 源码快照：第 959 行 ConsumeApiInitiatedTest() 命中即 showDialog=false，而 SaveResult（第 978 行）、_lastResult/RecentRecords 更新（979-988 行）整体位于第 976 行 if(showDialog) 块内，API 发起时被整段跳过；对照 FinishMultiNicTest 第 1072 行 SaveResult 在多网卡路径无条件执行（不受该标记门控），证明单网卡路径属遗漏而非有意设计。"
+    },
+    {
+      "id": "EVD-FIX-BUILD-015",
+      "type": "assertions",
+      "level": "L4_formal",
+      "validation_scope": "formal",
+      "path": "build-final.log",
+      "description": "全部缺陷修复后 Release 解决方案构建：0 错误、0 警告（NetSpeedTest + NetSpeedTest.Tests）。"
+    },
+    {
+      "id": "EVD-FIX-UNIT-016",
+      "type": "assertions",
+      "level": "L4_formal",
+      "validation_scope": "formal",
+      "path": "test-final.log",
+      "description": "全部缺陷修复后 Release 全量单元测试：297 通过 / 0 失败 / 0 跳过（修复前为 243 通过含 4 跳过；新增 UrlDetailReporting 12、ApiInitiatedPersistence 3、ToolboxCalculation 转正、SettingsClamp 17、WebSecurity 累计 27、FirewallProbe 16、CancelledResultCounters 4）。"
+    },
+    {
+      "id": "EVD-FIX-SMOKE-017",
+      "type": "log",
+      "level": "L4_formal",
+      "validation_scope": "formal",
+      "path": "smoke-final.log",
+      "description": "修复后 requireAdministrator 的 Release exe 在管理员会话无人值守启动，Web/生命周期 smoke 32/32 全过、debug.log 344 行 0 FATAL、设置 round-trips 200、lanReady=True。"
+    },
+    {
+      "id": "EVD-FIX-E2E-018",
+      "type": "log",
+      "level": "L4_formal",
+      "validation_scope": "formal",
+      "path": "final-e2e.log",
+      "description": "修复后端到端 11/11：CLAMP 交叉非法 testTimeoutSec<averageDelaySec 实测返回 400 且回滚不落盘（after 仍 45/10）、合法返回 200 并持久化；D10 测速中取消的下载记录 Id143（5.13s）BytesDownloaded=589269888、PeakMbps=1261.92 非 0；防火墙规则 NetSpeedTest Web Server 真实存在 Enabled/In/TCP/LocalPort 8080/Allow。"
+    },
+    {
+      "id": "EVD-FIX-REAL1-019",
+      "type": "log",
+      "level": "L3_reproducible",
+      "validation_scope": "formal",
+      "path": "real-speedtest-batch1.log",
+      "description": "批1修复后真机三模式回归：下载峰值 1900.9/均值 1711.4 Mbps、上传峰值 262.9/均值 221.6 Mbps；双向明细由修复前『0 成功』变为 25 成功/20 失败（maxBytes 4.75GB），下载/上传 URL 明细合并并标记 Direction；经 Web API 发起的三模式结果均落库。"
+    },
+    {
+      "id": "EVD-FIX-REALHIST-020",
+      "type": "assertions",
+      "level": "L3_reproducible",
+      "validation_scope": "formal",
+      "path": "realhistory-clean.json",
+      "description": "批1真机落库核对：历史含 API 发起三模式产生的新记录（结构 total/latest5，清理 smoke 空记录后 total=100），佐证 BUG-API-SAVE-008 已修复。"
     }
   ],
   "bugs": [
     {
-      "status": "open",
+      "status": "closed",
       "reproducibility": "always",
       "repro_attempts": 1,
       "first_failure_preserved": true,
@@ -2911,7 +3223,8 @@
       "evidence_grade": "L3_reproducible",
       "evidence_ids": [
         "EVD-MTU-PING-003",
-        "EVD-MTU-SRC-004"
+        "EVD-MTU-SRC-004",
+        "EVD-FIX-UNIT-016"
       ],
       "impact": "MTU 探测对跨网关目标完全失效，用户无法用该工具排查 PPPoE/隧道 MTU 问题；同网段目标因 1 跳可达而表现正常，具迷惑性",
       "independent_failure_signature": "MoreViewModel.StartMtu:new PingOptions(1,true)→跨网关目标 ICMP TtlExpired→SuccessCount=0→未找到可用MTU",
@@ -2930,10 +3243,19 @@
       "case_ids": [
         "TC-MTU-062"
       ],
-      "risk_mechanism_id": "RM-TOOLS-010"
+      "risk_mechanism_id": "RM-TOOLS-010",
+      "fix_commits": [
+        "348da05"
+      ],
+      "fix_summary": "探测 PingOptions 的 TTL 固定为 64（不再用被默认成 1 的丢弃 TTL），跨网关可达；文案改为内联中文『路径MTU=净荷+28』纠正术语；ToolboxCalculationTests 中 MTU 用例由 Skip 转为正式通过。",
+      "retest_evidence_ids": [
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_result": "Release 全量 297 通过、MTU 专项单测转正；对 8.8.8.8 跨网关得 1500/1480 的真机值仍列入手动验收。",
+      "fixed_at": "2026-10-01T09:40:00+08:00"
     },
     {
-      "status": "open",
+      "status": "closed",
       "reproducibility": "always",
       "repro_attempts": 2,
       "first_failure_preserved": true,
@@ -2955,7 +3277,9 @@
       "evidence_grade": "L3_reproducible",
       "evidence_ids": [
         "EVD-BIDI-008",
-        "EVD-REAL-E2E-012"
+        "EVD-REAL-E2E-012",
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-REAL1-019"
       ],
       "impact": "双向测速下无法定位是哪个节点失败/拖慢，远程 Web 与历史详情缺少 URL 级证据",
       "independent_failure_signature": "RunFullTestAsync→SpeedTestResult.UrlDetails=new()（空集合），与两侧 inner.UrlDetails 未合并",
@@ -2974,10 +3298,20 @@
       "case_ids": [
         "TC-NETSPEEDTEST-083"
       ],
-      "risk_mechanism_id": "RM-DETAIL-012"
+      "risk_mechanism_id": "RM-DETAIL-012",
+      "fix_commits": [
+        "34f5e13"
+      ],
+      "fix_summary": "UrlTestDetail 增加 Direction；RunFullTestAsync 经 internal static MergeFullUrlDetails 合并下载/上传双向明细（跨方向不去重、就地标记 Direction），双向测速正确统计成功数。",
+      "retest_evidence_ids": [
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-REAL1-019"
+      ],
+      "retest_result": "UrlDetailReportingTests 12 项通过；批1真机双向由『0 成功』变为 25 成功/20 失败、maxBytes 4.75GB。",
+      "fixed_at": "2026-10-01T09:40:00+08:00"
     },
     {
-      "status": "open",
+      "status": "closed",
       "reproducibility": "always",
       "repro_attempts": 1,
       "first_failure_preserved": true,
@@ -2999,7 +3333,9 @@
       "expected_result": "API、UI 滑块、README 三处范围应统一；建议 testTimeoutSec 下限不小于平均窗口相关约束，或在超时时长<平均窗口时给出明确拒绝/提示",
       "evidence_grade": "L2_observation",
       "evidence_ids": [
-        "EVD-CLAMP-005"
+        "EVD-CLAMP-005",
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-E2E-018"
       ],
       "impact": "远程可写入 UI 无法表达的边界值；testTimeoutSec=5 与 10s 平均窗口冲突，可能产出无平均速率的结果，破坏远程与界面行为一致性",
       "independent_failure_signature": "ApplySettingsCore:Clamp(testTimeoutSec,5,600) 与 Clamp(threadRampUpMs,0,5000) 与 XAML/README 边界不匹配",
@@ -3019,10 +3355,20 @@
       "case_ids": [
         "TC-WEB-039"
       ],
-      "risk_mechanism_id": "RM-CLAMP-011"
+      "risk_mechanism_id": "RM-CLAMP-011",
+      "fix_commits": [
+        "c5d8f72"
+      ],
+      "fix_summary": "新增 Models/SpeedOptionLimits.cs 作为 11 项边界单一事实源，Web/UI/加载统一口径（10-600、0-2000 等）；ApplySettingsCore 全部钳制改用常量，新增 ValidateSpeedOptions，testTimeoutSec<averageDelaySec 返回中文错误，HandleSettingsPostAsync 在锁内快照、非法即回滚两字段并在持久化前返回 400（不落盘）。",
+      "retest_evidence_ids": [
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-E2E-018"
+      ],
+      "retest_result": "SettingsClampTests 17 项（含 XAML 滑块↔常量正则一致性）通过；final-e2e 交叉非法实测 400 且回滚不落盘、合法 200 持久化。",
+      "fixed_at": "2026-10-01T09:40:00+08:00"
     },
     {
-      "status": "open",
+      "status": "closed",
       "reproducibility": "always",
       "repro_attempts": 1,
       "first_failure_preserved": true,
@@ -3044,7 +3390,8 @@
       "expected_result": "应提示『请输入大于 0 的带宽数值』，不进行换算",
       "evidence_grade": "L2_observation",
       "evidence_ids": [
-        "EVD-TOOLBOX-009"
+        "EVD-TOOLBOX-009",
+        "EVD-FIX-UNIT-016"
       ],
       "impact": "异常输入下给出荒谬结果，影响工具专业度，无其它副作用",
       "independent_failure_signature": "CalcBandwidth:seconds=size*8/mbps 未做 mbps>0 前置校验→Infinity/负值",
@@ -3063,10 +3410,19 @@
       "case_ids": [
         "TC-NETSPEEDTEST-063"
       ],
-      "risk_mechanism_id": "RM-TOOLS-010"
+      "risk_mechanism_id": "RM-TOOLS-010",
+      "fix_commits": [
+        "bb93dfd"
+      ],
+      "fix_summary": "MoreViewModel 带宽输入增加正数校验，拦截 0/负数/NaN/空白。",
+      "retest_evidence_ids": [
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_result": "ToolboxCalculationTests 带宽用例由 Skip 转正式通过。",
+      "fixed_at": "2026-10-01T09:40:00+08:00"
     },
     {
-      "status": "open",
+      "status": "closed",
       "reproducibility": "always",
       "repro_attempts": 1,
       "first_failure_preserved": true,
@@ -3087,7 +3443,8 @@
       "expected_result": "应检测掩码二进制位必须连续（形如 1...10...0），非法时提示『无效的子网掩码』",
       "evidence_grade": "L2_observation",
       "evidence_ids": [
-        "EVD-TOOLBOX-009"
+        "EVD-TOOLBOX-009",
+        "EVD-FIX-UNIT-016"
       ],
       "impact": "错误掩码下输出看似合理实则错误的网络参数，可能误导网络配置",
       "independent_failure_signature": "CalcSubnet: 仅 popcount 掩码字节得 prefix，未校验 (mask & (mask+1))==0 连续性",
@@ -3106,10 +3463,19 @@
       "case_ids": [
         "TC-NETSPEEDTEST-064"
       ],
-      "risk_mechanism_id": "RM-TOOLS-010"
+      "risk_mechanism_id": "RM-TOOLS-010",
+      "fix_commits": [
+        "bb93dfd"
+      ],
+      "fix_summary": "新增 IsValidSubnetMask/MaskToCidr 校验子网掩码连续性；/0（0.0.0.0）放行但给出特别提示；255.0.255.0 等位运算复核 /16、主机数 65534，QA 原记录正确。",
+      "retest_evidence_ids": [
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_result": "ToolboxCalculationTests 子网用例由 Skip 转正式通过。",
+      "fixed_at": "2026-10-01T09:40:00+08:00"
     },
     {
-      "status": "open",
+      "status": "closed",
       "reproducibility": "always",
       "repro_attempts": 1,
       "first_failure_preserved": true,
@@ -3131,7 +3497,9 @@
       "expected_result": "应真正探测/创建入站放行规则（或在无提权时明确返回未就绪并给出用户指引），FirewallReady 反映真实可达性，且不应只删不建",
       "evidence_grade": "L2_observation",
       "evidence_ids": [
-        "EVD-FW-006"
+        "EVD-FW-006",
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-E2E-018"
       ],
       "impact": "局域网首次访问可能被防火墙拦截且软件误报已就绪；反复启动会删除同名规则而不重建。是否自动 netsh add 需管理员/UAC，属需作者拍板的产品决策",
       "independent_failure_signature": "EnsureFirewallRule:{ try{ delete; }catch{} return; } → add 语句不可达；_firewallReady=true 恒定",
@@ -3150,10 +3518,20 @@
       "case_ids": [
         "TC-WEB-082"
       ],
-      "risk_mechanism_id": "RM-FW-016"
+      "risk_mechanism_id": "RM-FW-016",
+      "fix_commits": [
+        "717d720"
+      ],
+      "fix_summary": "修复防火墙 add 死代码与 _firewallReady 恒真：EnsureFirewallRule 改为可注入委托的 internal static 状态机（先 delete 容忍失败→add 无权限即抛→show），新增 ParseFirewallRulePresent 兼容中英文 netsh 本地化与端口数字边界，RunNetsh 返回 string，调用方以真实结果置 _firewallReady；同提交落地 D8① app.manifest（requireAdministrator + supportedOS + PerMonitorV2）。",
+      "retest_evidence_ids": [
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-E2E-018"
+      ],
+      "retest_result": "FirewallProbeTests 16 项通过；final-e2e netsh 实测规则存在 Enabled/In/TCP/LocalPort 8080/Allow；跨设备放行与非管理员 UAC 列入手动验收。",
+      "fixed_at": "2026-10-01T09:40:00+08:00"
     },
     {
-      "status": "open",
+      "status": "closed",
       "reproducibility": "always",
       "repro_attempts": 1,
       "first_failure_preserved": true,
@@ -3175,7 +3553,8 @@
       "expected_result": "兜底页应与正式 web.js 一致，从 meta 读取 token 并为所有 /api 请求附加 X-NST-Token，使局域网在持有令牌时可用",
       "evidence_grade": "L2_observation",
       "evidence_ids": [
-        "EVD-FALLBACK-007"
+        "EVD-FALLBACK-007",
+        "EVD-FIX-UNIT-016"
       ],
       "impact": "资源缺失的兜底场景下局域网远程控制完全不可用（只剩静态壳），削弱兜底页设计价值",
       "independent_failure_signature": "DefaultIndexHtml.api():fetch(path,options) 未合并 X-NST-Token 头；meta nst-token 无 JS 读取",
@@ -3194,10 +3573,19 @@
       "case_ids": [
         "TC-WEB-040"
       ],
-      "risk_mechanism_id": "RM-FALLBACK-017"
+      "risk_mechanism_id": "RM-FALLBACK-017",
+      "fix_commits": [
+        "94988cf"
+      ],
+      "fix_summary": "DefaultIndexHtml 提为 internal const；兜底页 api() 由裸 fetch 改为 IIFE 读取 meta[name=nst-token] 并合并 X-NST-Token 头（var、无可选链以兼容旧 WebView，保留调用方 Content-Type），与 wwwroot/assets/web.js 对齐。",
+      "retest_evidence_ids": [
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_result": "WebSecurityTests 累计 27 项通过；移走 wwwroot 后第二设备同网段打开兜底页执行写操作不再 403 列入手动验收。",
+      "fixed_at": "2026-10-01T09:40:00+08:00"
     },
     {
-      "status": "open",
+      "status": "closed",
       "reproducibility": "always",
       "repro_attempts": 3,
       "first_failure_preserved": true,
@@ -3206,8 +3594,8 @@
       "title": "经 Web API 发起的单网卡测速结果不写入历史、不更新最近结果",
       "module": "Web服务器-API持久化",
       "severity": "S3",
-      "severity_basis": "测速本身正确、实时速率经 /api/status 正常返回且不崩溃，GUI 手动测速正常存档；但远程发起的结果整体不持久化，属 Web 远程场景的数据丢失/功能缺失",
-      "priority": "P2",
+      "severity_basis": "测速本身正确、实时速率经 /api/status 正常返回且不崩溃，GUI 手动测速正常存档；但远程发起的结果整体不持久化，属 Web 远程场景的数据丢失/功能缺失（复盘升级 P1：远程测速是该工具箱 Web 化核心场景，结果整体不持久化等同远程白测，用户决策 D1 升 P1。）",
+      "priority": "P1",
       "category": "state",
       "preconditions": "启用内置 Web，经 HTTP API（而非 GUI 按钮）发起单网卡下载/上传/双向测速",
       "steps": [
@@ -3220,7 +3608,10 @@
       "evidence_grade": "L3_reproducible",
       "evidence_ids": [
         "EVD-REAL-E2E-012",
-        "EVD-APISAVE-SRC-014"
+        "EVD-APISAVE-SRC-014",
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-REAL1-019",
+        "EVD-FIX-REALHIST-020"
       ],
       "impact": "手机/网页等远程方式发起的测速不留历史、不出现在历史页与导出、recentResult 恒空，远程测速无法事后复核，等同『远程白测』；多网卡路径 FinishMultiNicTest（第 1072 行）无条件保存，行为不一致。",
       "independent_failure_signature": "FinishTest: if(ConsumeApiInitiatedTest()) showDialog=false → SaveResult 被包裹在 if(showDialog) 内而跳过；history.total 三模式后零增长",
@@ -3241,7 +3632,72 @@
       "case_ids": [
         "TC-WEB-084"
       ],
-      "risk_mechanism_id": "RM-DATA-013"
+      "risk_mechanism_id": "RM-DATA-013",
+      "fix_commits": [
+        "5b8596a"
+      ],
+      "fix_summary": "MainViewModel 新增 internal Action<SpeedTestResult>? PersistHook；FinishTest 将落库 SaveResult 与最近结果更新移出 if(showDialog) 门控，抽为 internal PersistResultAndUpdateRecent，使 GUI 与 Web API 发起路径都持久化，仅模态结果窗受门控。",
+      "retest_evidence_ids": [
+        "EVD-FIX-UNIT-016",
+        "EVD-FIX-REAL1-019",
+        "EVD-FIX-REALHIST-020"
+      ],
+      "retest_result": "ApiInitiatedPersistenceTests 3 项通过；批1真机经 API 发起下载/上传/双向各落库 1 条、recentResult 非空。",
+      "fixed_at": "2026-10-01T09:40:00+08:00"
+    },
+    {
+      "id": "BUG-CANCEL-009",
+      "title": "测速进行中停止/取消时结果记录 BytesDownloaded/BytesUploaded/PeakMbps 三列漏填为 0",
+      "module": "测速核心-取消落库",
+      "status": "closed",
+      "severity": "S3",
+      "severity_basis": "测速不崩溃、TotalBytes 与实时速率有值，但取消记录的分方向字节与峰值缺失，导致历史页与 CSV 导出的流量/峰值系统性偏低；停止测速为常用操作，库中已实证 82 条，数据不完整面较大。",
+      "priority": "P2",
+      "category": "state",
+      "environment": "Windows / .NET 8 / net8.0-windows / NetSpeedTest v1.4.3，GUI 或 Web API 测速在完成前停止",
+      "preconditions": "下载/上传/双向测速进行中、在自然完成前手动停止或取消",
+      "steps": [
+        "发起测速并产生实际流量",
+        "于完成前停止/取消",
+        "查询 SpeedTestRecords 最新记录"
+      ],
+      "actual_result": "FinishTestCancelled 手工 new SpeedTestResult 仅填 TotalBytes 与实时速率，漏填 BytesDownloaded/BytesUploaded/PeakMbps，落库三列 0；库中 82 条（2026-09-05 至 09-29，下载 66/上传 8/双向 8）TotalBytes>0 却三列 0，而同期正常完成记录三列正常，二分坐实取消路径（非旧版本迁移数据）。",
+      "expected_result": "取消结果应按已完成进度回填分方向字节与分方向峰值；确无流量的极早取消为 0。",
+      "reproducibility": "always",
+      "repro_attempts": 2,
+      "first_failure_preserved": true,
+      "evidence_grade": "L3_reproducible",
+      "evidence_ids": [
+        "EVD-FIX-E2E-018",
+        "EVD-FIX-UNIT-016"
+      ],
+      "impact": "取消的测速在历史页/CSV 导出中流量字节与峰值显示 0/空，82 条历史统计偏低；不影响测速进行与正常完成路径。",
+      "independent_failure_signature": "FinishTestCancelled new SpeedTestResult 未填 BytesDownloaded/BytesUploaded/PeakMbps；TotalBytes>0 而三列 0（Id96 多网卡逗号名 + BatchId null 同为取消路径特征）",
+      "analysis": {
+        "classification": "logic_error",
+        "trigger_hypothesis": "取消分支手工构造结果对象时，未接入进度回调已累计的分方向字节与分方向峰值。",
+        "change_correlation": "取消/停止能力与字节列接入不同步引入，v1.4.3 现存活路径，经库中 82 条与正常记录二分证实并非旧版本迁移。",
+        "blast_radius": "所有测速中取消的单网卡下载/上传/双向记录；多网卡与正常完成路径不受影响。",
+        "confidence": "high"
+      },
+      "workaround": "尽量让测速自然完成。修复后经 internal static ApplyCancelledTrafficCounters 按模式回填；历史 82 条经用户 2026-10-01 决定一律不回填（双向 8 条无法可靠拆分、82 条峰值无法从均值还原，不伪造）。",
+      "related_ids": [
+        "RM-CANCEL-015",
+        "TC-NETSPEEDTEST-085"
+      ],
+      "case_ids": [
+        "TC-NETSPEEDTEST-085"
+      ],
+      "fix_commits": [
+        "8621e9e"
+      ],
+      "fix_summary": "OnDownloadProgress/OnUploadProgress（单/多网卡统一经过，回调携带分方向 totalBytes 与瞬时 rate）采集 _lastDownloadBytes/_lastUploadBytes 与分方向峰值，StartTestCommon 重置清零；FinishTestCancelled 调用新增 internal static ApplyCancelledTrafficCounters 按模式补填（下载填下载侧、上传填上侧、双向两侧且峰值 Sum 与多网卡口径一致），极早取消无数据保持 0 不伪造；新增 CancelledResultCountersTests 4 项。",
+      "retest_evidence_ids": [
+        "EVD-FIX-E2E-018",
+        "EVD-FIX-UNIT-016"
+      ],
+      "retest_result": "CancelledResultCountersTests 4 项通过；final-e2e 真机取消下载 Id143（5.13s）BytesDownloaded=589269888、PeakMbps=1261.92 非 0。",
+      "fixed_at": "2026-10-01T09:40:00+08:00"
     }
   ],
   "bug_candidates": [],
@@ -3375,25 +3831,53 @@
   ],
   "blockers": [],
   "manual_handoff": {
-    "required": false,
-    "status": "not_required",
-    "reason": "",
-    "target_platform": "",
-    "operator": "",
-    "prerequisites": [],
-    "case_ids": [],
-    "evidence_requirements": [],
-    "result_submission": []
+    "required": true,
+    "status": "pending",
+    "reason": "requireAdministrator 提权、跨设备防火墙/网段/兜底页、跨网关 MTU、多网卡聚合及 GUI/安装包等无法由本机回环与单元测试覆盖，须在真实分发前人工验收。",
+    "target_platform": "Windows 10/11（net8.0-windows WPF）桌面端 + 同网段第二台设备（手机或 PC 浏览器）",
+    "operator": "项目维护者（凌影傲爵）",
+    "prerequisites": [
+      "一个管理员账户与一个标准（非管理员）账户",
+      "与被测机同网段的第二台设备（手机/PC）及其浏览器",
+      "可临时移走安装目录 wwwroot 以触发内嵌兜底页",
+      "多上联/多网卡（多宽带）环境",
+      "可访问 8.8.8.8 等跨网关目标的网络"
+    ],
+    "case_ids": [
+      "TC-WEB-082",
+      "TC-WEBACL-038",
+      "TC-WEB-040",
+      "TC-MTU-062",
+      "TC-NETSPEEDTEST-019",
+      "TC-CSV-051",
+      "TC-HBCS-052",
+      "TC-NETSPEEDTEST-065",
+      "TC-NETSPEEDTEST-020"
+    ],
+    "evidence_requirements": [
+      "管理员/标准账户启动时 UAC 弹窗与结果截图",
+      "第二设备访问 8080、写操作（开始/停止/保存设置）的响应截图或网络记录",
+      "netsh 规则与第二设备连通证据",
+      "8.8.8.8 路径 MTU 结果截图",
+      "多网卡绑定与聚合速率/出口截图",
+      "CSV、HBCS 文件样本与 GUI 主题/多语言截图"
+    ],
+    "result_submission": [
+      "将手动结果与证据回填本 canonical 的对应 execution/evidence，或在发布评审中显式记录对残余风险的接受。"
+    ]
   },
   "unverified": [
-    "WPF 控件像素级界面走查、深色/浅色主题与中英文渲染未做人工全量核对；准备阶段取消（TC-NETSPEEDTEST-020）未在 GUI 人工执行",
-    "下载/上传/双向的真实速率、平均窗口与传输字节已真机实测通过（TC-NETSPEEDTEST-018）；但 GUI 手动测速的结果窗 URL 明细展示、以及历史记录 BytesDownloaded/BytesUploaded/PeakMbps 三列需一次 GUI 手动落库核对（API 路径因 BUG-API-SAVE-008 不落库，无法据此验证该三列）",
-    "历史既有记录（2026-09-29 批次）BytesDownloaded/BytesUploaded/PeakMbps 三列均为 0；SpeedTestService 第 283/290、1617、1794 行显示 v1.4.3 已对这些字段赋值，疑似旧版本迁移数据，待 GUI 手动落库新记录证实/证伪，暂不立缺陷",
-    "真实手机/第二台设备跨网段访问、ACL 网段白名单拦截未做跨设备实测（TC-WEBACL-038）；wwwroot 缺失兜底页非回环 401/403（BUG-FALLBACK-007）未在第二设备复现",
-    "多网卡多宽带真实绑定与聚合未在多上联环境实测（TC-NETSPEEDTEST-019）；注：多网卡完成路径 FinishMultiNicTest 无条件保存，与单网卡 BUG-API-SAVE-008 行为不同，需真机一并确认",
-    "防火墙 netsh 提权添加/删除规则未在管理员/非管理员环境分别实测（TC-WEB-082）；冒烟/真机均以回环访问，不构成跨设备防火墙放行证据",
-    "CSV 导出、HBCS 往返、18 工具中依赖外网第三方接口（ip-api/ipify/STUN）的人工冒烟（TC-CSV-051/TC-HBCS-052/TC-NETSPEEDTEST-065）未执行",
-    "安装包代码签名、GitHub Release 发布流水线、广告/赞助内容不在本轮范围"
+    "D8① requireAdministrator：每次启动 NetSpeedTest.exe 都会弹 UAC；需在管理员与标准用户两种账户实测（授予/拒绝提权的行为与拒绝后的提示），本机管理员会话仅验证了可无人值守启动、不构成标准账户与跨设备证据。",
+    "防火墙跨设备放行：netsh 已实测规则存在（In/TCP/8080/Allow），但第二台局域网设备经 8080 的真实连通与写操作未测（TC-WEB-082/TC-WEBACL-038）；本机回环不构成跨设备放行证据。",
+    "FALLBACK 兜底页：移走 wwwroot 后内嵌兜底页在第二台同网段（白名单内）设备打开并执行写操作（开始/停止/保存设置）不再 403 未做跨设备实测（TC-WEB-040）。勘误：GET 不查令牌、全库无 401 返回点、令牌/网段失败实际返回 403、回环豁免令牌，TC-WEB-036 早期『无令牌 401』表述不准确，拒绝路径以第二设备现场为准。",
+    "MTU：TTL 固定 64 的逻辑与换算已由单测验证，但对跨网关 8.8.8.8 实测得到路径 MTU（1500/1480）及同网段目标回归需真机执行（TC-MTU-062）。",
+    "多网卡/多宽带真实绑定、流量按指定网卡出口并聚合、持久化未在多上联环境实测（TC-NETSPEEDTEST-019）。",
+    "CSV 导出内容与表头一致性、HBCS 配置导入导出往返、18 工具中依赖外网第三方接口（ip-api/ipify/STUN）的人工冒烟未执行（TC-CSV-051/TC-HBCS-052/TC-NETSPEEDTEST-065）。",
+    "WPF 控件像素级走查、深色/浅色主题、中英文渲染、GUI 手动测速结果窗 URL 明细展示、准备阶段取消（TC-NETSPEEDTEST-020）未做 GUI 人工全量核对。",
+    "安装包代码签名、GitHub Release 发布流水线、广告/赞助内容不在本轮范围。",
+    "D10 历史数据：库中 82 条（2026-09-05 至 09-29，下载 66/上传 8/双向 8）取消记录三列 0，根因 FinishTestCancelled 已修复、今后不再产生；经用户 2026-10-01 决定历史一律不回填、保持现状（双向 8 条字节无法可靠拆分、82 条 PeakMbps 无法从均值还原，不伪造）。",
+    "D10 口径观察：取消记录 BytesDownloaded（下载进度回调）与 TotalBytes（合计回调）来自不同回调、时序口径不同，取消瞬间可能不相等（final-e2e Id143 为 589,269,888 与 497,162,497），与正常完成记录既有的两口径差异同源，本轮未统一统计口径。",
+    "测试卫生：本轮 smoke/端到端产生的 22 条临时记录（Id122-143）已在备份数据库后删除、历史恢复为 100 条；appsettings.json（64/600/10/50）与 web.json（LastActualPort=8081）已还原用户原值；防火墙规则按 D8① 长期驻留未删除。"
   ],
   "coverage": {
     "requirement_total": 15,
@@ -3401,50 +3885,55 @@
     "requirement_unlinked": 0,
     "p0_requirement_total": 0,
     "p0_requirement_linked": 0,
-    "case_total": 40,
+    "case_total": 41,
     "case_status_counts": {
-      "不适用": 2,
-      "失败": 6,
-      "通过": 26,
+      "通过": 35,
       "阻塞": 6
     },
     "acceptance_total": 9,
     "acceptance_status_counts": {
-      "未通过": 2,
-      "通过": 5,
-      "阻塞": 2
+      "通过": 6,
+      "阻塞": 3
     }
   },
   "release_decision": {
-    "decision": "undetermined",
-    "rationale": "核心功能证据已闭环：Debug/Release 构建 0/0；243 个单元测试 239 通过/0 失败/4 跳过；smoke 端到端 32/32、0 FATAL；并经 real-speedtest.ps1 完整真机跑完下载（峰值 1829.09/均值 1396.27 Mbps、4.56GB）、上传（峰值 285.68/均值 200.30 Mbps、1.39GB）、双向（峰值下载 1291.31/上传 273.85、均值 1222.19/185.32、4.10GB），速率随线程爬升、平均窗口约 10s 后稳定，测速引擎真实可用（TC-NETSPEEDTEST-018 转通过）。但真实测速同时暴露并确认一个新的 P2 缺陷 BUG-API-SAVE-008：经 Web API 发起的单网卡测速结果不写入历史、不更新最近结果（三模式后 history total 97→97、recentResult 恒空，根因 FinishTest 把 SaveResult 误置于 if(showDialog) 块）；BUG-BIDI-002 获真机印证（双向传 4.1GB 却提示『0 成功』）升级 L3。开放缺陷增至 8 个（P2×5：MTU/BIDI/CLAMP/FW/API-SAVE，P3×3：BW/SUBNET/FALLBACK），均非 P0/P1、无 S1/S2。另两项不阻断但需跟进：历史字节/峰值三列待 GUI 手动落库确认（倾向旧数据迁移）、预设节点 30 个仅 4 个成功建议清理。跨设备白名单/兜底页、多网卡、CSV/HBCS/GUI 取消等人工项仍未执行。核心速率虽已验证，但远程结果不保存属功能缺失且缺陷未处置，不做 go/conditional_go；无阻断级失败故非 no_go，维持 undetermined。",
+    "decision": "conditional_go",
     "blocking_bug_ids": [],
-    "p0_open_bug_ids": [],
-    "conditions": [
-      "修复 BUG-API-SAVE-008：将 SaveResult 与最近结果更新移出 FinishTest 的 if(showDialog)，仅门控结果弹窗；补『API 发起后 history +1、recentResult 更新』回归测试并重跑 real-speedtest 验证 total 增长",
-      "修复其余 4 个 P2：BUG-MTU-001、BUG-BIDI-002（双向 UrlDetails 合并，顺带修正『0 成功』计数）、BUG-CLAMP-003、BUG-FW-006（先定 UAC 策略）",
-      "用第二台设备验证局域网令牌与网段白名单（TC-WEBACL-038）及 wwwroot 缺失兜底页（BUG-FALLBACK-007）",
-      "做一次 GUI 手动测速落库，确认历史 BytesDownloaded/BytesUploaded/PeakMbps 与结果窗 URL 明细正常，并核对多网卡路径持久化",
-      "修复后取消 4 个 [Fact(Skip)] 复现用例、全量 dotnet test 转绿，并重跑 smoke-test.ps1 与 real-speedtest.ps1",
-      "清理/更新预设测速节点（实测下载 30 URL 仅 4 个成功）；按需补 CSV/HBCS（051/052）、GUI 准备取消（020）、多网卡（019）"
+    "resolved_bug_ids": [
+      "BUG-MTU-001",
+      "BUG-BIDI-002",
+      "BUG-CLAMP-003",
+      "BUG-BW-004",
+      "BUG-SUBNET-005",
+      "BUG-FW-006",
+      "BUG-FALLBACK-007",
+      "BUG-API-SAVE-008",
+      "BUG-CANCEL-009"
     ],
-    "responsible": "项目作者（凌影傲爵）决定缺陷修复、UAC 策略与节点更新并完成跨设备/GUI 项；QA 提供复现用例、定级与 smoke/real 基线",
-    "monitoring": "回归判据：smoke 保持 32/32、debug.log 0 FATAL；real-speedtest 三模式速率>0 且每次 API 测速后 history.total 恰好 +1、recentResult 非空；双向完成状态成功计数与实际传输一致（不再『0 成功』）；关注预设节点成功率。",
-    "rollback": "若修复引入回归可 git revert 回到 v1.4.3 基线；缺陷均不影响回环本地 GUI 手动测速与实时速率显示，紧急时可暂不使用 Web 远程发起、不使用 MTU 探测工具。"
+    "rationale": "代码级准出条件满足：8 个正式缺陷（MTU/BIDI/CLAMP/BW/SUBNET/FW/FALLBACK/API-SAVE，其中 API-SAVE 经复盘升 P1）与 D10 取消落库缺陷 BUG-CANCEL-009 全部修复并回归通过；Release 构建 0 错误 0 警告，全量单元测试 297 通过/0 失败/0 跳过（修复前 243 含 4 跳过，净增 54 个回归用例）；Web/生命周期 smoke 32/32、0 FATAL；端到端 11/11（交叉非法 400 回滚不落盘、合法 200、取消记录带字节与峰值、防火墙规则 TCP/8080 Allow 真实存在）；批1真机三模式实测下载峰值 1900.9/上传 262.9 Mbps、双向明细 25 成功且 API 发起结果正常落库。无 P0、无开放 S1/S2/S3 缺陷。残余为单机回环与单元测试覆盖不到、须在对外分发前于真实环境完成的手动/跨设备验收项（见 unverified 与 manual_handoff），尤其 D8① 选择 app.manifest requireAdministrator 后每次启动 exe 都会弹 UAC，需管理员/标准账户与第二台局域网设备实测。这些不阻断代码级准出，故判 conditional_go：完成手动验收清单或显式接受残余风险后方可对外发布。",
+    "conditions": [
+      "在管理员与标准 Windows 账户分别启动 exe，确认 UAC 提权行为符合预期（拒绝提权时的处理）。",
+      "第二台同网段设备访问 8080 并执行写操作，确认防火墙规则真实放行、网段白名单与令牌生效。",
+      "移走 wwwroot 后在第二台设备打开内嵌兜底页并执行开始/停止/保存设置，确认不再 403。",
+      "对 8.8.8.8 等跨网关目标实测路径 MTU（期望 1500/1480）并回归同网段目标。",
+      "多网卡/多宽带真实绑定、聚合与持久化；CSV 导出、HBCS 往返、外网工具人工冒烟。",
+      "GUI 结果窗 URL 明细、准备阶段取消、深/浅色主题与中英文渲染、安装包代码签名在发布前核对。"
+    ],
+    "decided_at": "2026-10-01T09:40:00+08:00"
   },
   "delivery_manifest": {
-    "source_revision": 7,
+    "source_revision": 8,
     "outputs": [
       {
         "purpose": "deliverable",
         "carrier": "local",
         "format": "markdown",
         "filename": "QA收口报告.md",
-        "source_revision": 7,
-        "sha256": "f7c6611a924edf00174f21843cbf0719eb01c2d8edefcb42e0e48d0329894314",
+        "source_revision": 8,
+        "sha256": "fd11a63876a1dbd486e6cbfae1530f0b76d3277c54b626a0111bead827e7d185",
         "status": "validated",
         "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\qa-results\\netspeedtest-coreqa\\QA收口报告.md",
-        "readback_receipt": "9048 字符 / 200 行；约定章节齐全",
+        "readback_receipt": "12601 字符 / 227 行；约定章节齐全",
         "validated": true
       },
       {
@@ -3452,15 +3941,15 @@
         "carrier": "local",
         "format": "markdown",
         "filename": "测试用例与追踪矩阵.md",
-        "source_revision": 7,
-        "sha256": "6ec267885e753487c3e037ffd4fadfbc8673e16f73bab38dd330df795b75067d",
+        "source_revision": 8,
+        "sha256": "3cbc991ba695b40adc0868cb9a1236950b32347a28353f21e1f78486ac972bb2",
         "status": "validated",
         "locator": "D:\\Program Files\\DSH\\NetSpeedTest\\qa-results\\netspeedtest-coreqa\\测试用例与追踪矩阵.md",
-        "readback_receipt": "14129 字符 / 253 行；约定章节齐全",
+        "readback_receipt": "18684 字符 / 267 行；约定章节齐全",
         "validated": true
       }
     ],
-    "fingerprint": "sha256:f5d5cea05bcd32a0b6484881047f4f77ee3878d178f468e71d29b0466d809ad0"
+    "fingerprint": "sha256:e85e4a89ca343346e1998d705efde5135e07ebd724456fba2fc1638abc69997e"
   },
   "test_data": {
     "writes_allowed": false,
@@ -3522,6 +4011,18 @@
     "引用不存在的证据 EV-004（executions[].evidence_ids）",
     "引用不存在的证据 EV-006（executions[].evidence_ids）",
     "非法执行方法 scripted_e2e（executions[].execution_method）",
-    "非 stale/failed 产物必须匹配当前 revision（delivery_manifest.outputs[].source_revision）"
+    "非 stale/failed 产物必须匹配当前 revision（delivery_manifest.outputs[].source_revision）",
+    "笔误回补（工具箱）：不存在 ToolboxViewModel.cs，带宽/子网等校验实际位于 ViewModels/MoreViewModel.cs。",
+    "笔误回补（FW-006）：不存在 IsFirewallRuleNeeded 判定；真实根因是 _firewallReady 恒真与 add 防火墙规则为死代码，已按此修复。",
+    "笔误回补（FALLBACK/鉴权）：GET 不查令牌、全库无 401 返回点、令牌/网段失败实际返回 403、回环豁免令牌；TC-WEB-036『无令牌 401』表述不准确，跨设备拒绝路径需第二设备确认。",
+    "笔误回补（CLAMP）：三套边界失配实际仅 testTimeoutSec（下限 5 vs 10）与 threadRampUpMs（上限 5000 vs 2000）两个参数，其余 9 项一致。",
+    "笔误回补（MTU）：提示语为内联中文字符串、无资源 key，D5 按内联处理。",
+    "笔误回补（SUBNET）：255.0.255.0 经位运算复核为 /16、主机数 65534，QA 原记录正确，未按子代理『/8』误判修改。",
+    "笔误回补（API-SAVE）：ShowDialog 本体位于 MainViewModel 第 1017 行；持久化误置于其门控内。",
+    "D10 根因更正：历史三列 0 非旧版本迁移数据，而是当前仍在的取消活路径 FinishTestCancelled；库中 82 条与同期正常记录二分证实。",
+    "D10 统计口径：取消记录 BytesDownloaded 与 TotalBytes 来自不同回调可能不相等，统一统计口径留待后续，不影响本轮『三列不再为 0』结论。",
+    "D8① 代价：选择 app.manifest requireAdministrator 后，每次启动 NetSpeedTest.exe 都会弹 UAC，标准账户拒绝提权将无法启动。",
+    "测试卫生：本轮 22 条临时记录（Id122-143）已备份后删除、历史恢复 100 条，appsettings/web.json 已还原原值；防火墙规则按 D8① 长期驻留。",
+    "人工交接状态必须是 pending/in_progress/completed/blocked（manual_handoff.status）"
   ]
 }

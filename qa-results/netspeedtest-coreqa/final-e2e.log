@@ -1,0 +1,47 @@
+﻿server ready pid=10744
+
+=== BATCH4 cross-field validation ===
+before: testTimeoutSec=45 averageDelaySec=10
+cross-invalid -> code=400 body={"error":"testTimeoutSec(10) \u4E0D\u5F97\u5C0F\u4E8E averageDelaySec(30)\uFF1A\u6D4B\u901F\u65F6\u957F\u5FC5\u987B\u4E0D\u77ED\u4E8E\u5E73\u5747\u901F\u7387\u7A97\u53E3\uFF0C\u5426\u5219\u5E73\u5747\u901F\u7387\u53EF\u80FD\u4E3A\u7A7A","rejected":"testTimeoutSec\u003CaverageDelaySec"}
+after-invalid: testTimeoutSec=45 averageDelaySec=10
+valid -> code=200
+after-valid: testTimeoutSec=60 averageDelaySec=10
+
+=== D10 cancelled download persists byte counters ===
+start -> 200
+stop -> 200
+latest: Id=143 TestType=下载 Duration=5.13s BytesDownloaded=589269888 TotalBytes=497162497 PeakMbps=1,261.92
+
+=== BATCH6 firewall rule ===
+
+Rule Name:                            NetSpeedTest Web Server
+----------------------------------------------------------------------
+Enabled:                              Yes
+Direction:                            In
+Profiles:                             Domain,Private,Public
+Grouping:                             
+LocalIP:                              Any
+RemoteIP:                             Any
+Protocol:                             TCP
+LocalPort:                            8080
+RemotePort:                           Any
+Edge traversal:                       No
+Action:                               Allow
+Ok.
+
+
+
+=== ASSERTIONS ===
+PASS  cross-invalid testTimeoutSec<averageDelaySec returns 400
+PASS  400 body explains the rejected cross-field pair
+PASS  timeout rolled back (cross-invalid not applied)
+PASS  averageDelay rolled back (cross-invalid not applied)
+PASS  valid settings still return 200
+PASS  valid timeout persisted
+PASS  cancelled download record has BytesDownloaded>0 (D10)
+PASS  cancelled record has TotalBytes>0
+PASS  firewall rule exists by name
+PASS  firewall rule localport is 8080
+PASS  firewall rule action is allow
+
+E2E Total Pass=11 Fail=0
