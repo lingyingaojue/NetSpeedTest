@@ -154,12 +154,14 @@ public partial class SettingsViewModel : ObservableObject
         LocalizationService.LanguageChanged += RefreshCategories;
         LocalizationService.LanguageChanged += RefreshOptions;
         AdSponsorName = config.GetSection("Advertising")["SponsorName"] ?? "暂无";
-        ThreadCount = Math.Clamp(options.ThreadCount, 2, 1024);
-        TestTimeoutSec = options.TestTimeoutSec;
+        // BUG-CLAMP-003：加载落盘配置时也过一遍统一边界（仅内存钳制、不改文件），避免旧越界值（如 testTimeoutSec=5）
+        // 直接显示到口径已收紧的滑块上，造成文本框与滑块端点不一致；下次保存自然收敛。
+        ThreadCount = Math.Clamp(options.ThreadCount, SpeedOptionLimits.ThreadCountMin, SpeedOptionLimits.ThreadCountMax);
+        TestTimeoutSec = Math.Clamp(options.TestTimeoutSec, SpeedOptionLimits.TestTimeoutSecMin, SpeedOptionLimits.TestTimeoutSecMax);
         AverageDelaySec = options.AverageDelaySec;
         RateWindowSec = options.RateWindowSec;
         NicPollIntervalMs = options.NicPollIntervalMs;
-        ThreadRampUpMs = options.ThreadRampUpMs;
+        ThreadRampUpMs = Math.Clamp(options.ThreadRampUpMs, SpeedOptionLimits.ThreadRampUpMsMin, SpeedOptionLimits.ThreadRampUpMsMax);
         LatencyPollIntervalMs = options.LatencyPollIntervalMs;
         JitterTargetHost = options.JitterTargetHost;
         JitterPollIntervalMs = options.JitterPollIntervalMs;
@@ -198,18 +200,18 @@ public partial class SettingsViewModel : ObservableObject
     [RelayCommand]
     private void Save()
     {
-        ThreadCount = Math.Clamp(ThreadCount, 2, 1024);
-        TestTimeoutSec = Math.Clamp(TestTimeoutSec, 5, 600);
-        AverageDelaySec = Math.Clamp(AverageDelaySec, 1, 30);
-        RateWindowSec = Math.Clamp(RateWindowSec, 0.5, 10.0);
-        NicPollIntervalMs = Math.Clamp(NicPollIntervalMs, 200, 5000);
-        ThreadRampUpMs = Math.Clamp(ThreadRampUpMs, 0, 5000);
-        LatencyPollIntervalMs = Math.Clamp(LatencyPollIntervalMs, 500, 10000);
-        JitterPollIntervalMs = Math.Clamp(JitterPollIntervalMs, 500, 5000);
-        PacketLossPollIntervalMs = Math.Clamp(PacketLossPollIntervalMs, 500, 5000);
+        ThreadCount = Math.Clamp(ThreadCount, SpeedOptionLimits.ThreadCountMin, SpeedOptionLimits.ThreadCountMax);
+        TestTimeoutSec = Math.Clamp(TestTimeoutSec, SpeedOptionLimits.TestTimeoutSecMin, SpeedOptionLimits.TestTimeoutSecMax);
+        AverageDelaySec = Math.Clamp(AverageDelaySec, SpeedOptionLimits.AverageDelaySecMin, SpeedOptionLimits.AverageDelaySecMax);
+        RateWindowSec = Math.Clamp(RateWindowSec, SpeedOptionLimits.RateWindowSecMin, SpeedOptionLimits.RateWindowSecMax);
+        NicPollIntervalMs = Math.Clamp(NicPollIntervalMs, SpeedOptionLimits.NicPollIntervalMsMin, SpeedOptionLimits.NicPollIntervalMsMax);
+        ThreadRampUpMs = Math.Clamp(ThreadRampUpMs, SpeedOptionLimits.ThreadRampUpMsMin, SpeedOptionLimits.ThreadRampUpMsMax);
+        LatencyPollIntervalMs = Math.Clamp(LatencyPollIntervalMs, SpeedOptionLimits.LatencyPollIntervalMsMin, SpeedOptionLimits.LatencyPollIntervalMsMax);
+        JitterPollIntervalMs = Math.Clamp(JitterPollIntervalMs, SpeedOptionLimits.JitterPollIntervalMsMin, SpeedOptionLimits.JitterPollIntervalMsMax);
+        PacketLossPollIntervalMs = Math.Clamp(PacketLossPollIntervalMs, SpeedOptionLimits.PacketLossPollIntervalMsMin, SpeedOptionLimits.PacketLossPollIntervalMsMax);
         if (string.IsNullOrWhiteSpace(PacketLossTargetHost)) PacketLossTargetHost = "8.8.8.8";
-        CompensationThreshold = Math.Clamp(CompensationThreshold, 0.3, 0.8);
-        CompensationConfirmSec = Math.Clamp(CompensationConfirmSec, 1, 10);
+        CompensationThreshold = Math.Clamp(CompensationThreshold, SpeedOptionLimits.CompensationThresholdMin, SpeedOptionLimits.CompensationThresholdMax);
+        CompensationConfirmSec = Math.Clamp(CompensationConfirmSec, SpeedOptionLimits.CompensationConfirmSecMin, SpeedOptionLimits.CompensationConfirmSecMax);
 
         _options.ThreadCount = ThreadCount;
         _options.TestTimeoutSec = TestTimeoutSec;

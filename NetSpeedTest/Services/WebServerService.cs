@@ -1351,11 +1351,28 @@ public void Stop()
             var options = _serviceProvider.GetRequiredService<SpeedTestOptions>();
 
             bool? requestedWebServerEnabled = null;
+            string? crossFieldError = null;
 
             // F-10：设置写入与持久化互斥，避免并发 POST 产生交错的半套配置。
             lock (_optionsGate)
             {
+                // BUG-CLAMP-003/D7：交叉非法（testTimeoutSec<averageDelaySec）回 400 且不落盘；
+                // 先快照这两个字段，非法时回滚，避免内存单例里留下会导致空平均速率的矛盾组合。
+                var prevTimeoutSec = options.TestTimeoutSec;
+                var prevAverageDelaySec = options.AverageDelaySec;
                 requestedWebServerEnabled = ApplySettingsCore(root, options);
+                crossFieldError = ValidateSpeedOptions(options);
+                if (crossFieldError != null)
+                {
+                    options.TestTimeoutSec = prevTimeoutSec;
+                    options.AverageDelaySec = prevAverageDelaySec;
+                }
+            }
+
+            if (crossFieldError != null)
+            {
+                await WriteJsonAsync(ctx, 400, new { error = crossFieldError, rejected = "testTimeoutSec<averageDelaySec" }, ct);
+                return;
             }
 
             PersistSpeedOptions(options);
@@ -1427,20 +1444,20 @@ public void Stop()
     /// </summary>
     private bool? ApplySettingsCore(JsonElement root, SpeedTestOptions options)
     {
-        if (root.TryGetProperty("threadCount", out var threadCount)) options.ThreadCount = Math.Clamp(threadCount.GetInt32(), 2, 1024);
-        if (root.TryGetProperty("testTimeoutSec", out var testTimeoutSec)) options.TestTimeoutSec = Math.Clamp(testTimeoutSec.GetInt32(), 5, 600);
-        if (root.TryGetProperty("averageDelaySec", out var averageDelaySec)) options.AverageDelaySec = Math.Clamp(averageDelaySec.GetInt32(), 1, 30);
-        if (root.TryGetProperty("rateWindowSec", out var rateWindowSec)) options.RateWindowSec = Math.Clamp(rateWindowSec.GetDouble(), 0.5, 10);
-        if (root.TryGetProperty("nicPollIntervalMs", out var nicPollIntervalMs)) options.NicPollIntervalMs = Math.Clamp(nicPollIntervalMs.GetInt32(), 200, 5000);
-        if (root.TryGetProperty("threadRampUpMs", out var threadRampUpMs)) options.ThreadRampUpMs = Math.Clamp(threadRampUpMs.GetInt32(), 0, 5000);
-        if (root.TryGetProperty("latencyPollIntervalMs", out var latencyPollIntervalMs)) options.LatencyPollIntervalMs = Math.Clamp(latencyPollIntervalMs.GetInt32(), 500, 10000);
+        if (root.TryGetProperty("threadCount", out var threadCount)) options.ThreadCount = Math.Clamp(threadCount.GetInt32(), SpeedOptionLimits.ThreadCountMin, SpeedOptionLimits.ThreadCountMax);
+        if (root.TryGetProperty("testTimeoutSec", out var testTimeoutSec)) options.TestTimeoutSec = Math.Clamp(testTimeoutSec.GetInt32(), SpeedOptionLimits.TestTimeoutSecMin, SpeedOptionLimits.TestTimeoutSecMax);
+        if (root.TryGetProperty("averageDelaySec", out var averageDelaySec)) options.AverageDelaySec = Math.Clamp(averageDelaySec.GetInt32(), SpeedOptionLimits.AverageDelaySecMin, SpeedOptionLimits.AverageDelaySecMax);
+        if (root.TryGetProperty("rateWindowSec", out var rateWindowSec)) options.RateWindowSec = Math.Clamp(rateWindowSec.GetDouble(), SpeedOptionLimits.RateWindowSecMin, SpeedOptionLimits.RateWindowSecMax);
+        if (root.TryGetProperty("nicPollIntervalMs", out var nicPollIntervalMs)) options.NicPollIntervalMs = Math.Clamp(nicPollIntervalMs.GetInt32(), SpeedOptionLimits.NicPollIntervalMsMin, SpeedOptionLimits.NicPollIntervalMsMax);
+        if (root.TryGetProperty("threadRampUpMs", out var threadRampUpMs)) options.ThreadRampUpMs = Math.Clamp(threadRampUpMs.GetInt32(), SpeedOptionLimits.ThreadRampUpMsMin, SpeedOptionLimits.ThreadRampUpMsMax);
+        if (root.TryGetProperty("latencyPollIntervalMs", out var latencyPollIntervalMs)) options.LatencyPollIntervalMs = Math.Clamp(latencyPollIntervalMs.GetInt32(), SpeedOptionLimits.LatencyPollIntervalMsMin, SpeedOptionLimits.LatencyPollIntervalMsMax);
         if (root.TryGetProperty("jitterTargetHost", out var jitterTargetHost)) options.JitterTargetHost = jitterTargetHost.GetString() ?? options.JitterTargetHost;
-        if (root.TryGetProperty("jitterPollIntervalMs", out var jitterPollIntervalMs)) options.JitterPollIntervalMs = Math.Clamp(jitterPollIntervalMs.GetInt32(), 500, 5000);
+        if (root.TryGetProperty("jitterPollIntervalMs", out var jitterPollIntervalMs)) options.JitterPollIntervalMs = Math.Clamp(jitterPollIntervalMs.GetInt32(), SpeedOptionLimits.JitterPollIntervalMsMin, SpeedOptionLimits.JitterPollIntervalMsMax);
         if (root.TryGetProperty("packetLossTargetHost", out var packetLossTargetHost)) options.PacketLossTargetHost = packetLossTargetHost.GetString() ?? options.PacketLossTargetHost;
-        if (root.TryGetProperty("packetLossPollIntervalMs", out var packetLossPollIntervalMs)) options.PacketLossPollIntervalMs = Math.Clamp(packetLossPollIntervalMs.GetInt32(), 500, 5000);
+        if (root.TryGetProperty("packetLossPollIntervalMs", out var packetLossPollIntervalMs)) options.PacketLossPollIntervalMs = Math.Clamp(packetLossPollIntervalMs.GetInt32(), SpeedOptionLimits.PacketLossPollIntervalMsMin, SpeedOptionLimits.PacketLossPollIntervalMsMax);
         if (root.TryGetProperty("compensationEnabled", out var compensationEnabled)) options.CompensationEnabled = compensationEnabled.GetBoolean();
-        if (root.TryGetProperty("compensationThreshold", out var compensationThreshold)) options.CompensationThreshold = Math.Clamp(compensationThreshold.GetDouble(), 0.3, 0.8);
-        if (root.TryGetProperty("compensationConfirmSec", out var compensationConfirmSec)) options.CompensationConfirmSec = Math.Clamp(compensationConfirmSec.GetInt32(), 1, 10);
+        if (root.TryGetProperty("compensationThreshold", out var compensationThreshold)) options.CompensationThreshold = Math.Clamp(compensationThreshold.GetDouble(), SpeedOptionLimits.CompensationThresholdMin, SpeedOptionLimits.CompensationThresholdMax);
+        if (root.TryGetProperty("compensationConfirmSec", out var compensationConfirmSec)) options.CompensationConfirmSec = Math.Clamp(compensationConfirmSec.GetInt32(), SpeedOptionLimits.CompensationConfirmSecMin, SpeedOptionLimits.CompensationConfirmSecMax);
         if (root.TryGetProperty("adaptiveThreadsEnabled", out var adaptiveThreadsEnabled)) options.AdaptiveThreadsEnabled = adaptiveThreadsEnabled.GetBoolean();
         if (root.TryGetProperty("includeVirtualAdapters", out var includeVirtualAdapters)) options.IncludeVirtualAdapters = includeVirtualAdapters.GetBoolean();
 
@@ -1469,6 +1486,21 @@ public void Stop()
         if (root.TryGetProperty("webServerEnabled", out var webServerEnabled))
             return webServerEnabled.GetBoolean();
 
+        return null;
+    }
+
+    /// <summary>
+    /// 交叉字段语义校验（BUG-CLAMP-003 / 决策 D7）。单字段越界仍按 <see cref="SpeedOptionLimits"/>
+    /// 静默夹取（保持 200）；但 testTimeoutSec 小于 averageDelaySec 是无法靠夹取唯一修复的矛盾组合——
+    /// 测速会在平均速率窗口开启前结束，得到空平均速率。返回非空错误信息表示调用方应回 400 且不落盘。
+    /// </summary>
+    internal static string? ValidateSpeedOptions(SpeedTestOptions options)
+    {
+        if (options.TestTimeoutSec < options.AverageDelaySec)
+        {
+            return $"testTimeoutSec({options.TestTimeoutSec}) 不得小于 averageDelaySec({options.AverageDelaySec})：" +
+                   "测速时长必须不短于平均速率窗口，否则平均速率可能为空";
+        }
         return null;
     }
 
