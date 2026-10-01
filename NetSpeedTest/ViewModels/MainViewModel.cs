@@ -231,6 +231,12 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private long? _totalBytes;
 
+    // BUG-D10：进度回调持续采集的分方向累计字节与峰值，供取消/停止测速结果补填（否则取消记录三列为 0）。
+    private long _lastDownloadBytes;
+    private long _lastUploadBytes;
+    private double _peakDownloadMbps;
+    private double _peakUploadMbps;
+
     [ObservableProperty]
     private double? _latencyMs;
 
@@ -909,6 +915,8 @@ public partial class MainViewModel : ObservableObject
         PacketLossLevel = 0;
         OnPropertyChanged(nameof(PacketLossDisplay));
         TotalBytes = null;
+        _lastDownloadBytes = 0; _lastUploadBytes = 0;
+        _peakDownloadMbps = 0; _peakUploadMbps = 0;
         DownloadRatePoints.Clear();
         UploadRatePoints.Clear();
         UrlTestDetails.Clear();
@@ -955,8 +963,37 @@ public partial class MainViewModel : ObservableObject
             DurationSeconds = _stopwatch?.Elapsed.TotalSeconds ?? 0,
             UrlDetails = new()
         };
+        // BUG-D10：取消结果手工构造时只带 TotalBytes，需补填分方向字节与峰值，否则落库历史三列为 0。
+        ApplyCancelledTrafficCounters(result, _lastDownloadBytes, _lastUploadBytes, _peakDownloadMbps, _peakUploadMbps);
         FinishTest(result, showDialog: true);
         StatusText = "已取消";
+    }
+
+    /// <summary>
+    /// 取消/停止测速结果补填分方向字节与峰值（BUG-D10）。按测速模式把进度回调采集到的分方向累计字节与峰值
+    /// 写入结果：下载只填下载侧、上传只填上传侧、双向两侧都填且峰值按分方向之和（与多网卡聚合 PeakMbps=Sum 口径一致）。
+    /// </summary>
+    internal static void ApplyCancelledTrafficCounters(SpeedTestResult result, long downloadBytes, long uploadBytes,
+        double peakDownloadMbps, double peakUploadMbps)
+    {
+        switch (result.TestType)
+        {
+            case "上传":
+                result.BytesDownloaded = 0;
+                result.BytesUploaded = uploadBytes;
+                result.PeakMbps = peakUploadMbps;
+                break;
+            case "双向":
+                result.BytesDownloaded = downloadBytes;
+                result.BytesUploaded = uploadBytes;
+                result.PeakMbps = peakDownloadMbps + peakUploadMbps;
+                break;
+            default: // 下载
+                result.BytesDownloaded = downloadBytes;
+                result.BytesUploaded = 0;
+                result.PeakMbps = peakDownloadMbps;
+                break;
+        }
     }
 
     private void FinishTest(SpeedTestResult result, bool showDialog = true)
@@ -1180,6 +1217,8 @@ public partial class MainViewModel : ObservableObject
         Application.Current.Dispatcher.InvokeAsync(() =>
         {
             DownloadMbps = totalRate;
+            _lastDownloadBytes = totalBytes;
+            if (totalRate > _peakDownloadMbps) _peakDownloadMbps = totalRate;
             OnPropertyChanged(nameof(TotalRateMbps));
         });
     }
@@ -1191,6 +1230,8 @@ public partial class MainViewModel : ObservableObject
         Application.Current.Dispatcher.InvokeAsync(() =>
         {
             UploadMbps = totalRate;
+            _lastUploadBytes = totalBytes;
+            if (totalRate > _peakUploadMbps) _peakUploadMbps = totalRate;
             OnPropertyChanged(nameof(UploadMbpsDisplay));
             OnPropertyChanged(nameof(TotalRateMbps));
         });
