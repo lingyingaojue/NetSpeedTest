@@ -1867,7 +1867,7 @@ public void Stop()
         }
     }
 
-    private const string DefaultIndexHtml = """
+    internal const string DefaultIndexHtml = """
 <!doctype html>
 <html lang="zh-CN">
 <head>
@@ -1914,7 +1914,15 @@ public void Stop()
     <div id="history"></div>
   </div>
   <script>
-    async function api(path, options){ const r = await fetch(path, options); return r.json(); }
+    // BUG-FALLBACK-007：兜底页必须与正式前端一致回传会话令牌，否则局域网第二设备的写操作（启动/停止测速等）会被 403。
+    var NST_TOKEN = (function(){ var m = document.querySelector('meta[name="nst-token"]'); return m ? (m.getAttribute('content') || '') : ''; })();
+    async function api(path, options){
+      options = options || {};
+      var headers = Object.assign({}, options.headers || {});
+      if (NST_TOKEN) headers['X-NST-Token'] = NST_TOKEN;
+      var r = await fetch(path, Object.assign({}, options, { headers: headers }));
+      return r.json();
+    }
     async function refresh(){
       const s = await api('/api/status');
       document.getElementById('status').textContent = s.status || (s.running ? '测速中' : '就绪');

@@ -124,4 +124,28 @@ public class WebSecurityTests
                 Assert.DoesNotContain(marker, json, StringComparison.OrdinalIgnoreCase);
         }
     }
+
+    [Fact]
+    public void FallbackHtml_sends_X_NST_Token_on_all_api_calls()
+    {
+        var html = WebServerService.DefaultIndexHtml;
+
+        // 令牌 meta 占位符仍在（运行期由 InjectSessionToken 替换为会话令牌）。
+        Assert.Contains("meta[name=\"nst-token\"]", html, StringComparison.Ordinal);
+        // 兜底页 api() 封装必须读取该令牌并给所有请求合并 X-NST-Token 头（BUG-FALLBACK-007）。
+        Assert.Contains("X-NST-Token", html, StringComparison.Ordinal);
+        Assert.Contains("headers['X-NST-Token'] = NST_TOKEN", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FallbackHtml_has_no_bare_fetch_bypassing_token()
+    {
+        var html = WebServerService.DefaultIndexHtml;
+
+        // 不得存在绕过带令牌 api() 封装的裸 fetch('/api...')；写操作必须经封装发起。
+        Assert.DoesNotContain("fetch('/api", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("fetch(\"/api", html, StringComparison.Ordinal);
+        Assert.Contains("api('/api/test/start'", html, StringComparison.Ordinal);
+        Assert.Contains("api('/api/test/stop'", html, StringComparison.Ordinal);
+    }
 }
