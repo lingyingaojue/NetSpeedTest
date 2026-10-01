@@ -381,16 +381,36 @@ public partial class MoreViewModel : ObservableObject
             if (ib.Length != 4 || mb.Length != 4) { SubnetResult = "仅支持 IPv4"; return; }
             var nb = new byte[4]; var bb = new byte[4]; uint ipv4 = 0, m = 0;
             for (int i = 0; i < 4; i++) { nb[i] = (byte)(ib[i] & mb[i]); bb[i] = (byte)(ib[i] | (byte)(~mb[i])); ipv4 = (ipv4 << 8) | ib[i]; m = (m << 8) | mb[i]; }
-            uint cidr = 0; uint tm = m; while (tm > 0) { if ((tm & 0x80000000) != 0) cidr++; tm <<= 1; }
+            // BUG-SUBNET-005：IPAddress.TryParse 只保证可解析为 IPv4，不保证是形如 1…10…0 的合法子网掩码；
+            // 非连续掩码（如 255.0.255.0）必须拒绝，否则会标出与网络地址自相矛盾的 CIDR。
+            if (!IsValidSubnetMask(m)) { SubnetResult = "无效的子网掩码：二进制位必须连续（如 255.255.255.0）"; return; }
+            uint cidr = MaskToCidr(m);
             uint hosts = cidr >= 32 ? 1u : cidr == 31 ? 0u : (uint)((1L << (32 - (int)cidr)) - 2);
             var sb = new StringBuilder(); sb.AppendLine($"子网计算: {SubnetIp}/{cidr}"); sb.AppendLine(new string('-', 40));
             sb.AppendLine($"网络地址: {new IPAddress(nb)}"); sb.AppendLine($"广播地址: {new IPAddress(bb)}"); sb.AppendLine($"子网掩码: {mask} (/{cidr})"); sb.AppendLine($"可用主机: {hosts}"); sb.AppendLine($"IP 范围: {new IPAddress(nb)} ~ {new IPAddress(bb)}"); sb.AppendLine(new string('-', 40));
             if (cidr == 32) sb.AppendLine("单个主机地址 (子网掩码 /32)");
             else if (cidr == 31) sb.AppendLine("可用范围: 无可用主机 (点对点 /31)");
             else { var net = (uint)((nb[0] << 24) | (nb[1] << 16) | (nb[2] << 8) | nb[3]); var broad = (uint)((bb[0] << 24) | (bb[1] << 16) | (bb[2] << 8) | bb[3]); var first = net + 1; var last = broad - 1; sb.AppendLine($"可用范围: {(first >> 24) & 255}.{(first >> 16) & 255}.{(first >> 8) & 255}.{first & 255} ~ {(last >> 24) & 255}.{(last >> 16) & 255}.{(last >> 8) & 255}.{last & 255}"); }
+            if (cidr == 0) sb.AppendLine("提示: /0 (0.0.0.0) 为默认路由掩码，覆盖全部 IPv4（约 42.9 亿地址），通常不用于实际子网划分。");
             SubnetResult = sb.ToString();
         }
         catch (Exception ex) { SubnetResult = $"计算失败: {ex.Message}"; }
+    }
+
+    /// <summary>判断 32 位 IPv4 掩码是否为连续的 1…10…0 形式（含边界 /0 与 /32）。BUG-SUBNET-005。</summary>
+    internal static bool IsValidSubnetMask(uint mask)
+    {
+        uint hostBits = ~mask;                     // 主机位取反后应是 0…01…1（低位连续的 1）
+        return (hostBits & (hostBits + 1)) == 0;   // 仅当 hostBits = 2^k-1 时成立；全 1=/0、全 0=/32 均放行
+    }
+
+    /// <summary>对已通过 <see cref="IsValidSubnetMask"/> 的连续掩码计算 CIDR 前缀长度（0–32）。</summary>
+    internal static uint MaskToCidr(uint mask)
+    {
+        uint cidr = 0;
+        for (uint tm = mask; tm != 0; tm <<= 1)
+            if ((tm & 0x80000000u) != 0) cidr++;
+        return cidr;
     }
 
     // ========== 12: 带宽换算 ==========
@@ -403,10 +423,13 @@ public partial class MoreViewModel : ObservableObject
         try
         {
             if (!double.TryParse(BwMbps, out var mbps)) { BwResult = "请输入有效数字"; return; }
+            // BUG-BW-004：0 / 负数 / NaN / ∞ 会导致 double 除零显示“∞ 秒”或负耗时，必须在换算前拒绝；
+            // 仅含空白的输入被解析为 0 也在此一并拦下。
+            if (mbps <= 0 || double.IsNaN(mbps) || double.IsInfinity(mbps)) { BwResult = "请输入大于 0 的有效带宽数值（Mbps）"; return; }
             var sb = new StringBuilder(); sb.AppendLine($"带宽换算: {mbps} Mbps"); sb.AppendLine(new string('-', 40));
             sb.AppendLine($"= {mbps / 8:F2} MB/s"); sb.AppendLine($"= {mbps * 1000 / 8:F1} KB/s");
             sb.AppendLine($"= {mbps / 1000:F4} Gbps"); sb.AppendLine($"= {mbps * 125:F0} KBps");
-            sb.AppendLine(new string('-', 40)); sb.AppendLine($"100 MB 文件 ≈ {100 * 8 / mbps / (mbps > 0 ? 1 : 0.001):F1} 秒");
+            sb.AppendLine(new string('-', 40)); sb.AppendLine($"100 MB 文件 ≈ {100 * 8 / mbps:F1} 秒");
             BwResult = sb.ToString();
         }
         catch (Exception ex) { BwResult = $"换算失败: {ex.Message}"; }

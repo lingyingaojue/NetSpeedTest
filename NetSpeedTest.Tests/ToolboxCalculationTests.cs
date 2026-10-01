@@ -104,7 +104,7 @@ public class ToolboxCalculationTests
 
     // ===== 已确认缺陷复现检查点（修复前跳过，避免主测试工程变红；修复后启用）=====
 
-    [Fact(Skip = "BUG-BW-004 复现：带宽为 0 时 double 除零显示“∞ 秒”，应提示输入大于 0 的数值")]
+    [Fact]
     public void Bandwidth_Zero_ShouldReject_NotShowInfinity()
     {
         var r = CalcBandwidth("0");
@@ -112,7 +112,7 @@ public class ToolboxCalculationTests
         Assert.Contains("大于 0", r);
     }
 
-    [Fact(Skip = "BUG-BW-004 复现：负带宽未拦截，下载耗时显示为负数")]
+    [Fact]
     public void Bandwidth_Negative_ShouldReject()
     {
         var r = CalcBandwidth("-50");
@@ -120,7 +120,7 @@ public class ToolboxCalculationTests
         Assert.DoesNotContain("-", r.Replace("-50", ""));
     }
 
-    [Fact(Skip = "BUG-SUBNET-005 复现：非连续子网掩码（如 255.0.255.0）未校验，输出错误的 CIDR/网络地址")]
+    [Fact]
     public void Subnet_NonContiguousMask_ShouldReportInvalidMask()
     {
         var r = CalcSubnet("192.168.1.1", "255.0.255.0");
@@ -136,6 +136,111 @@ public class ToolboxCalculationTests
         Assert.DoesNotContain("new PingOptions(1,", startMtu);
         Assert.Contains("PingOptions(", startMtu);
     }
+
+    // ===== 批2：BUG-BW-004 修复后新增边界用例 =====
+
+    [Fact]
+    public void Bandwidth_NaN_ShouldReject_NotInfinity()
+    {
+        var r = CalcBandwidth("NaN");
+        Assert.DoesNotContain("∞", r);
+        Assert.Contains("大于 0", r);
+    }
+
+    [Fact]
+    public void Bandwidth_Whitespace_ShouldReject_NotInfinity()
+    {
+        var r = CalcBandwidth("   ");
+        Assert.DoesNotContain("∞", r);
+        Assert.Contains("有效", r);
+    }
+
+    // ===== 批2：BUG-SUBNET-005 修复后新增非法/合法掩码用例 =====
+
+    [Fact]
+    public void Subnet_TrailingOneMask_255_255_0_255_ReportsInvalidMask()
+    {
+        var r = CalcSubnet("192.168.1.1", "255.255.0.255");
+        Assert.Contains("掩码", r);
+    }
+
+    [Fact]
+    public void Subnet_LeadingZeroThenOnesMask_0_255_255_255_ReportsInvalidMask()
+    {
+        var r = CalcSubnet("192.168.1.1", "0.255.255.255");
+        Assert.Contains("掩码", r);
+    }
+
+    [Fact]
+    public void Subnet_LegalSlash25_NotRejected()
+    {
+        var r = CalcSubnet("192.168.1.130", "255.255.255.128");
+        Assert.Contains("/25", r);
+        Assert.Contains("可用主机: 126", r);
+        Assert.DoesNotContain("无效", r);
+    }
+
+    [Fact]
+    public void Subnet_Slash8_ReportsCorrectNetworkAndHostCount()
+    {
+        var r = CalcSubnet("10.20.30.40", "255.0.0.0");
+        Assert.Contains("/8", r);
+        Assert.Contains("网络地址: 10.0.0.0", r);
+        Assert.Contains("可用主机: 16777214", r);
+    }
+
+    [Fact]
+    public void Subnet_Slash16_ReportsCorrectNetworkAndHostCount()
+    {
+        var r = CalcSubnet("172.16.5.4", "255.255.0.0");
+        Assert.Contains("/16", r);
+        Assert.Contains("网络地址: 172.16.0.0", r);
+        Assert.Contains("可用主机: 65534", r);
+    }
+
+    [Fact]
+    public void Subnet_Slash0_Accepted_WithDefaultRouteHint()
+    {
+        var r = CalcSubnet("10.20.30.40", "0.0.0.0");
+        Assert.Contains("/0", r);
+        Assert.Contains("默认路由", r);
+        Assert.DoesNotContain("无效", r);
+    }
+
+    [Fact]
+    public void SubnetMask_PureFunctions_ValidateContiguityAndComputeCidr()
+    {
+        var valid = new (uint mask, uint cidr)[]
+        {
+            (MaskUint(0, 0, 0, 0), 0),
+            (MaskUint(255, 0, 0, 0), 8),
+            (MaskUint(255, 255, 0, 0), 16),
+            (MaskUint(255, 255, 255, 0), 24),
+            (MaskUint(255, 255, 255, 128), 25),
+            (MaskUint(255, 255, 255, 252), 30),
+            (MaskUint(255, 255, 255, 254), 31),
+            (MaskUint(255, 255, 255, 255), 32),
+        };
+        foreach (var (mask, cidr) in valid)
+        {
+            Assert.True(MoreViewModel.IsValidSubnetMask(mask), $"合法掩码被误拒: {mask}");
+            Assert.Equal(cidr, MoreViewModel.MaskToCidr(mask));
+        }
+
+        uint[] invalid =
+        {
+            MaskUint(255, 0, 255, 0),     // 中间断档
+            MaskUint(255, 255, 0, 255),  // 后段断档
+            MaskUint(0, 255, 255, 255),  // 前导 0 后又有 1
+            MaskUint(255, 0, 0, 255),
+            MaskUint(254, 255, 0, 0),
+        };
+        foreach (var mask in invalid)
+            Assert.False(MoreViewModel.IsValidSubnetMask(mask), $"非法掩码被误放: {mask}");
+    }
+
+    private static uint MaskUint(byte a, byte b, byte c, byte d) =>
+        ((uint)a << 24) | ((uint)b << 16) | ((uint)c << 8) | d;
 
     // ===== 辅助 =====
 
