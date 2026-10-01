@@ -30,3 +30,7 @@ Desktop.ini
 ## Local verification artifacts
 tools/smoke-output.txt
 debug.log
+
+## QA runtime artifacts
+qa-results/netspeedtest-coreqa/config-backup/
+qa-results/netspeedtest-coreqa/deliver-real.log
