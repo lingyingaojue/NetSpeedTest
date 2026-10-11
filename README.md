@@ -2,6 +2,8 @@
 
 <img src="assets/app-icon.png" width="96" />
 
+**中文** &nbsp;·&nbsp; [English](README.en.md)
+
 # 🚀 NetSpeedTest
 
 **Windows 桌面端网络测速工具 · 专业级 · 开源免费**
