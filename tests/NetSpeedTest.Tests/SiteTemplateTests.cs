@@ -496,7 +496,7 @@ public class SiteTemplateTests
 
         var ci = ReadmeAssertions.ReadSourceFile(Path.Combine(".github", "workflows", "ci.yml"));
         Assert.Contains("dotnet test", ci, StringComparison.Ordinal);
-        Assert.Contains("tools/verify-docs.ps1", ci, StringComparison.Ordinal);
+        Assert.Contains("tools/docs/verify-docs.ps1", ci, StringComparison.Ordinal);
         Assert.Contains("pull_request", ci, StringComparison.Ordinal);
     }
 

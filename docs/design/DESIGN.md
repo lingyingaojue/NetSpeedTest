@@ -81,7 +81,7 @@
 - 滚动状态：`.site-header.is-scrolled` 只增强纱底与投影，不做尺寸动画（避免贴图反复重建）。
 - 移动菜单：`.site-nav` 锚定胶囊下缘，近实色玻璃面板 + `blur(22px)`，保证可读。
 - 降级/无障碍：`@supports not (backdrop-filter…)` 退化为 `--nav-glass-panel-bg`；`forced-colors` 隐藏玻璃层；打印隐藏。
-- 许可：`assets/vendor/hyalite.js` + `assets/vendor/hyalite.LICENSE` + [THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md)；
+- 许可：`docs/assets/vendor/hyalite.js` + `docs/assets/vendor/hyalite.LICENSE` + [THIRD-PARTY-NOTICES.md](../../THIRD-PARTY-NOTICES.md)；
   升级流程见 notices。
 
 ## 4. 章节模板（canonical）
@@ -205,7 +205,7 @@
 
 ### 7.1 可调参数（README 主文档与官网 `#paramTable` 共用）
 
-范围来自 `Views/SettingsWindow.xaml` 滑块，默认值来自 `NetSpeedTest/appsettings.json`。
+范围来自 `src/NetSpeedTest/Views/SettingsWindow.xaml` 滑块，默认值来自 `src/NetSpeedTest/appsettings.json`。
 
 | data-param | 中文标签 | English label | 范围 | 默认 |
 |:--|:--|:--|:--|:--|
@@ -260,16 +260,16 @@ Base64 · UUID · NAT Detection
   文字节点用 `data-i18n="key"`，富文本用 `data-i18n-html="key"`，属性用 `data-i18n-aria` / `data-i18n-title`。
   JS 首次切换语言时缓存中文原文，切回中文即还原；`meta.title` / `meta.description` 也走字典。
 - 顶栏：`<div class="nav-glass" id="navGlass" aria-hidden="true"></div>`（装饰层，`pointer-events:none`），
-  内容在 `.header-inner`；脚本顺序 `assets/vendor/hyalite.js` → `assets/site.js`。`Hyalite.supported()` 时挂载，
+  内容在 `.header-inner`；脚本顺序 `docs/assets/vendor/hyalite.js` → `docs/assets/site.js`。`Hyalite.supported()` 时挂载，
   并把 `data-glass` 写为 `hyalite`，否则为 `fallback`。
 - 降级开关：`?glass=off` 强制兜底、`?glass=on` 强制引擎；与 `?lang`、`?theme`、`?motion` 并列。
 - 页脚：`<p class="footer-credit">凌影傲爵 · DeepSeek</p>`（`VersionConsistencyTests` 依赖该 class）。
-- 资源全部本地（无 CDN、无外部字体、无外链脚本）；favicon 使用 `assets/site-icon.svg`；
-  唯一 vendored 运行时依赖是 `assets/vendor/hyalite.js`（MIT，见 `THIRD-PARTY-NOTICES.md`）。
+- 资源全部本地（无 CDN、无外部字体、无外链脚本）；favicon 使用 `docs/assets/site-icon.svg`；
+  唯一 vendored 运行时依赖是 `docs/assets/vendor/hyalite.js`（MIT，见 `THIRD-PARTY-NOTICES.md`）。
 
 ## 9. README 契约（`README.md` / `README.en.md`）
 
-1. 头部居中：`<div align="center">` + 图标 `<img src="assets/app-icon.png" width="96" />` + 双语切换
+1. 头部居中：`<div align="center">` + 图标 `<img src="docs/assets/app-icon.png" width="96" />` + 双语切换
    （`[English](README.en.md)` / `[中文](README.md)`）+ H1 + 一句话定位 + 8 枚徽章 + 入口行。
 2. 徽章必须包含 `release-v{版本}`；更新日志一节必须包含 `当前版本 **v{版本}**`（英文 `Current version: **v{版本}**`）。
 3. 工具箱一节必须包含 `内置 **18 种专业网络诊断工具**` 与 `<b>18 合 1 工具箱</b>`
@@ -284,8 +284,8 @@ Base64 · UUID · NAT Detection
 7. 参数表：3 列（标签 / 范围 / 默认），范围写「min – max」两个数字，默认值第一个数字与
    `appsettings.json` 一致；标签必须以上表 7.1 的中/英文开头。
 8. API 表：以反引号包裹全部 9 条 `/api/...` 路由，中英集合一致。
-9. 编码：UTF-8 无 BOM、单个结尾换行、CRLF（`tools/verify-docs.ps1` 校验）。
-10. 所有本地链接与图片必须存在：`assets/app-icon.png`、`assets/screenshot.png`、
+9. 编码：UTF-8 无 BOM、单个结尾换行、CRLF（`tools/docs/verify-docs.ps1` 校验）。
+10. 所有本地链接与图片必须存在：`docs/assets/app-icon.png`、`docs/assets/screenshot.png`、
     `LICENSE`、`CHANGELOG.md`、`CONTRIBUTING.md`、`SECURITY.md`、`CODE_OF_CONDUCT.md`、`THIRD-PARTY-NOTICES.md`。
 
 ## 10. 文案规范
@@ -297,14 +297,31 @@ Base64 · UUID · NAT Detection
 
 ## 11. 发版检查清单
 
-1. 改 `NetSpeedTest.csproj` 的 `<Version>`。
+1. 改 `src/NetSpeedTest/NetSpeedTest.csproj` 的 `<Version>`。
 2. README 徽章、README 更新日志、CHANGELOG、关于页、官网版本胶囊与更新日志同步。
-3. 如更新液态玻璃引擎：按 `THIRD-PARTY-NOTICES.md` 的固定 commit 替换 `assets/vendor/hyalite.js` 与 LICENSE，
+3. 如更新液态玻璃引擎：按 `THIRD-PARTY-NOTICES.md` 的固定 commit 替换 `docs/assets/vendor/hyalite.js` 与 LICENSE，
    同步版本号、许可与 `SiteTemplateTests` 的断言。
-4. 重拍截图：`pwsh tools/capture-screenshots.ps1`（本机无 pwsh 时用 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File`）。
-5. `dotnet test`、`pwsh tools/verify-docs.ps1` 全绿。
+4. 重拍截图：`pwsh tools/screenshots/capture-screenshots.ps1`（本机无 pwsh 时用 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File`）。
+5. `dotnet test`、`pwsh tools/docs/verify-docs.ps1` 全绿。
 6. 推送后核对 GitHub Pages 与仓库页渲染。
 
 > 官网支持 `?lang=zh|en`、`?theme=dark|light`、`?motion=off`、`?glass=off|on` 四个查询参数，
 > 分别用于语言 / 主题 / 关闭动画 / 强制液态玻璃降级或启用；
 > 截图与自动化测试应带上 `?motion=off`，验收降级时加 `?glass=off`。
+
+## 12. 仓库结构
+
+根目录只保留标准工程与社区文件，所有内容按四区分类；该结构由
+`RepositoryLayoutTests` 与 `tools/docs/verify-docs.ps1` 守护：
+
+```text
+src/NetSpeedTest/           # WPF 主程序
+tests/NetSpeedTest.Tests/   # xUnit 测试
+docs/                       # GitHub Pages 官网（发布根）、设计规范与 QA 归档
+tools/                      # docs / qa / verify / screenshots 脚本
+```
+
+- 官网发布根为 `docs/`（GitHub Pages source `/docs`）；站点 HTML 内的 `assets/...`
+  是相对发布根的路径，对应仓库中的 `docs/assets/...`。
+- 新增顶层目录、移动应用/测试/站点路径时，必须同步 `README` 项目树、`NetSpeedTest.sln`、
+  CI、工具脚本以及第 3.1 节与本节。

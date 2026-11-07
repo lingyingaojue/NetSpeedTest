@@ -1,4 +1,4 @@
-# NetSpeedTest B1-B3 smoke test (ASCII-only for Windows PowerShell 5.1)
+﻿# NetSpeedTest B1-B3 smoke test (ASCII-only for Windows PowerShell 5.1)
 # Drives the real Release build over HTTP on 127.0.0.1:8080.
 $ErrorActionPreference = 'Stop'
 trap {
@@ -7,11 +7,11 @@ trap {
   Get-Process NetSpeedTest -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
   exit 99
 }
-$repo    = 'D:\Program Files\DSH\NetSpeedTest'
-$exe     = Join-Path $repo 'NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'
+$repo    = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$exe     = Join-Path $repo 'src\NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'
 $cfgDir  = Join-Path $env:LOCALAPPDATA 'NetSpeedTest'
 $base    = 'http://127.0.0.1:8080'
-$log     = Join-Path $repo 'NetSpeedTest\bin\Release\net8.0-windows\debug.log'
+$log     = Join-Path $repo 'src\NetSpeedTest\bin\Release\net8.0-windows\debug.log'
 $results = New-Object System.Collections.Generic.List[object]
 $app     = $null
 

@@ -268,18 +268,5 @@ public class ToolboxCalculationTests
     }
 
     private static string ReadToolboxSource()
-    {
-        var relative = Path.Combine("ViewModels", "MoreViewModel.cs");
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null)
-        {
-            foreach (var candidate in new[] { relative, Path.Combine("NetSpeedTest", relative) })
-            {
-                var path = Path.Combine(dir.FullName, candidate);
-                if (File.Exists(path)) return File.ReadAllText(path);
-            }
-            dir = dir.Parent;
-        }
-        throw new FileNotFoundException($"MoreViewModel.cs not found above {AppContext.BaseDirectory}");
-    }
+        => ReadmeAssertions.ReadSourceFile(Path.Combine("ViewModels", "MoreViewModel.cs"));
 }

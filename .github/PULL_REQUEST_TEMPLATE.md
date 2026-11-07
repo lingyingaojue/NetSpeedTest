@@ -8,8 +8,8 @@
 
 ## 验证方式
 
-- [ ] `dotnet test NetSpeedTest.Tests\NetSpeedTest.Tests.csproj` 通过（通过 / 失败 / 跳过：__ / __ / __）
-- [ ] `pwsh tools\verify-docs.ps1` 0 失败
+- [ ] `dotnet test tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj` 通过（通过 / 失败 / 跳过：__ / __ / __）
+- [ ] `pwsh tools\docs\verify-docs.ps1` 0 失败
 - [ ] 真机验证（测速 / Web 控制台 / 工具箱 / 防火墙等，附截图或日志）
 - [ ] CI 全绿
 
@@ -18,7 +18,7 @@
 ## 文档同步检查
 
 - [ ] `README.md` 与 `README.en.md` 已同步（中英结构镜像）
-- [ ] 官网 `index.html` 已同步（参数 / API / 工具箱 / 版本）
+- [ ] 官网 `docs/index.html` 已同步（参数 / API / 工具箱 / 版本）
 - [ ] `CHANGELOG.md` 已更新（`Unreleased` 或对应版本小节）
 - [ ] 参数范围 / 默认值、API 路由、工具箱数量与版本号无遗漏
 - [ ] 安全机制变更已同步 `SECURITY.md`（如适用）

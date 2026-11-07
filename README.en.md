@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/app-icon.png" width="96" />
+<img src="docs/assets/app-icon.png" width="96" />
 
 [中文](README.md) · **English**
 
@@ -21,7 +21,7 @@
 
 </div>
 
-![Main window](assets/screenshot.png)
+![Main window](docs/assets/screenshot.png)
 
 > The complete main window in dark theme: embedded sidebar pages, custom title bar and live rate curves.
 
@@ -95,7 +95,7 @@
 
 ## 🖼️ Screenshots
 
-![Settings page](assets/screenshots/settings.png)
+![Settings page](docs/assets/screenshots/settings.png)
 
 > Settings: threads, test duration and compensation parameters are all tunable; the light theme, embedded pages and web console share the same design language.
 
@@ -235,20 +235,13 @@ Project layout:
 
 ```text
 NetSpeedTest/
-├─ NetSpeedTest/            # WPF application
-│  ├─ Converters/           # XAML value converters
-│  ├─ Helpers/              # Version, formatting and other helpers
-│  ├─ Languages/            # Chinese / English localization resources
-│  ├─ Models/               # Data models and options
-│  ├─ Services/             # Speed test, web server, persistence services
-│  ├─ Themes/               # Dark / light theme resources
-│  ├─ ViewModels/           # MVVM view models
-│  ├─ Views/                # Windows and embedded pages
-│  └─ wwwroot/              # Web console static assets
-├─ NetSpeedTest.Tests/      # xUnit tests (incl. README and site contract tests)
-├─ assets/                  # Icons, screenshots and website assets
-├─ docs/                    # Design spec and QA documents
-└─ tools/                   # Screenshot, documentation check and smoke scripts
+├─ .github/                  # CI, issue / PR templates
+├─ docs/                     # GitHub Pages site, design spec and QA archive
+├─ src/NetSpeedTest/         # WPF application (MVVM, services, themes)
+├─ tests/NetSpeedTest.Tests/ # xUnit tests (incl. README and site contract tests)
+├─ tools/                    # Docs, QA, verification and screenshot scripts
+├─ NetSpeedTest.sln
+└─ README.md / CHANGELOG.md
 ```
 
 > The website navigation glass is powered by [hyalite](https://github.com/VII-Cae/hyalite--liquid-glass) v0.5.0 (MIT, © 2026 VII-Cae); see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the license.
@@ -266,19 +259,19 @@ git clone https://github.com/lingyingaojue/NetSpeedTest.git
 cd NetSpeedTest
 dotnet restore
 dotnet build
-dotnet run --project NetSpeedTest\NetSpeedTest.csproj
+dotnet run --project src\NetSpeedTest\NetSpeedTest.csproj
 ```
 
 ### Run the Tests
 
 ```powershell
-dotnet test NetSpeedTest.Tests\NetSpeedTest.Tests.csproj
+dotnet test tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj
 ```
 
 ### Publish a Single-File Build
 
 ```powershell
-dotnet publish NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-contained true `
+dotnet publish src\NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-contained true `
   -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
@@ -286,16 +279,16 @@ The result is one self-contained executable (about 170 MB); the target machine n
 
 ### End-to-End Scripts
 
-`tools\` contains integration scripts that drive a real Release build (administrator rights are needed to open the HTTP.sys port):
+`tools\qa` / `tools\verify` / `tools\docs` / `tools\screenshots` contain integration scripts that drive a real Release build (administrator rights are needed to open the HTTP.sys port):
 
 | Script | Purpose |
 |:--|:--|
-| `tools\smoke-test.ps1` | Drives the Web API: token validation, security headers, input validation, test lifecycle, concurrent settings writes and FATAL log scan |
-| `tools\verify-version.ps1` | Checks the version string across csproj → executable file properties → Web console → static assets |
-| `tools\verify-token.ps1` | Checks that the session token is enforced for real LAN HTTP requests |
-| `tools\verify-extra.ps1` | Additional scenario verification |
-| `tools\verify-docs.ps1` | Verifies the README, website and community files stay on the shared template |
-| `tools\capture-screenshots.ps1` | Launches the real app and refreshes README / website screenshots at a fixed size |
+| `tools\qa\smoke-test.ps1` | Drives the Web API: token validation, security headers, input validation, test lifecycle, concurrent settings writes and FATAL log scan |
+| `tools\verify\verify-version.ps1` | Checks the version string across csproj → executable file properties → Web console → static assets |
+| `tools\verify\verify-token.ps1` | Checks that the session token is enforced for real LAN HTTP requests |
+| `tools\verify\verify-extra.ps1` | Additional scenario verification |
+| `tools\docs\verify-docs.ps1` | Verifies the README, website and community files stay on the shared template |
+| `tools\screenshots\capture-screenshots.ps1` | Launches the real app and refreshes README / website screenshots at a fixed size |
 
 ## 📥 Download
 
@@ -333,7 +326,7 @@ Windows 10 / 11 x64. The released build is a self-contained .NET 8 single file, 
 
 Code, documentation and translation contributions are welcome — please read [CONTRIBUTING.md](CONTRIBUTING.md) first.
 
-The palette, section templates and copy rules live in [docs/DESIGN.md](docs/DESIGN.md).
+The palette, section templates and copy rules live in [docs/design/DESIGN.md](docs/design/DESIGN.md).
 
 - Use [Issues](https://github.com/lingyingaojue/NetSpeedTest/issues) for feature requests and bug reports
 - Report security problems privately via [SECURITY.md](SECURITY.md), not in a public issue

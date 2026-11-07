@@ -1,9 +1,9 @@
-# Plan step 6: token enforcement over real HTTP from a non-loopback source.
+﻿# Plan step 6: token enforcement over real HTTP from a non-loopback source.
 # Requests are sent to the machine's LAN IP, so RemoteEndPoint is 192.168.x.x
 # and IsLoopbackRequest() is false -> the X-NST-Token check must apply.
 $ErrorActionPreference = 'Continue'
-$repo   = 'D:\Program Files\DSH\NetSpeedTest'
-$exe    = Join-Path $repo 'NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'
+$repo    = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$exe    = Join-Path $repo 'src\NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'
 $cfgDir = Join-Path $env:LOCALAPPDATA 'NetSpeedTest'
 $results = New-Object System.Collections.Generic.List[object]
 

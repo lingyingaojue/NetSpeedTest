@@ -90,20 +90,7 @@ public class SettingsClampTests
     // ===== 辅助 =====
 
     private static string ReadSettingsXaml()
-    {
-        var relative = Path.Combine("Views", "SettingsWindow.xaml");
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null)
-        {
-            foreach (var candidate in new[] { relative, Path.Combine("NetSpeedTest", relative) })
-            {
-                var path = Path.Combine(dir.FullName, candidate);
-                if (File.Exists(path)) return File.ReadAllText(path);
-            }
-            dir = dir.Parent;
-        }
-        throw new FileNotFoundException($"SettingsWindow.xaml not found above {AppContext.BaseDirectory}");
-    }
+        => ReadmeAssertions.ReadSourceFile(Path.Combine("Views", "SettingsWindow.xaml"));
 
     private static (double min, double max) ReadSliderBounds(string xaml, string boundProperty)
     {

@@ -4,8 +4,8 @@
 
 .DESCRIPTION
     启动 NetSpeedTest 的 Release 构建，把窗口固定到统一尺寸后逐页截图：
-      assets/screenshot.png              主界面（测速页）
-      assets/screenshots/settings.png    设置页（可用 -SkipSettings 跳过）
+      docs/assets/screenshot.png              主界面（测速页）
+      docs/assets/screenshots/settings.png    设置页（可用 -SkipSettings 跳过）
     只结束本脚本自己启动的进程，不会影响用户已打开的实例。
 
     截图使用 PrintWindow(PW_RENDERFULLCONTENT)，不要求窗口位于前台；
@@ -48,8 +48,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$repo = Split-Path -Parent $PSScriptRoot
-$assets = Join-Path $repo 'assets'
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$assets = Join-Path $repo 'docs\assets'
 $shotDir = Join-Path $assets 'screenshots'
 New-Item -ItemType Directory -Path $shotDir -Force | Out-Null
 
@@ -68,13 +68,13 @@ function Resolve-Exe {
     }
 
     $candidates = @(
-        (Join-Path $repo 'NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'),
-        (Join-Path $repo 'NetSpeedTest\bin\Debug\net8.0-windows\NetSpeedTest.exe')
+        (Join-Path $repo 'src\NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'),
+        (Join-Path $repo 'src\NetSpeedTest\bin\Debug\net8.0-windows\NetSpeedTest.exe')
     )
     foreach ($candidate in $candidates) {
         if (Test-Path -LiteralPath $candidate) { return $candidate }
     }
-    throw '找不到 NetSpeedTest.exe，请先执行：dotnet build NetSpeedTest\NetSpeedTest.csproj -c Release'
+    throw '找不到 NetSpeedTest.exe，请先执行：dotnet build src\NetSpeedTest\NetSpeedTest.csproj -c Release'
 }
 
 Add-Type -TypeDefinition @'

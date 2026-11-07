@@ -2,9 +2,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetSpeedTest", "NetSpeedTest\NetSpeedTest.csproj", "{A1B2C3D4-0001-4000-8000-000000000001}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetSpeedTest", "src\NetSpeedTest\NetSpeedTest.csproj", "{A1B2C3D4-0001-4000-8000-000000000001}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetSpeedTest.Tests", "NetSpeedTest.Tests\NetSpeedTest.Tests.csproj", "{A1B2C3D4-0002-4000-8000-000000000002}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NetSpeedTest.Tests", "tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj", "{A1B2C3D4-0002-4000-8000-000000000002}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

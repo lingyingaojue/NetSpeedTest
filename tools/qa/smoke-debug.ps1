@@ -1,11 +1,11 @@
-# Smoke-test the Debug build: Debug enables Debug.Assert and stricter runtime
+﻿# Smoke-test the Debug build: Debug enables Debug.Assert and stricter runtime
 # checks, so a clean compile is not sufficient evidence that it behaves.
 $ErrorActionPreference = 'Stop'
-$repo    = 'D:\Program Files\DSH\NetSpeedTest'
-$exe     = Join-Path $repo 'NetSpeedTest\bin\Debug\net8.0-windows\NetSpeedTest.exe'
+$repo    = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$exe     = Join-Path $repo 'src\NetSpeedTest\bin\Debug\net8.0-windows\NetSpeedTest.exe'
 $cfgDir  = Join-Path $env:LOCALAPPDATA 'NetSpeedTest'
 $base    = 'http://127.0.0.1:8080'
-$log     = Join-Path $repo 'NetSpeedTest\bin\Debug\net8.0-windows\debug.log'
+$log     = Join-Path $repo 'src\NetSpeedTest\bin\Debug\net8.0-windows\debug.log'
 $results = New-Object System.Collections.Generic.List[object]
 
 function Check([string]$name, [scriptblock]$body) {

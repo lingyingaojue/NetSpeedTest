@@ -635,8 +635,8 @@ internal static double? FirstNumber(string text)
 }
 
 /// <summary>
-/// 从测试输出目录向上查找仓库中的源文件，兼容 "README.md" 这类仓库根文件
-/// 与 "Views\X.xaml" 这类位于 NetSpeedTest 子目录下的文件。
+/// 从测试输出目录向上查找仓库中的源文件，兼容仓库根文件（README.md）、
+/// 程序源码（src/NetSpeedTest/Views/...）、官网文件（docs/index.html）与测试目录。
 ///
 /// 统一把 CRLF 归一化为 LF：仓库在工作区使用 CRLF，而按行解析的锚点正则
 /// 依赖 `$` 紧跟在行尾，留着 `\r` 会让匹配整体失效。
@@ -645,9 +645,15 @@ internal static string ReadSourceFile(string relative)
     => File.ReadAllText(SourceFile(relative)).Replace("\r\n", "\n");
 
 /// <summary>解析仓库源文件的绝对路径（不做换行归一化）。</summary>
-private static string SourceFile(string relative)
+internal static string SourceFile(string relative)
 {
-    var candidates = new[] { relative, Path.Combine("NetSpeedTest", relative) };
+    var candidates = new[]
+    {
+        relative,
+        Path.Combine("src", "NetSpeedTest", relative),
+        Path.Combine("docs", relative),
+        Path.Combine("tests", relative),
+    };
     var dir = new DirectoryInfo(AppContext.BaseDirectory);
     while (dir != null)
     {

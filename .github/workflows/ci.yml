@@ -30,7 +30,7 @@ jobs:
         run: dotnet build NetSpeedTest.sln -c Release --no-restore
 
       - name: Test
-        run: dotnet test NetSpeedTest.Tests\NetSpeedTest.Tests.csproj -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj -c Release --no-build --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
         if: always()
@@ -41,4 +41,4 @@ jobs:
           if-no-files-found: ignore
 
       - name: Verify docs
-        run: pwsh -File tools/verify-docs.ps1
+        run: pwsh -File tools/docs/verify-docs.ps1

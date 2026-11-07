@@ -1,12 +1,12 @@
-# Extra verification for plan smoke steps 4-7 (extension .zip / download endpoints).
+﻿# Extra verification for plan smoke steps 4-7 (extension .zip / download endpoints).
 # Focus: upload failure must be recorded as failure (not fake Mbps), B1-3/B1-2 sanity,
 # and the token enforcement matrix reachable from loopback.
 $ErrorActionPreference = 'Continue'
-$repo   = 'D:\Program Files\DSH\NetSpeedTest'
-$exe    = Join-Path $repo 'NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'
+$repo    = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$exe    = Join-Path $repo 'src\NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'
 $cfgDir = Join-Path $env:LOCALAPPDATA 'NetSpeedTest'
 $base   = 'http://127.0.0.1:8080'
-$log    = Join-Path $repo 'NetSpeedTest\bin\Release\net8.0-windows\debug.log'
+$log    = Join-Path $repo 'src\NetSpeedTest\bin\Release\net8.0-windows\debug.log'
 $results = New-Object System.Collections.Generic.List[object]
 
 function Check([string]$name, [scriptblock]$body) {

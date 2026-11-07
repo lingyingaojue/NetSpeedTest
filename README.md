@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/app-icon.png" width="96" />
+<img src="docs/assets/app-icon.png" width="96" />
 
 **中文** · [English](README.en.md)
 
@@ -21,7 +21,7 @@
 
 </div>
 
-![主界面](assets/screenshot.png)
+![主界面](docs/assets/screenshot.png)
 
 > 暗色主题下的完整主界面：左侧内嵌页导航、自绘标题栏与实时速率曲线。
 
@@ -95,7 +95,7 @@
 
 ## 🖼️ 界面预览
 
-![设置页](assets/screenshots/settings.png)
+![设置页](docs/assets/screenshots/settings.png)
 
 > 设置页：并发线程、测速时长与补偿参数逐项可调；浅色主题、内嵌页与 Web 控制台沿用同一套设计语言。
 
@@ -235,20 +235,13 @@
 
 ```text
 NetSpeedTest/
-├─ NetSpeedTest/            # WPF 主程序
-│  ├─ Converters/           # XAML 值转换器
-│  ├─ Helpers/              # 版本、格式化等通用辅助
-│  ├─ Languages/            # 中 / 英文本地化资源
-│  ├─ Models/               # 数据模型与选项
-│  ├─ Services/             # 测速、Web 服务器、持久化等服务
-│  ├─ Themes/               # 深 / 浅主题资源
-│  ├─ ViewModels/           # MVVM 视图模型
-│  ├─ Views/                # 窗口与内嵌页面
-│  └─ wwwroot/              # Web 控制台静态资源
-├─ NetSpeedTest.Tests/      # xUnit 测试（含 README 与站点契约测试）
-├─ assets/                  # 图标、截图与官网资源
-├─ docs/                    # 设计规范与 QA 文档
-└─ tools/                   # 截图、文档校验与冒烟脚本
+├─ .github/                  # CI、Issue / PR 模板
+├─ docs/                     # GitHub Pages 官网、设计规范与 QA 归档
+├─ src/NetSpeedTest/         # WPF 主程序（MVVM、服务、主题）
+├─ tests/NetSpeedTest.Tests/ # xUnit 测试（含 README 与站点契约测试）
+├─ tools/                    # 文档、QA、验证与截图脚本
+├─ NetSpeedTest.sln
+└─ README.md / CHANGELOG.md
 ```
 
 > 官网顶栏的液态玻璃材质基于 [hyalite](https://github.com/VII-Cae/hyalite--liquid-glass) v0.5.0（MIT，© 2026 VII-Cae）；许可全文见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
@@ -266,19 +259,19 @@ git clone https://github.com/lingyingaojue/NetSpeedTest.git
 cd NetSpeedTest
 dotnet restore
 dotnet build
-dotnet run --project NetSpeedTest\NetSpeedTest.csproj
+dotnet run --project src\NetSpeedTest\NetSpeedTest.csproj
 ```
 
 ### 运行测试
 
 ```powershell
-dotnet test NetSpeedTest.Tests\NetSpeedTest.Tests.csproj
+dotnet test tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj
 ```
 
 ### 发布单文件版
 
 ```powershell
-dotnet publish NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-contained true `
+dotnet publish src\NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-contained true `
   -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
@@ -286,16 +279,16 @@ dotnet publish NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-con
 
 ### 端到端脚本
 
-`tools\` 下提供针对真实 Release 构建的联调脚本（需要管理员权限以放行 HTTP.sys 端口）：
+`tools\qa` / `tools\verify` / `tools\docs` / `tools\screenshots` 提供针对真实 Release 构建的联调脚本（需要管理员权限以放行 HTTP.sys 端口）：
 
 | 脚本 | 用途 |
 |:--|:--|
-| `tools\smoke-test.ps1` | 驱动 Web API：令牌校验、安全响应头、输入校验、测速生命周期、并发设置写入与日志 FATAL 扫描 |
-| `tools\verify-version.ps1` | 校验版本号贯穿 csproj → exe 文件属性 → Web 控制台 → 静态资源 |
-| `tools\verify-token.ps1` | 校验会话令牌在真实局域网 HTTP 请求下的强制生效 |
-| `tools\verify-extra.ps1` | 补充场景验证 |
-| `tools\verify-docs.ps1` | 校验 README 中英、官网页面与社区文件的模板一致性 |
-| `tools\capture-screenshots.ps1` | 启动真实程序，按统一尺寸重拍 README / 官网截图 |
+| `tools\qa\smoke-test.ps1` | 驱动 Web API：令牌校验、安全响应头、输入校验、测速生命周期、并发设置写入与日志 FATAL 扫描 |
+| `tools\verify\verify-version.ps1` | 校验版本号贯穿 csproj → exe 文件属性 → Web 控制台 → 静态资源 |
+| `tools\verify\verify-token.ps1` | 校验会话令牌在真实局域网 HTTP 请求下的强制生效 |
+| `tools\verify\verify-extra.ps1` | 补充场景验证 |
+| `tools\docs\verify-docs.ps1` | 校验 README 中英、官网页面与社区文件的模板一致性 |
+| `tools\screenshots\capture-screenshots.ps1` | 启动真实程序，按统一尺寸重拍 README / 官网截图 |
 
 ## 📥 下载
 
@@ -333,7 +326,7 @@ v1.4.4 起程序清单请求管理员权限，用于自动创建 / 清理防火�
 
 欢迎贡献代码、文档与翻译，提交前请先阅读 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-仓库的色板、章节模板与文案规范见 [docs/DESIGN.md](docs/DESIGN.md)。
+仓库的色板、章节模板与文案规范见 [docs/design/DESIGN.md](docs/design/DESIGN.md)。
 
 - 功能建议与缺陷反馈请使用 [Issues](https://github.com/lingyingaojue/NetSpeedTest/issues)
 - 安全问题请按 [SECURITY.md](SECURITY.md) 私下报告，不要公开提交 Issue

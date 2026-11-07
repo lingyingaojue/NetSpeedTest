@@ -1,7 +1,7 @@
-# Verify the v1.4.4 version string reaches every runtime surface.
+﻿# Verify the v1.4.4 version string reaches every runtime surface.
 $ErrorActionPreference = 'Stop'
-$repo   = Split-Path -Parent $PSScriptRoot
-$exe    = Join-Path $repo 'NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$exe    = Join-Path $repo 'src\NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'
 $base   = 'http://127.0.0.1:8080'
 $results = New-Object System.Collections.Generic.List[object]
 
@@ -58,7 +58,7 @@ try {
 
   # Derive the expected version from the source of truth (csproj) instead of
   # hardcoding it here, so this script keeps working across releases.
-  $csproj = Join-Path $repo 'NetSpeedTest\NetSpeedTest.csproj'
+  $csproj = Join-Path $repo 'src\NetSpeedTest\NetSpeedTest.csproj'
   $m = [regex]::Match((Get-Content $csproj -Raw), '<Version>\s*([^<\s]+)\s*</Version>')
   if (-not $m.Success) { throw "<Version> not found in $csproj" }
   $expected = $m.Groups[1].Value

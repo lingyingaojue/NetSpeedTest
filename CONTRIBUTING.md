@@ -27,25 +27,25 @@ git clone https://github.com/lingyingaojue/NetSpeedTest.git
 cd NetSpeedTest
 dotnet restore
 dotnet build
-dotnet run --project NetSpeedTest\NetSpeedTest.csproj
+dotnet run --project src\NetSpeedTest\NetSpeedTest.csproj
 ```
 
 需要调试日志（写入 `debug.log`）时：
 
 ```powershell
-dotnet run --project NetSpeedTest\NetSpeedTest.csproj -- --debug
+dotnet run --project src\NetSpeedTest\NetSpeedTest.csproj -- --debug
 ```
 
 ## 运行测试
 
 ```powershell
-dotnet test NetSpeedTest.Tests\NetSpeedTest.Tests.csproj
+dotnet test tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj
 ```
 
 只跑某个测试类（例如版本一致性）：
 
 ```powershell
-dotnet test NetSpeedTest.Tests\NetSpeedTest.Tests.csproj --filter "FullyQualifiedName~VersionConsistencyTests"
+dotnet test tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj --filter "FullyQualifiedName~VersionConsistencyTests"
 ```
 
 CI 会在 `windows-latest` 上执行 restore / build / test 与文档自检，提交前请至少跑通与改动相关的测试。
@@ -53,7 +53,7 @@ CI 会在 `windows-latest` 上执行 restore / build / test 与文档自检，�
 ## 发布单文件版
 
 ```powershell
-dotnet publish NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-contained true `
+dotnet publish src\NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-contained true `
   -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
@@ -61,19 +61,19 @@ dotnet publish NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-con
 
 ## 端到端验证脚本
 
-`tools\` 下的脚本针对真实 Release 构建运行（需要管理员权限以放行 HTTP.sys 端口）：
+`tools\qa` / `tools\verify` / `tools\docs` / `tools\screenshots` 下的脚本针对真实 Release 构建运行（需要管理员权限以放行 HTTP.sys 端口）：
 
 | 脚本 | 用途 |
 |:--|:--|
-| `tools\smoke-test.ps1` | 驱动真实程序与 Web API：令牌校验、安全响应头、输入校验、测速生命周期 |
-| `tools\verify-version.ps1` | 校验版本号贯穿 csproj → exe 文件属性 → Web 控制台 → 静态资源 |
-| `tools\verify-token.ps1` | 校验会话令牌在真实局域网请求下的强制生效 |
-| `tools\verify-extra.ps1` | 补充场景验证 |
-| `tools\verify-docs.ps1` | 统一文档自检：README、官网、社区规范与版本一致性（提交前必跑） |
+| `tools\qa\smoke-test.ps1` | 驱动真实程序与 Web API：令牌校验、安全响应头、输入校验、测速生命周期 |
+| `tools\verify\verify-version.ps1` | 校验版本号贯穿 csproj → exe 文件属性 → Web 控制台 → 静态资源 |
+| `tools\verify\verify-token.ps1` | 校验会话令牌在真实局域网请求下的强制生效 |
+| `tools\verify\verify-extra.ps1` | 补充场景验证 |
+| `tools\docs\verify-docs.ps1` | 统一文档自检：README、官网、社区规范与版本一致性（提交前必跑） |
 
 ## 文档同步规则
 
-README（中/英）、官网 `index.html`、`CHANGELOG.md` 与程序内文案共同构成对外事实；同一事实只在一处定义，其余引用。
+README（中/英）、官网 `docs/index.html`、`CHANGELOG.md` 与程序内文案共同构成对外事实；同一事实只在一处定义，其余引用。
 
 改动下列内容时，必须在同一个 PR 内同步更新对应文档：
 
@@ -85,15 +85,15 @@ README（中/英）、官网 `index.html`、`CHANGELOG.md` 与程序内文案共
 | 版本号 / 发版 | `CHANGELOG.md`、README 徽章与更新日志、官网版本胶囊、关于页 |
 | 安全机制或安全默认值 | `SECURITY.md` 安全机制清单 |
 
-发版与展示内容变更的完整流程见 [docs/DESIGN.md](docs/DESIGN.md) 第 11 节《发版检查清单》。
+发版与展示内容变更的完整流程见 [docs/design/DESIGN.md](docs/design/DESIGN.md) 第 11 节《发版检查清单》。
 
 提交前必须执行文档自检：
 
 ```powershell
-pwsh tools\verify-docs.ps1
+pwsh tools\docs\verify-docs.ps1
 ```
 
-文档编码约定：UTF-8 无 BOM、Markdown 使用 CRLF、文件末尾保留单个换行；`.editorconfig` 与 `tools\verify-docs.ps1` 会校验这些规则。
+文档编码约定：UTF-8 无 BOM、Markdown 使用 CRLF、文件末尾保留单个换行；`.editorconfig` 与 `tools\docs\verify-docs.ps1` 会校验这些规则。
 
 ## 提交信息规范
 
@@ -125,8 +125,8 @@ chore(ci): 固定 .NET 8.0.x 构建环境
 2. 一个改动对应一个 commit；PR 与 commit 都要能独立理解与回滚。
 3. 填写 [PR 模板](.github/PULL_REQUEST_TEMPLATE.md)：变更说明、关联 issue、验证方式、文档同步清单。
 4. 附上测试证据：
-   - `dotnet test NetSpeedTest.Tests\NetSpeedTest.Tests.csproj` 通过（写明通过 / 失败 / 跳过数）；
-   - `pwsh tools\verify-docs.ps1` 0 失败；
+   - `dotnet test tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj` 通过（写明通过 / 失败 / 跳过数）；
+   - `pwsh tools\docs\verify-docs.ps1` 0 失败；
    - 涉及测速、Web 控制台、防火墙等运行时行为时附真机验证截图或日志。
 5. 确保 CI 全绿、至少一名维护者复核后合并；合并后删除分支。
 6. 安全相关问题不要走公开 PR，按 [SECURITY.md](SECURITY.md) 私密报告。
@@ -135,9 +135,9 @@ chore(ci): 固定 .NET 8.0.x 构建环境
 
 - **Code of Conduct**: by participating you agree to [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md); report security issues privately via [SECURITY.md](SECURITY.md), never in a public issue.
 - **Environment**: Windows 10/11 and the .NET 8 SDK (8.0.x); the app requires administrator rights and shows a UAC prompt at every start.
-- **Build & run**: `dotnet restore` → `dotnet build` → `dotnet run --project NetSpeedTest\NetSpeedTest.csproj` (add `-- --debug` for `debug.log`).
-- **Tests**: `dotnet test NetSpeedTest.Tests\NetSpeedTest.Tests.csproj`; CI runs restore / build / test on `windows-latest` plus the docs check.
-- **Publish**: `dotnet publish NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true`.
-- **Docs sync**: changes to parameters, REST API, toolbox count or version must update `README.md`, `README.en.md`, the website (`index.html`) and `CHANGELOG.md`, then run `pwsh tools\verify-docs.ps1`.
+- **Build & run**: `dotnet restore` → `dotnet build` → `dotnet run --project src\NetSpeedTest\NetSpeedTest.csproj` (add `-- --debug` for `debug.log`).
+- **Tests**: `dotnet test tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj`; CI runs restore / build / test on `windows-latest` plus the docs check.
+- **Publish**: `dotnet publish src\NetSpeedTest\NetSpeedTest.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true`.
+- **Docs sync**: changes to parameters, REST API, toolbox count or version must update `README.md`, `README.en.md`, the website (`docs/index.html`) and `CHANGELOG.md`, then run `pwsh tools\docs\verify-docs.ps1`.
 - **Commits**: `<type>(<scope>): <Chinese summary>` with type in `feat|fix|docs|test|chore`; one logical change per commit.
 - **Pull requests**: fill in the PR template, link the issue, attach test evidence, and make sure CI is green before merge.

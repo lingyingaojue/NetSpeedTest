@@ -15,7 +15,7 @@
 *.yaml text eol=lf
 
 # 第三方 vendored 文件保留上游 LF
-assets/vendor/** text eol=lf
+docs/assets/vendor/** text eol=lf
 
 # 图片与图标按二进制处理
 *.png binary

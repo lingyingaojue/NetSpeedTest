@@ -12,7 +12,7 @@
     社区健康文件，可作为提交前与 CI 的统一入口（默认完全离线）。
 
     CI（.github/workflows/ci.yml）在 dotnet test 之后执行：
-        pwsh -File tools/verify-docs.ps1
+        pwsh -File tools/docs/verify-docs.ps1
 
 .PARAMETER Online
     额外对外部 http(s) 链接做 HEAD 探测（屏蔽徽章等会因网络抖动失败，故默认关闭）。
@@ -23,9 +23,9 @@
 .EXAMPLE
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools\verify-docs.ps1
 .EXAMPLE
-    pwsh -File tools/verify-docs.ps1
+    pwsh -File tools/docs/verify-docs.ps1
 .EXAMPLE
-    pwsh -File tools/verify-docs.ps1 -Online -Silent
+    pwsh -File tools/docs/verify-docs.ps1 -Online -Silent
 #>
 [CmdletBinding()]
 param(
@@ -34,7 +34,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$repo = Split-Path -Parent $PSScriptRoot
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$siteDir = Join-Path $repo 'docs'
+$siteIndex = Join-Path $siteDir 'index.html'
+$site404 = Join-Path $siteDir '404.html'
 $failures = New-Object System.Collections.Generic.List[string]
 $checks = 0
 
@@ -109,7 +112,7 @@ function Assert-SourceEncoding([string]$path, [string]$label) {
 
 # 版本号唯一来源是 NetSpeedTest.csproj 的 <Version>；回退到 README 的 release 徽章，避免写死。
 function Get-DeclaredVersion {
-    $csproj = Join-Path $repo 'NetSpeedTest\NetSpeedTest.csproj'
+    $csproj = Join-Path $repo 'src\NetSpeedTest\NetSpeedTest.csproj'
     if (Test-Path -LiteralPath $csproj) {
         $match = [regex]::Match((Read-Utf8 $csproj), '<Version>\s*([^<\s]+)\s*</Version>')
         if ($match.Success) { return $match.Groups[1].Value }
@@ -248,10 +251,10 @@ Check '中英结构镜像' {
 
 # ========== 7. 官网编码卫生 ==========
 $siteFiles = @(
-    [pscustomobject]@{ Label = 'index.html'; Path = Join-Path $repo 'index.html' },
-    [pscustomobject]@{ Label = '404.html'; Path = Join-Path $repo '404.html' },
-    [pscustomobject]@{ Label = 'assets/site.css'; Path = Join-Path $repo 'assets\site.css' },
-    [pscustomobject]@{ Label = 'assets/site.js'; Path = Join-Path $repo 'assets\site.js' }
+    [pscustomobject]@{ Label = 'docs/index.html'; Path = $siteIndex },
+    [pscustomobject]@{ Label = 'docs/404.html'; Path = $site404 },
+    [pscustomobject]@{ Label = 'docs/assets/site.css'; Path = Join-Path $repo 'docs\assets\site.css' },
+    [pscustomobject]@{ Label = 'docs/assets/site.js'; Path = Join-Path $repo 'docs\assets\site.js' }
 )
 foreach ($siteFile in $siteFiles) {
     $local = $siteFile
@@ -262,7 +265,7 @@ foreach ($siteFile in $siteFiles) {
 
 # ========== 8. 官网页内锚点与 id 唯一 ==========
 Check '官网页内锚点与 id 唯一' {
-    $html = Read-Utf8 (Join-Path $repo 'index.html')
+    $html = Read-Utf8 ($siteIndex)
 
     $ids = New-Object System.Collections.Generic.List[string]
     foreach ($m in [regex]::Matches($html, '(?<![\w-])id="([^"]+)"')) { $ids.Add($m.Groups[1].Value) }
@@ -296,8 +299,9 @@ Check '官网页内锚点与 id 唯一' {
 Check '官网本地资源存在' {
     $missing = New-Object System.Collections.Generic.List[string]
     $total = 0
-    foreach ($name in @('index.html', '404.html')) {
-        $html = Read-Utf8 (Join-Path $repo $name)
+    foreach ($htmlFile in @($siteIndex, $site404)) {
+        $name = Split-Path -Leaf $htmlFile
+        $html = Read-Utf8 $htmlFile
         foreach ($m in [regex]::Matches($html, '(?:src|href)="([^"]+)"')) {
             $target = $m.Groups[1].Value
             if ([string]::IsNullOrWhiteSpace($target)) { continue }
@@ -305,7 +309,7 @@ Check '官网本地资源存在' {
             if ($target -match '^(?:[a-z][a-z0-9+.\-]*:|//)') { continue }
             $relative = ($target -split '[?#]')[0]
             if ([string]::IsNullOrWhiteSpace($relative)) { continue }
-            $resolved = Join-Path $repo $relative
+            $resolved = Join-Path $siteDir $relative
             if (-not (Test-Path -LiteralPath $resolved)) { $missing.Add("$name -> $relative") } else { $total++ }
         }
     }
@@ -321,7 +325,7 @@ Check '官网版本面一致' {
     Assert ($changelogVersions.Count -ge 3) "CHANGELOG.md 至少要有 3 个版本标题，实际 $($changelogVersions.Count) 个"
     Assert ($changelogVersions[0] -eq $version) "CHANGELOG.md 最新版本是 $($changelogVersions[0])，源码声明是 $version"
 
-    $html = Read-Utf8 (Join-Path $repo 'index.html')
+    $html = Read-Utf8 ($siteIndex)
     $chip = [regex]::Match($html, '<span class="version-chip" id="siteVersion">([^<]+)</span>')
     Assert $chip.Success 'index.html 缺少 #siteVersion 版本胶囊'
     $chipVersion = $chip.Groups[1].Value.Trim()
@@ -362,7 +366,7 @@ Check '官网版本面一致' {
 
 # ========== 11. 官网 i18n 字典 ==========
 Check '官网 i18n 键完整' {
-    $html = Read-Utf8 (Join-Path $repo 'index.html')
+    $html = Read-Utf8 ($siteIndex)
     $i18nNode = [regex]::Match($html, '(?s)<script[^>]*id="i18n-data"[^>]*>(.*?)</script>')
     Assert $i18nNode.Success 'index.html 缺少内嵌的 i18n-data 字典'
 
@@ -419,7 +423,7 @@ Check '社区文件齐全' {
 
     $ci = Read-Utf8 (Join-Path $repo '.github\workflows\ci.yml')
     Assert ($ci.Contains('dotnet test')) 'ci.yml 没有运行 dotnet test'
-    Assert ($ci.Contains('tools/verify-docs.ps1')) 'ci.yml 没有运行 tools/verify-docs.ps1'
+    Assert ($ci.Contains('tools/docs/verify-docs.ps1')) 'ci.yml 没有运行 tools/docs/verify-docs.ps1'
     "$($required.Count) 个社区健康文件齐全 · CI 覆盖测试与文档自检"
 }
 
@@ -467,6 +471,63 @@ if ($Online) {
         Assert ($bad.Count -eq 0) ($bad -join '; ')
         "$ok/$($urls.Count) 个外部链接可达"
     }
+}
+
+# ========== 15. 仓库分类结构 ==========
+Check '仓库分类结构完整' {
+    $required = @(
+        'src\NetSpeedTest\NetSpeedTest.csproj',
+        'tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj',
+        'docs\index.html',
+        'docs\404.html',
+        'docs\.nojekyll',
+        'docs\design\DESIGN.md',
+        'docs\qa\README.md',
+        'docs\assets\site.css',
+        'docs\assets\site.js',
+        'docs\assets\vendor\hyalite.js',
+        'tools\docs\verify-docs.ps1',
+        'tools\qa\smoke-test.ps1',
+        'tools\qa\smoke-debug.ps1',
+        'tools\screenshots\capture-screenshots.ps1',
+        'tools\verify\verify-version.ps1',
+        'tools\verify\verify-token.ps1',
+        'tools\verify\verify-extra.ps1'
+    )
+    $missing = New-Object System.Collections.Generic.List[string]
+    foreach ($relative in $required) {
+        if (-not (Test-Path -LiteralPath (Join-Path $repo $relative))) { $missing.Add($relative) }
+    }
+    Assert ($missing.Count -eq 0) ('分类后缺少：' + ($missing -join ', '))
+
+    $sln = Read-Utf8 (Join-Path $repo 'NetSpeedTest.sln')
+    Assert ($sln.Contains('src\NetSpeedTest\NetSpeedTest.csproj')) 'sln 未指向 src\NetSpeedTest'
+    Assert ($sln.Contains('tests\NetSpeedTest.Tests\NetSpeedTest.Tests.csproj')) 'sln 未指向 tests\NetSpeedTest.Tests'
+    "$($required.Count) 个分类路径齐全 · solution 指向新项目路径"
+}
+
+Check '仓库旧路径已清理' {
+    $forbidden = @(
+        'NetSpeedTest',
+        'NetSpeedTest.Tests',
+        'assets',
+        'index.html',
+        '404.html',
+        '.nojekyll',
+        'tools\verify-docs.ps1',
+        'tools\smoke-test.ps1',
+        'tools\smoke-debug.ps1',
+        'tools\verify-version.ps1',
+        'tools\verify-token.ps1',
+        'tools\verify-extra.ps1',
+        'tools\capture-screenshots.ps1'
+    )
+    $leftovers = New-Object System.Collections.Generic.List[string]
+    foreach ($relative in $forbidden) {
+        if (Test-Path -LiteralPath (Join-Path $repo $relative)) { $leftovers.Add($relative) }
+    }
+    Assert ($leftovers.Count -eq 0) ('旧路径仍存在：' + ($leftovers -join ', '))
+    "$($forbidden.Count) 个旧路径均已清理"
 }
 
 # ========== 汇总 ==========

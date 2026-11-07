@@ -16,16 +16,7 @@ namespace NetSpeedTest.Tests;
 public class VersionConsistencyTests
 {
     private static string ProjectFilePath()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null)
-        {
-            var candidate = Path.Combine(dir.FullName, "NetSpeedTest", "NetSpeedTest.csproj");
-            if (File.Exists(candidate)) return candidate;
-            dir = dir.Parent;
-        }
-        throw new FileNotFoundException("NetSpeedTest.csproj not found above " + AppContext.BaseDirectory);
-    }
+        => ReadmeAssertions.SourceFile(Path.Combine("NetSpeedTest.csproj"));
 
     private static string DeclaredVersion()
     {
@@ -180,25 +171,12 @@ public class VersionConsistencyTests
     }
 
     private static string FindWwwRootIndex()
-        => FindSourceFile(Path.Combine("NetSpeedTest", "wwwroot", "index.html"));
+        => ReadmeAssertions.SourceFile(Path.Combine("wwwroot", "index.html"));
 
     /// <summary>
-    /// 从测试输出目录向上查找仓库中的源文件，兼容 "CHANGELOG.md" 这类仓库根文件
-    /// 与 "Views\X.xaml" 这类位于 NetSpeedTest 子目录下的文件。
+    /// 统一的仓库源文件定位（见 <see cref="ReadmeAssertions.SourceFile"/>），
+    /// 兼容根文件、src/NetSpeedTest 源码、docs 官网与 tests 目录。
     /// </summary>
     private static string FindSourceFile(string relative)
-    {
-        var candidates = new[] { relative, Path.Combine("NetSpeedTest", relative) };
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir != null)
-        {
-            foreach (var candidate in candidates)
-            {
-                var path = Path.Combine(dir.FullName, candidate);
-                if (File.Exists(path)) return path;
-            }
-            dir = dir.Parent;
-        }
-        throw new FileNotFoundException($"{relative} not found above {AppContext.BaseDirectory}");
-    }
+        => ReadmeAssertions.SourceFile(relative);
 }
