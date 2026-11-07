@@ -1,0 +1,52 @@
+name: 功能建议
+description: 描述需求场景并提出功能改进建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的建议！提交前请先搜索现有 issue 与 [CHANGELOG](https://github.com/lingyingaojue/NetSpeedTest/blob/main/CHANGELOG.md)，避免重复。
+
+        安全相关问题请勿公开提交，请按 [SECURITY.md](https://github.com/lingyingaojue/NetSpeedTest/blob/main/SECURITY.md) 的私密渠道报告。
+
+  - type: textarea
+    id: scenario
+    attributes:
+      label: 需求场景
+      description: 请描述使用场景与当前痛点：在什么环境下、想完成什么、现在为何做不到。
+      placeholder: 例如：机房有多条专线，希望一次测速对比每张网卡的上下行峰值
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 你期望的功能形态、交互或 API 设计；如有参考实现 / 截图请附上。
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案
+      description: 你考虑过的其他做法，以及为什么不够好。
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 补充信息
+      description: 其他上下文，如当前版本、操作系统、相关 issue 链接或截图。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索现有 issue，确认这不是重复建议
+          required: true

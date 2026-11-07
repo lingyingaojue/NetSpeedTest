@@ -1,0 +1,97 @@
+name: 缺陷报告
+description: 报告 NetSpeedTest 的可复现问题（安全漏洞请勿在此公开）
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！提交前请先搜索现有 issue，确认没有被重复报告。
+
+        ⚠️ 安全漏洞请勿公开提交，请按 [SECURITY.md](https://github.com/lingyingaojue/NetSpeedTest/blob/main/SECURITY.md) 的私密渠道报告。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 一句话说明问题，可补充错误提示或异常现象。
+      placeholder: 例如：经 Web 控制台在手机上开始测速后，结果不写入历史记录
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 请写出可复现的最小步骤，必要时附命令。
+      placeholder: |
+        1. 启动 NetSpeedTest，开启 Web 服务器
+        2. 手机访问 http://<局域网IP>:8080
+        3. 点击「开始测速」并等待结束
+        4. 查看历史记录
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 你认为正确的结果是什么。
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 实际发生了什么；如有报错信息请完整粘贴。
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 程序「关于」页显示的版本，或 Release 标签（如 v1.4.4）。
+      placeholder: v1.4.4
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: 系统版本
+      description: Windows 版本与位数，例如 Windows 11 23H2 x64。
+      placeholder: Windows 11 23H2 (x64)
+    validations:
+      required: false
+
+  - type: textarea
+    id: speed_config
+    attributes:
+      label: 测速配置
+      description: 测速模式（下载 / 上传 / 双向）、节点 URL、线程数、时长、网卡、Web 端口等；使用多网卡或自定义节点请注明。
+      placeholder: 模式=双向；节点=默认 8 个 CDN；线程=128；时长=60s；网卡=以太网
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图
+      description: |
+        可粘贴以 `--debug` 启动生成的 `debug.log` 相关片段，或拖入截图 / 录屏。
+        请先脱敏：删除会话令牌、内网 IP、个人路径等敏感信息。
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已搜索现有 issue，确认这不是重复报告
+          required: true
+        - label: 我已阅读 SECURITY.md，本问题不是安全漏洞
+          required: true

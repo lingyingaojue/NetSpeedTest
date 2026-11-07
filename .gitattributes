@@ -19,4 +19,6 @@
 *.jpg binary
 *.jpeg binary
 *.ico binary
-*.svg binary
+
+# SVG 是文本，按 LF 存储以便审阅 diff
+*.svg text eol=lf

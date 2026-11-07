@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 官网与使用文档
+    url: https://lingyingaojue.github.io/NetSpeedTest/
+    about: 查看功能说明、可调参数、REST API 与常见问题
+  - name: 下载与更新日志
+    url: https://github.com/lingyingaojue/NetSpeedTest/releases
+    about: 获取最新版本、历史版本与发行说明
+  - name: 邮件联系
+    url: mailto:mashuo2010az@163.com
+    about: 无法公开讨论的问题（含安全漏洞）请邮件联系，请勿公开安全 issue

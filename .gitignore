@@ -32,5 +32,5 @@ tools/smoke-output.txt
 debug.log
 
 ## QA runtime artifacts
-qa-results/netspeedtest-coreqa/config-backup/
-qa-results/netspeedtest-coreqa/deliver-real.log
+docs/qa/config-backup/
+docs/qa/deliver-real.log

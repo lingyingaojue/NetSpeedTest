@@ -1,6 +1,6 @@
 # Verify the v1.4.4 version string reaches every runtime surface.
 $ErrorActionPreference = 'Stop'
-$repo   = 'D:\Program Files\DSH\NetSpeedTest'
+$repo   = Split-Path -Parent $PSScriptRoot
 $exe    = Join-Path $repo 'NetSpeedTest\bin\Release\net8.0-windows\NetSpeedTest.exe'
 $base   = 'http://127.0.0.1:8080'
 $results = New-Object System.Collections.Generic.List[object]
