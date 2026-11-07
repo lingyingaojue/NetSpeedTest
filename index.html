@@ -1,58 +1,126 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark" data-lang="zh">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NetSpeedTest — Windows 专业级网络测速工具</title>
-  <meta name="description" content="NetSpeedTest 是一款开源免费的 Windows 桌面网络测速工具：128 线程智能测速引擎、多网卡并行测速、UDP 优先五层延迟探测、18 合 1 网络工具箱。" />
-  <meta name="theme-color" content="#0d1117" />
+  <meta name="description" content="NetSpeedTest 是一款开源免费的 Windows 桌面网络测速工具：128 线程智能测速引擎、多网卡并行测速、UDP 优先五层延迟探测、18 合 1 网络工具箱与 Web 远程控制台。" />
+  <meta name="theme-color" content="#1c1c1e" />
+  <link rel="canonical" href="https://lingyingaojue.github.io/NetSpeedTest/" />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://lingyingaojue.github.io/NetSpeedTest/" />
   <meta property="og:title" content="NetSpeedTest — Windows 专业级网络测速工具" />
-  <meta property="og:description" content="128 线程智能测速引擎、多网卡并行测速、UDP 优先五层延迟探测、18 合 1 网络工具箱，开源免费。" />
-  <meta property="og:image" content="https://raw.githubusercontent.com/lingyingaojue/NetSpeedTest/main/assets/screenshot.png" />
+  <meta property="og:description" content="128 线程智能测速引擎、多网卡并行测速、UDP 五层延迟探测、18 合 1 工具箱，开源免费。" />
+  <meta property="og:image" content="https://lingyingaojue.github.io/NetSpeedTest/assets/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="icon" type="image/png" href="NetSpeedTest/Resources/app.png" />
+  <meta name="twitter:title" content="NetSpeedTest — Windows 专业级网络测速工具" />
+  <meta name="twitter:description" content="128 线程智能测速引擎、多网卡并行测速、UDP 五层延迟探测、18 合 1 工具箱，开源免费。" />
+  <meta name="twitter:image" content="https://lingyingaojue.github.io/NetSpeedTest/assets/og-cover.png" />
+  <link rel="icon" href="assets/site-icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
   <link rel="stylesheet" href="assets/site.css" />
+  <script>
+    /* 在首屏渲染前恢复主题与语言，避免闪烁；无 JS 时中文内容默认可见。 */
+    (function () {
+      var root = document.documentElement;
+      root.classList.add("js");
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var theme = params.get("theme") || localStorage.getItem("nst-site-theme");
+        if (theme !== "light" && theme !== "dark") {
+          theme = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+        root.setAttribute("data-theme", theme);
+
+        var lang = params.get("lang") || localStorage.getItem("nst-site-lang");
+        if (lang !== "zh" && lang !== "en") {
+          lang = /^zh\b/i.test(navigator.language || "") ? "zh" : "en";
+        }
+        root.setAttribute("data-lang", lang);
+        root.setAttribute("lang", lang === "zh" ? "zh-CN" : "en");
+      } catch (e) { /* localStorage 不可用时保持默认 */ }
+    })();
+  </script>
 </head>
 <body>
-  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
-  <a class="skip-link" href="#main">跳到主要内容</a>
+  <svg class="sprite" aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden">
+    <symbol id="i-speed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 9-9"/><path d="M12 12l5-3"/><path d="M12 12v4"/></symbol>
+    <symbol id="i-network" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="8.5" y="14" width="7" height="7" rx="1.5"/><path d="M6.5 10v2h11v-2M12 12v2"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h3l3-7 4 14 3-9 2 2h5"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V11M9 19V6M14 19v-5M19 19V9"/><path d="M2 19h20"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11.1 11.1 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.83 1.18 3.09 0 4.42-2.7 5.39-5.27 5.68.42.36.79 1.06.79 2.14v3.17c0 .31.21.68.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 6.3 6.8.6-5.2 4.5 1.6 6.7L12 17.6 6.1 21l1.6-6.7L2.5 9.9l6.8-.6L12 3z"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4L10 14"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 7.7-8 9-4.8-1.3-8-4.5-8-9V6l8-3z"/><path d="M9 12l2 2 4-4"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.5 2.5 3.8 5.7 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.7-3.8-9S9.5 5.5 12 3z"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h5a5 5 0 0 0 0-10h-1a4 4 0 0 1 0-8"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2"/><path d="M21 4v6h-6M3 20v-6h6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z"/><path d="M14 3v6h6"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-hash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3L7 21M17 3l-2 18M3 9h18M2 15h18"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6l-5 6 5 6"/><path d="M16 6l5 6-5 6"/></symbol>
+    <symbol id="i-id" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="11" r="2"/><path d="M5.5 16c.6-1.6 1.7-2.4 3-2.4s2.4.8 3 2.4"/><path d="M14 10h4M14 14h4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/></symbol>
+    <symbol id="i-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><rect x="9.5" y="9.5" width="5" height="5"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></symbol>
+  </svg>
+
+  <a class="skip-link" href="#main" data-i18n="header.skip">跳到主要内容</a>
 
   <header class="site-header" id="siteHeader">
     <div class="container header-inner">
-      <a class="brand" href="#top" aria-label="NetSpeedTest 首页">
-        <img src="NetSpeedTest/Resources/app.png" alt="" width="42" height="42" />
+      <a class="brand" href="#top" aria-label="NetSpeedTest">
+        <img src="assets/app-icon.png" alt="" width="38" height="38" />
         <span class="brand-text">
           <strong>NetSpeedTest</strong>
-          <small>Windows 网络测速</small>
+          <span data-i18n="brand.sub">Windows 网络测速</span>
         </span>
-        <span class="version-chip">v1.4.4</span>
+        <span class="version-chip" id="siteVersion">v1.4.4</span>
       </a>
 
-      <button class="nav-toggle" id="navToggle" type="button" aria-label="打开导航菜单" aria-expanded="false" aria-controls="siteNav">
+      <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="siteNav"
+              data-i18n-aria="header.menu" aria-label="打开导航菜单">
         <span></span><span></span><span></span>
       </button>
 
-      <nav class="site-nav" id="siteNav" aria-label="主导航">
-        <span class="nav-indicator" id="navIndicator" aria-hidden="true"></span>
-        <a href="#features">核心特性</a>
-        <a href="#screenshot">界面预览</a>
-        <a href="#toolbox">工具箱</a>
-        <a href="#architecture">技术架构</a>
-        <a href="#changelog">更新日志</a>
-        <a href="#download">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/><path d="M5 17v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 1 0-2 0v1H7v-1a1 1 0 1 0-2 0Z"/></svg>
-            免费下载
-          </a>
-          <a href="#contact">联系方式</a>
-        </nav>
+      <nav class="site-nav" id="siteNav" data-i18n-aria="header.nav" aria-label="主导航">
+        <a href="#features" data-i18n="nav.features">核心特性</a>
+        <a href="#screenshot" data-i18n="nav.screenshot">界面预览</a>
+        <a href="#toolbox" data-i18n="nav.toolbox">工具箱</a>
+        <a href="#reference" data-i18n="nav.reference">参数</a>
+        <a href="#api" data-i18n="nav.api">接口</a>
+        <a href="#architecture" data-i18n="nav.architecture">架构</a>
+        <a href="#changelog" data-i18n="nav.changelog">更新日志</a>
+        <a href="#download" data-i18n="nav.download">下载</a>
+      </nav>
 
       <div class="header-tools">
-        <button class="theme-toggle" id="siteThemeToggle" type="button" aria-label="切换主题">🌙</button>
-        <select class="lang-switch" id="siteLangSwitch" aria-label="语言 / Language">
-          <option value="zh">中文</option>
-          <option value="en">English</option>
-        </select>
+        <button class="icon-btn" id="themeToggle" type="button"
+                data-i18n-aria="header.theme" data-i18n-title="header.theme" aria-label="切换主题" title="切换主题">
+          <svg class="icon-moon" aria-hidden="true"><use href="#i-moon"></use></svg>
+          <svg class="icon-sun" aria-hidden="true"><use href="#i-sun"></use></svg>
+        </button>
+        <div class="lang-switch" role="group" data-i18n-aria="header.lang" aria-label="语言 / Language">
+          <button type="button" data-lang="zh" class="is-active">中文</button>
+          <button type="button" data-lang="en">EN</button>
+        </div>
       </div>
     </div>
   </header>
@@ -60,170 +128,167 @@
   <main id="main">
     <!-- Hero -->
     <section class="hero" id="top">
-      <div class="hero-bg" aria-hidden="true"></div>
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <div class="hero-badge">
-            <span class="pulse-dot"></span>
-            v1.4.4 已发布 · 9 项缺陷修复与启动权限加固
+      <div class="container">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="hero-badge">
+              <span class="pulse-dot" aria-hidden="true"></span>
+              <span data-i18n="hero.badge">v1.4.4 已发布 · 缺陷修复与启动权限加固</span>
+            </span>
+            <h1 data-i18n-html="hero.title">把网络测速<br />做到<span class="grad">专业级</span></h1>
+            <p class="hero-subtitle" data-i18n="hero.sub">CDN 智能调度 · 自适应线程引擎 · 多网卡并行测速 · UDP 五层延迟探测 · 18 合 1 工具箱，一款工具全部搞定。</p>
+            <div class="hero-actions">
+              <a class="btn btn-primary btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest/releases/latest">
+                <svg aria-hidden="true"><use href="#i-download"></use></svg>
+                <span data-i18n="hero.cta.download">下载 Windows 版</span>
+              </a>
+              <a class="btn btn-ghost btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest">
+                <svg aria-hidden="true"><use href="#i-github"></use></svg>
+                <span data-i18n="hero.cta.github">GitHub 仓库</span>
+              </a>
+            </div>
+            <p class="hero-meta">
+              <span data-i18n="hero.meta.os">Windows 10 / 11</span><span class="sep">·</span>
+              <span data-i18n="hero.meta.build">.NET 8 单文件发布</span><span class="sep">·</span>
+              <span data-i18n="hero.meta.license">MIT 开源免费</span>
+            </p>
           </div>
-          <h1>把 Windows 网络测速<br />做到<span class="gradient-text">专业级</span></h1>
-          <p class="hero-subtitle">
-            CDN 智能调度 · 自适应线程引擎 · 多网卡并行测速 · 掉速紧急补偿 · UDP 五层延迟探测 ·
-            18 合 1 工具箱，一款工具全部搞定。
-          </p>
-          <div class="hero-actions">
-            <a class="btn btn-primary btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest/releases/latest">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/><path d="M5 17v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 1 0-2 0v1H7v-1a1 1 0 1 0-2 0Z"/></svg>
-              下载 Windows 版
-            </a>
-            <a class="btn btn-ghost btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.87-1.54-3.87-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11.1 11.1 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.83 1.18 3.09 0 4.42-2.7 5.39-5.27 5.68.42.36.79 1.06.79 2.14v3.17c0 .31.21.68.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
-              GitHub 仓库
-            </a>
+
+          <div class="hero-visual reveal">
+            <div class="demo-card">
+              <div class="demo-head">
+                <span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span data-i18n="demo.title">实时波形演示</span>
+                <span class="live-tag"><i aria-hidden="true"></i><span data-i18n="demo.live">LIVE</span></span>
+              </div>
+              <div class="demo-values">
+                <div class="demo-value">
+                  <span class="demo-label download-label" data-i18n="demo.download">下载</span>
+                  <strong id="demoDownload">0.00</strong>
+                  <small>Mbps</small>
+                </div>
+                <div class="demo-value">
+                  <span class="demo-label upload-label" data-i18n="demo.upload">上传</span>
+                  <strong id="demoUpload">0.00</strong>
+                  <small>Mbps</small>
+                </div>
+                <div class="demo-value">
+                  <span class="demo-label total-label" data-i18n="demo.total">总速率</span>
+                  <strong id="demoTotal">0.00</strong>
+                  <small>Mbps</small>
+                </div>
+              </div>
+              <canvas id="speedChart" width="640" height="344" data-i18n-aria="demo.chart" aria-label="模拟测速波形图" role="img"></canvas>
+              <div class="demo-foot">
+                <span class="legend"><i class="legend-download"></i><span data-i18n="demo.legend.download">下载</span></span>
+                <span class="legend"><i class="legend-upload"></i><span data-i18n="demo.legend.upload">上传</span></span>
+                <span class="legend"><i class="legend-avg"></i><span data-i18n="demo.legend.avg">均值参考线</span></span>
+                <span id="demoElapsed">00:00</span>
+              </div>
+            </div>
           </div>
-          <p class="hero-meta">Windows 10 / 11 · .NET 8 单文件发布 · MIT 开源免费</p>
         </div>
 
-        <div class="hero-visual reveal">
-          <div class="demo-card">
-            <div class="demo-card-head">
-              <div class="window-dots" aria-hidden="true"><i></i><i></i><i></i></div>
-              <span>实时测速演示</span>
-              <span class="live-tag"><i></i> LIVE</span>
-            </div>
-            <div class="demo-values">
-              <div class="demo-value">
-                <span class="demo-label download-label">下载</span>
-                <strong id="demoDownload">0.00</strong>
-                <small>Mbps</small>
-              </div>
-              <div class="demo-value">
-                <span class="demo-label upload-label">上传</span>
-                <strong id="demoUpload">0.00</strong>
-                <small>Mbps</small>
-              </div>
-              <div class="demo-value">
-                <span class="demo-label total-label">总速率</span>
-                <strong id="demoTotal">0.00</strong>
-                <small>Mbps</small>
-              </div>
-            </div>
-            <canvas id="speedChart" aria-label="模拟测速波形图" role="img"></canvas>
-            <div class="demo-foot">
-              <div class="legend"><i class="legend-download"></i> 下载</div>
-              <div class="legend"><i class="legend-upload"></i> 上传</div>
-              <div class="legend"><i class="legend-avg"></i> 均值参考线</div>
-              <span id="demoElapsed">00:00</span>
-            </div>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <strong><span class="counter" data-target="128">128</span><em data-i18n="stats.threads.unit">线程</em></strong>
+            <span data-i18n="stats.threads.label">默认并发下载 / 上传</span>
           </div>
-        </div>
-      </div>
-
-      <div class="container hero-stats">
-        <div class="stat-item">
-          <strong><span class="counter" data-target="128">0</span><em> 线程</em></strong>
-          <span>并发下载 / 上传</span>
-        </div>
-        <div class="stat-item">
-          <strong><span class="counter" data-target="5">0</span><em> 层</em></strong>
-          <span>UDP 优先延迟回退</span>
-        </div>
-        <div class="stat-item">
-          <strong><span class="counter" data-target="18">0</span><em> 种</em></strong>
-          <span>网络诊断工具</span>
-        </div>
-        <div class="stat-item">
-          <strong><span class="counter" data-target="8">0</span><em> 个</em></strong>
-          <span>内置 CDN 节点</span>
+          <div class="stat-item">
+            <strong><span class="counter" data-target="1024">1024</span><em data-i18n="stats.adaptive.unit">上限</em></strong>
+            <span data-i18n="stats.adaptive.label">自适应线程阶梯</span>
+          </div>
+          <div class="stat-item">
+            <strong><span class="counter" data-target="18">18</span><em data-i18n="stats.tools.unit">种</em></strong>
+            <span data-i18n="stats.tools.label">网络诊断工具</span>
+          </div>
+          <div class="stat-item">
+            <strong><span class="counter" data-target="8">8</span><em data-i18n="stats.nodes.unit">个</em></strong>
+            <span data-i18n="stats.nodes.label">内置 CDN 节点</span>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Features -->
-    <section class="section" id="features">
+    <section class="section" id="features" data-section="features">
       <div class="container">
         <div class="section-head">
-          <span class="section-kicker">核心特性</span>
-          <h2>为重度网络用户设计的引擎</h2>
-          <p>不只是跑个数字——从线程调度到结果计量，每一层都按专业标准实现。</p>
+          <span class="kicker" data-i18n="features.kicker">核心能力</span>
+          <h2 class="section-title" data-i18n="section.features.title">核心特性</h2>
+          <p class="section-lede" data-i18n="features.lede">从线程调度、链路探测到结果计量，每一层都按专业标准实现。</p>
         </div>
 
-        <div class="features-grid">
+        <div class="feature-grid">
           <article class="feature-card reveal">
-            <div class="feature-icon blue">🚀</div>
-            <h3>智能测速引擎</h3>
-            <ul class="check-list">
-              <li>128 线程并发 HTTP GET / POST</li>
-              <li>URL 动态调度，实时选择最优节点</li>
-              <li>CPU 自适应线程上限，低配不反噬</li>
-                <li>自适应线程调度：线性加压，最高 1024 线程</li>
-              <li>掉速紧急补偿：自动加线程 + 结果修正</li>
-              <li>10s 稳定后取均值，3s 滑动窗口去毛刺</li>
-              <li>200ms 渐变启动，避免瞬间占满带宽</li>
+            <span class="feature-icon"><svg aria-hidden="true"><use href="#i-speed"></use></svg></span>
+            <h3 data-i18n="feature.engine.title">智能测速引擎</h3>
+            <ul>
+              <li data-i18n="feature.engine.b1">128 线程并发 HTTP GET / POST，自适应模式最高 1024</li>
+              <li data-i18n="feature.engine.b2">URL 轮转调度 + 健康度评分，失败节点自动冷却降权</li>
+              <li data-i18n="feature.engine.b3">掉速紧急补偿：自动加线程并修正结果</li>
+              <li data-i18n="feature.engine.b4">跳过爬坡取均值 + 3 秒滑动窗口去毛刺</li>
+              <li data-i18n="feature.engine.b5">渐变启动，避免瞬间占满带宽</li>
             </ul>
           </article>
 
           <article class="feature-card reveal">
-            <div class="feature-icon green">🌐</div>
-            <h3>多网卡并行测速 <span class="new-badge">v1.4.0</span></h3>
-            <ul class="check-list">
-              <li>勾选多张网卡同时测速，独立绑定源 IP</li>
-              <li>下载 / 上传曲线支持「合计 / 单网卡」切换</li>
-              <li>双向测速显示下载 + 上传总速度</li>
-              <li>完成弹窗展示每网卡独立速率与错误</li>
-              <li>默认优先选中默认网关网卡</li>
+            <span class="feature-icon"><svg aria-hidden="true"><use href="#i-network"></use></svg></span>
+            <h3 data-i18n="feature.multinic.title">多网卡并行测速</h3>
+            <ul>
+              <li data-i18n="feature.multinic.b1">勾选多张网卡同时测速，各自绑定源 IP</li>
+              <li data-i18n="feature.multinic.b2">默认优先选中带默认网关的网卡</li>
+              <li data-i18n="feature.multinic.b3">下载 / 上传曲线支持「合计 / 单网卡」切换</li>
+              <li data-i18n="feature.multinic.b4">单卡失败不影响其余网卡出结果</li>
+              <li data-i18n="feature.multinic.b5">虚拟网卡默认过滤，可在设置中放行</li>
             </ul>
           </article>
 
           <article class="feature-card reveal">
-            <div class="feature-icon orange">📊</div>
-            <h3>NIC 级精准计量</h3>
-            <ul class="check-list">
-              <li>基于 <code>IPv4Statistics</code> 差分计算</li>
-              <li>不受 HTTP 协议开销干扰</li>
-              <li>Kbps / Mbps / Gbps 自动切换</li>
-              <li>每网卡 9 项详情信息卡</li>
-              <li>独立速率条 + 活跃线程计数</li>
+            <span class="feature-icon"><svg aria-hidden="true"><use href="#i-wave"></use></svg></span>
+            <h3 data-i18n="feature.latency.title">全链路延迟探测</h3>
+            <ul>
+              <li data-i18n="feature.latency.b1">五层回退：UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD</li>
+              <li data-i18n="feature.latency.b2">外网延迟、抖动、内网延迟共用同一探测链路</li>
+              <li data-i18n="feature.latency.b3">抖动按滑动窗口标准差实时平滑</li>
+              <li data-i18n="feature.latency.b4">丢包率 5 包 / 批轮询，首轮全失败自动 UDP 复核</li>
+              <li data-i18n="feature.latency.b5">每张网卡独立呈现延迟、抖动与丢包率</li>
             </ul>
           </article>
 
           <article class="feature-card reveal">
-            <div class="feature-icon purple">🎨</div>
-            <h3>专业交互体验</h3>
-            <ul class="check-list">
-              <li>LiveCharts2 双折线图，200ms 采样、500 点窗口</li>
-              <li>下载 / 上传图表可拖拽分割线</li>
-              <li>模式切换 300ms 平滑过渡动画</li>
-              <li>系统托盘驻留 + 气泡通知</li>
-              <li>GitHub Dark 暗色主题、自绘标题栏</li>
-              <li>内嵌页面架构，告别弹窗</li>
+            <span class="feature-icon"><svg aria-hidden="true"><use href="#i-chart"></use></svg></span>
+            <h3 data-i18n="feature.metering.title">NIC 级精准计量</h3>
+            <ul>
+              <li data-i18n="feature.metering.b1">基于 IPv4Statistics 差分计算，排除 HTTP 协议开销</li>
+              <li data-i18n="feature.metering.b2">Kbps / Mbps / Gbps 自动切换</li>
+              <li data-i18n="feature.metering.b3">LiveCharts2 双折线图，200 ms 采样、500 点滑动窗口</li>
+              <li data-i18n="feature.metering.b4">每网卡 9 项详情信息卡 + 活跃线程计数</li>
+              <li data-i18n="feature.metering.b5">下载 / 上传图表可拖拽分割线，模式切换带过渡动画</li>
             </ul>
           </article>
 
           <article class="feature-card reveal">
-            <div class="feature-icon red">📡</div>
-            <h3>全链路 UDP 优先延迟探测</h3>
-            <ul class="check-list">
-              <li>五层回退：UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD</li>
-              <li>WAN / 抖动 / LAN 共用同一探测链路</li>
-              <li>8.8.8.8 单主机 UDP 轮询，避免批量阻塞</li>
-              <li>滑动窗口标准差算法，抖动实时平滑输出</li>
-              <li>1000ms 刷新，三指标同步更新</li>
-                <li>丢包率实时监测，结果 / 历史 / CSV / Web API 全链路记录</li>
+            <span class="feature-icon"><svg aria-hidden="true"><use href="#i-layers"></use></svg></span>
+            <h3 data-i18n="feature.ux.title">专业交互体验</h3>
+            <ul>
+              <li data-i18n="feature.ux.b1">自绘标题栏 + 侧边栏内嵌页，测速中禁用页面切换</li>
+              <li data-i18n="feature.ux.b2">深 / 浅主题与中英双语即时切换并持久化</li>
+              <li data-i18n="feature.ux.b3">系统托盘驻留、状态联动与气泡通知</li>
+              <li data-i18n="feature.ux.b4">GitHub OTA 在线升级，启动自动检查</li>
+              <li data-i18n="feature.ux.b5">快捷键 Enter / Esc / Ctrl+D / Ctrl+U / Ctrl+B</li>
             </ul>
           </article>
 
           <article class="feature-card reveal">
-            <div class="feature-icon cyan">🗄️</div>
-            <h3>历史 &amp; 配置管理</h3>
-            <ul class="check-list">
-              <li>SQLite 持久化，独立页面 + 统计栏</li>
-                <li>内置 Web 服务器 + Web 控制台，REST API 远程测速</li>
-              <li>历史记录 CSV 导出、一键清除</li>
-              <li>8 个内置 CDN 节点</li>
-              <li>自定义配置导入 / 导出（JSON 兼容 HBCS）</li>
-              <li>设置纯内存生效，不污染打包版默认值</li>
+            <span class="feature-icon"><svg aria-hidden="true"><use href="#i-database"></use></svg></span>
+            <h3 data-i18n="feature.history.title">历史与配置管理</h3>
+            <ul>
+              <li data-i18n="feature.history.b1">SQLite 持久化历史，分页、统计栏与 CSV 导出</li>
+              <li data-i18n="feature.history.b2">8 个内置 CDN 节点，自定义配置导入 / 导出（兼容 HBCS）</li>
+              <li data-i18n="feature.history.b3">设置原子写入，异常中断不丢配置</li>
+              <li data-i18n="feature.history.b4">内置 Web 服务器 + REST API 远程控制</li>
+              <li data-i18n="feature.history.b5">多网卡导出包含聚合结果、每卡明细与 BatchId</li>
             </ul>
           </article>
         </div>
@@ -231,92 +296,144 @@
     </section>
 
     <!-- Screenshot -->
-    <section class="section section-alt" id="screenshot">
+    <section class="section section-alt" id="screenshot" data-section="screenshot">
       <div class="container">
         <div class="section-head">
-          <span class="section-kicker">界面预览</span>
-          <h2>暗色主题 · 侧边栏导航 · 自绘标题栏</h2>
-          <p>v1.4.3 主界面：选择测速模式，勾选要同时测速的网卡，一键开始。</p>
+          <span class="kicker" data-i18n="screenshot.kicker">真实界面</span>
+          <h2 class="section-title" data-i18n="section.screenshot.title">界面预览</h2>
+          <p class="section-lede" data-i18n="screenshot.lede">暗色主题 · 侧边栏内嵌页 · 自绘标题栏，测速、历史、设置与远程控制都在一个窗口完成。</p>
         </div>
-        <div class="screenshot-frame reveal">
-          <img src="assets/screenshot.png" alt="NetSpeedTest v1.4.3 主界面截图" width="1280" height="720" loading="lazy" />
-          <div class="screenshot-caption">
-            <span>🖥️ v1.4.3 主界面</span>
-            <span>截图由用户实机提供</span>
-          </div>
+        <div class="shot-grid">
+          <figure class="shot reveal">
+            <img src="assets/screenshot.png" alt="NetSpeedTest 主界面" width="1280" height="720" loading="lazy" />
+            <figcaption><strong data-i18n="screenshot.main.title">主界面</strong><span data-i18n="screenshot.main.caption">选择测速模式，勾选多张网卡后一键开始。</span></figcaption>
+          </figure>
+          <figure class="shot reveal">
+            <img src="assets/screenshots/settings.png" alt="NetSpeedTest 设置页" width="1280" height="720" loading="lazy" />
+            <figcaption><strong data-i18n="screenshot.settings.title">设置</strong><span data-i18n="screenshot.settings.caption">并发线程、测速时长与补偿参数逐项可调。</span></figcaption>
+          </figure>
         </div>
       </div>
     </section>
 
     <!-- Toolbox -->
-    <section class="section" id="toolbox">
+    <section class="section" id="toolbox" data-section="toolbox">
       <div class="container">
         <div class="section-head">
-          <span class="section-kicker">网络工具箱</span>
-          <h2>18 合 1，一窗口搞定日常排查</h2>
-          <p>从连通性测试到 NAT 类型检测，测速之外的网络诊断需求也全部内置。</p>
+          <span class="kicker" data-i18n="toolbox.kicker">一站式排查</span>
+          <h2 class="section-title" data-i18n="section.toolbox.title">网络工具箱</h2>
+          <p class="section-lede" data-i18n="toolbox.lede">内置 18 种专业网络诊断工具，测速之外的连通性、解析、证书与 NAT 排查同样覆盖。</p>
         </div>
-        <div class="tool-grid">
-          <div class="tool-item reveal">🏓 <strong>Ping</strong><small>ICMP 连通性测试</small></div>
-          <div class="tool-item reveal">🌐 <strong>DNS 查询</strong><small>A / AAAA / CNAME / MX 记录</small></div>
-          <div class="tool-item reveal">📡 <strong>HTTP 请求</strong><small>GET / POST / PUT / DELETE</small></div>
-          <div class="tool-item reveal">🗺️ <strong>路由追踪</strong><small>Traceroute 跳点追踪</small></div>
-          <div class="tool-item reveal">🔌 <strong>端口测试</strong><small>TCP 端口范围扫描</small></div>
-          <div class="tool-item reveal">📏 <strong>MTU 探测</strong><small>自动发现路径最优值</small></div>
-          <div class="tool-item reveal">🔄 <strong>DNS 对比</strong><small>多 DNS 服务器并行对比</small></div>
-          <div class="tool-item reveal">🌍 <strong>IP 归属</strong><small>IP 地理 / 运营商查询</small></div>
-          <div class="tool-item reveal">🌐 <strong>公网 IP</strong><small>多源探测公网出口 IP</small></div>
-          <div class="tool-item reveal">🔒 <strong>SSL 证书</strong><small>证书链 / 过期时间 / 签名算法</small></div>
-          <div class="tool-item reveal">📨 <strong>HTTP Header</strong><small>任意 URL 响应头查看</small></div>
-          <div class="tool-item reveal">🧮 <strong>子网计算</strong><small>CIDR 划分 / 可用地址</small></div>
-          <div class="tool-item reveal">📊 <strong>带宽换算</strong><small>Mbps / MBps / Gbps 换算</small></div>
-          <div class="tool-item reveal">🕐 <strong>时间戳</strong><small>Unix 时间戳 ↔ 日期</small></div>
-          <div class="tool-item reveal">#️⃣ <strong>文本哈希</strong><small>MD5 / SHA1 / SHA256 / SHA512</small></div>
-          <div class="tool-item reveal">🔤 <strong>Base64</strong><small>在线编解码</small></div>
-          <div class="tool-item reveal">🆔 <strong>UUID 生成</strong><small>UUID v4 / v7 批量生成</small></div>
-          <div class="tool-item reveal">🔍 <strong>NAT 检测</strong><small>STUN 类型 / 自定义服务器</small></div>
+        <div class="tool-grid" id="toolboxGrid" data-toolbox data-count="18">
+          <div class="tool-item reveal" data-tool="Ping"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-wave"></use></svg></span><div><strong data-i18n="tool.ping.name">Ping</strong><small data-i18n="tool.ping.desc">ICMP 连通性测试，逐包 RTT 与 TTL</small></div></div>
+          <div class="tool-item reveal" data-tool="DNS 查询"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-globe"></use></svg></span><div><strong data-i18n="tool.dns.name">DNS 查询</strong><small data-i18n="tool.dns.desc">A / AAAA 解析与耗时</small></div></div>
+          <div class="tool-item reveal" data-tool="HTTP 请求"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-file"></use></svg></span><div><strong data-i18n="tool.http.name">HTTP 请求</strong><small data-i18n="tool.http.desc">HEAD 探测状态码与响应时间</small></div></div>
+          <div class="tool-item reveal" data-tool="路由追踪"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-route"></use></svg></span><div><strong data-i18n="tool.traceroute.name">路由追踪</strong><small data-i18n="tool.traceroute.desc">ICMP TTL 逐跳追踪</small></div></div>
+          <div class="tool-item reveal" data-tool="端口测试"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-link"></use></svg></span><div><strong data-i18n="tool.port.name">端口测试</strong><small data-i18n="tool.port.desc">TCP 端口连通性检测</small></div></div>
+          <div class="tool-item reveal" data-tool="MTU 探测"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-layers"></use></svg></span><div><strong data-i18n="tool.mtu.name">MTU 探测</strong><small data-i18n="tool.mtu.desc">二分法路径 MTU 发现</small></div></div>
+          <div class="tool-item reveal" data-tool="DNS 对比"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-refresh"></use></svg></span><div><strong data-i18n="tool.dnsCompare.name">DNS 对比</strong><small data-i18n="tool.dnsCompare.desc">多 DNS 服务器延迟横向对比</small></div></div>
+          <div class="tool-item reveal" data-tool="IP 归属"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-pin"></use></svg></span><div><strong data-i18n="tool.geo.name">IP 归属</strong><small data-i18n="tool.geo.desc">地理位置、运营商与 AS</small></div></div>
+          <div class="tool-item reveal" data-tool="公网 IP"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-globe"></use></svg></span><div><strong data-i18n="tool.publicIp.name">公网 IP</strong><small data-i18n="tool.publicIp.desc">多源探测出口 IP</small></div></div>
+          <div class="tool-item reveal" data-tool="SSL 证书"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-lock"></use></svg></span><div><strong data-i18n="tool.ssl.name">SSL 证书</strong><small data-i18n="tool.ssl.desc">颁发者、到期时间与签名算法</small></div></div>
+          <div class="tool-item reveal" data-tool="HTTP Header"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-file"></use></svg></span><div><strong data-i18n="tool.header.name">HTTP Header</strong><small data-i18n="tool.header.desc">任意 URL 响应头查看</small></div></div>
+          <div class="tool-item reveal" data-tool="子网计算"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-grid"></use></svg></span><div><strong data-i18n="tool.subnet.name">子网计算</strong><small data-i18n="tool.subnet.desc">网络地址、广播地址与可用主机</small></div></div>
+          <div class="tool-item reveal" data-tool="带宽换算"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-chart"></use></svg></span><div><strong data-i18n="tool.bandwidth.name">带宽换算</strong><small data-i18n="tool.bandwidth.desc">Mbps 与 MB/s 等双向换算</small></div></div>
+          <div class="tool-item reveal" data-tool="时间戳"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-clock"></use></svg></span><div><strong data-i18n="tool.timestamp.name">时间戳</strong><small data-i18n="tool.timestamp.desc">Unix 时间戳与日期互转</small></div></div>
+          <div class="tool-item reveal" data-tool="文本哈希"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-hash"></use></svg></span><div><strong data-i18n="tool.hash.name">文本哈希</strong><small data-i18n="tool.hash.desc">MD5 / SHA1 / SHA256</small></div></div>
+          <div class="tool-item reveal" data-tool="Base64"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-code"></use></svg></span><div><strong data-i18n="tool.base64.name">Base64</strong><small data-i18n="tool.base64.desc">编解码</small></div></div>
+          <div class="tool-item reveal" data-tool="UUID 生成"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-id"></use></svg></span><div><strong data-i18n="tool.uuid.name">UUID 生成</strong><small data-i18n="tool.uuid.desc">v4 批量生成</small></div></div>
+          <div class="tool-item reveal" data-tool="NAT 检测"><span class="tool-icon"><svg aria-hidden="true"><use href="#i-search"></use></svg></span><div><strong data-i18n="tool.nat.name">NAT 检测</strong><small data-i18n="tool.nat.desc">STUN 映射行为与端口保留</small></div></div>
         </div>
       </div>
     </section>
 
-    <!-- Shortcuts & parameters -->
-    <section class="section section-alt" id="shortcuts">
-      <div class="container split-grid">
-        <div>
-          <div class="section-head align-left">
-            <span class="section-kicker">效率</span>
-            <h2>快捷键</h2>
-            <p>一只手开始测速，另一只手继续喝咖啡。</p>
-          </div>
-          <div class="key-list">
-            <div class="key-row"><kbd>Enter</kbd><span>开始测速</span></div>
-            <div class="key-row"><kbd>Esc</kbd><span>停止测速</span></div>
-            <div class="key-row"><kbd>Ctrl</kbd> + <kbd>D</kbd><span>仅下载</span></div>
-            <div class="key-row"><kbd>Ctrl</kbd> + <kbd>U</kbd><span>仅上传</span></div>
-            <div class="key-row"><kbd>Ctrl</kbd> + <kbd>B</kbd><span>全速双向</span></div>
-          </div>
+    <!-- Reference -->
+    <section class="section section-alt" id="reference" data-section="reference">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker" data-i18n="reference.kicker">可控性</span>
+          <h2 class="section-title" data-i18n="section.reference.title">快捷键与参数</h2>
+          <p class="section-lede" data-i18n="reference.lede">默认值已经够快；想折腾的人，每个参数都能调。</p>
         </div>
 
-        <div>
-          <div class="section-head align-left">
-            <span class="section-kicker">可控</span>
-            <h2>可调参数</h2>
-            <p>默认值已经够快，细粒度交给喜欢折腾的人。</p>
+        <div class="reference-grid">
+          <div>
+            <h3 class="sub-title" data-i18n="reference.shortcuts">快捷键</h3>
+            <div class="key-list">
+              <div class="key-row"><kbd>Enter</kbd><span data-i18n="shortcut.start">开始测速（下载模式）</span></div>
+              <div class="key-row"><kbd>Esc</kbd><span data-i18n="shortcut.stop">停止测速</span></div>
+              <div class="key-row"><kbd>Ctrl</kbd><span data-i18n="shortcut.download">+ D 仅下载</span></div>
+              <div class="key-row"><kbd>Ctrl</kbd><span data-i18n="shortcut.upload">+ U 仅上传</span></div>
+              <div class="key-row"><kbd>Ctrl</kbd><span data-i18n="shortcut.both">+ B 全速双向</span></div>
+            </div>
           </div>
+
+          <div>
+            <h3 class="sub-title" data-i18n="reference.params">可调参数</h3>
+            <div class="table-wrap">
+              <table class="table" id="paramTable">
+                <thead>
+                  <tr><th data-i18n="reference.col.param">参数</th><th data-i18n="reference.col.range">范围</th><th data-i18n="reference.col.default">默认</th></tr>
+                </thead>
+                <tbody>
+                  <tr data-param="ThreadCount"><td data-i18n="param.ThreadCount">并发线程数</td><td class="range">2 – 1024</td><td class="default">128</td></tr>
+                  <tr data-param="TestTimeoutSec"><td data-i18n="param.TestTimeoutSec">测速时长</td><td class="range">10 – 600 s</td><td class="default">60 s</td></tr>
+                  <tr data-param="ThreadRampUpMs"><td data-i18n="param.ThreadRampUpMs">线程启动间隔</td><td class="range">0 – 2000 ms</td><td class="default">50 ms</td></tr>
+                  <tr data-param="AverageDelaySec"><td data-i18n="param.AverageDelaySec">平均计量延迟</td><td class="range">1 – 30 s</td><td class="default">10 s</td></tr>
+                  <tr data-param="RateWindowSec"><td data-i18n="param.RateWindowSec">速率平滑窗口</td><td class="range">0.5 – 10 s</td><td class="default">3.0 s</td></tr>
+                  <tr data-param="NicPollIntervalMs"><td data-i18n="param.NicPollIntervalMs">网卡轮询间隔</td><td class="range">200 – 5000 ms</td><td class="default">1000 ms</td></tr>
+                  <tr data-param="LatencyPollIntervalMs"><td data-i18n="param.LatencyPollIntervalMs">延迟轮询间隔</td><td class="range">500 – 10000 ms</td><td class="default">1000 ms</td></tr>
+                  <tr data-param="JitterPollIntervalMs"><td data-i18n="param.JitterPollIntervalMs">抖动采样间隔</td><td class="range">500 – 5000 ms</td><td class="default">1000 ms</td></tr>
+                  <tr data-param="JitterTargetHost"><td data-i18n="param.JitterTargetHost">抖动探测主机</td><td class="range muted">—</td><td class="default">8.8.8.8</td></tr>
+                  <tr data-param="PacketLossTargetHost"><td data-i18n="param.PacketLossTargetHost">丢包率监测地址</td><td class="range muted">—</td><td class="default">8.8.8.8</td></tr>
+                  <tr data-param="PacketLossPollIntervalMs"><td data-i18n="param.PacketLossPollIntervalMs">丢包率轮询间隔</td><td class="range">500 – 5000 ms</td><td class="default">1000 ms</td></tr>
+                  <tr data-param="CompensationThreshold"><td data-i18n="param.CompensationThreshold">补偿阈值</td><td class="range">0.3 – 0.8</td><td class="default">0.5</td></tr>
+                  <tr data-param="CompensationConfirmSec"><td data-i18n="param.CompensationConfirmSec">确认时长</td><td class="range">1 – 10 s</td><td class="default">3 s</td></tr>
+                  <tr data-param="AdaptiveStartThreads"><td data-i18n="param.AdaptiveStartThreads">自适应起始线程数</td><td class="range">1 – 1024</td><td class="default">2</td></tr>
+                  <tr><td data-i18n="param.adaptiveCeiling">自适应线程上限（派生）</td><td class="range muted">128 / 256 / 512 / 1024</td><td class="default">1024</td></tr>
+                  <tr><td data-i18n="param.webPort">Web 服务器端口</td><td class="range muted">1024 – 65535</td><td class="default">8080</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="section-lede" style="margin-top:14px" data-i18n="reference.note">自适应上限由引擎派生：单网卡 1024，多网卡按份额折算；Web 端口在「Web 服务器」页设置，其余参数在「设置」页调整。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- API -->
+    <section class="section" id="api" data-section="api">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker" data-i18n="api.kicker">远程控制</span>
+          <h2 class="section-title" data-i18n="section.api.title">Web 控制台与 REST API</h2>
+          <p class="section-lede" data-i18n="api.lede">内置 HTTP 服务器，手机或同网段电脑用浏览器即可查看与操控测速。</p>
+        </div>
+
+        <div class="api-grid">
+          <div class="cap-list">
+            <div class="cap-item"><svg aria-hidden="true"><use href="#i-check"></use></svg><span data-i18n="api.cap1">会话令牌保护：写操作需携带启动时生成的 X-NST-Token</span></div>
+            <div class="cap-item"><svg aria-hidden="true"><use href="#i-check"></use></svg><span data-i18n="api.cap2">同网段访问控制：按本机网卡网段放行，其他来源返回 403</span></div>
+            <div class="cap-item"><svg aria-hidden="true"><use href="#i-check"></use></svg><span data-i18n="api.cap3">SSRF 防护：关闭自动重定向，逐跳校验并拦截私网目标</span></div>
+            <div class="cap-item"><svg aria-hidden="true"><use href="#i-check"></use></svg><span data-i18n="api.cap4">安全响应头：nosniff、X-Frame-Options: DENY、no-referrer</span></div>
+            <div class="cap-item"><svg aria-hidden="true"><use href="#i-check"></use></svg><span data-i18n="api.cap5">2 秒超时：UI 线程等待超时返回 503，不挂起请求</span></div>
+          </div>
+
           <div class="table-wrap">
-            <table class="param-table">
+            <table class="table api-table">
               <thead>
-                <tr><th>参数</th><th>范围</th><th>默认</th></tr>
+                <tr><th data-i18n="api.col.method">方法</th><th data-i18n="api.col.path">路径</th><th data-i18n="api.col.desc">说明</th></tr>
               </thead>
               <tbody>
-                <tr><td>并发线程数</td><td>1 – 512</td><td><strong>128</strong></td></tr>
-                <tr><td>整体超时</td><td>10 – 600 s</td><td><strong>60 s</strong></td></tr>
-                <tr><td>线程启动间隔</td><td>0 – 2000 ms</td><td><strong>500 ms</strong></td></tr>
-                <tr><td>平均计量延迟</td><td>1 – 30 s</td><td><strong>10 s</strong></td></tr>
-                <tr><td>速率平滑窗口</td><td>0.5 – 10 s</td><td><strong>3.0 s</strong></td></tr>
-                <tr><td>网卡轮询间隔</td><td>200 – 5000 ms</td><td><strong>1000 ms</strong></td></tr>
-                <tr><td>抖动探测主机</td><td>—</td><td><strong>8.8.8.8</strong></td></tr>
-                <tr><td>抖动采样间隔</td><td>1 – 60 s</td><td><strong>5 s</strong></td></tr>
+                <tr><td><span class="method method-get">GET</span></td><td><code>/api/status</code></td><td data-i18n="api.status">测速状态、实时速率与当前端口</td></tr>
+                <tr><td><span class="method method-get">GET</span></td><td><code>/api/adapters</code></td><td data-i18n="api.adapters">网卡列表与选中状态</td></tr>
+                <tr><td><span class="method method-post">POST</span></td><td><code>/api/adapters/select</code></td><td data-i18n="api.adapterSelect">切换参与测速的网卡</td></tr>
+                <tr><td><span class="method method-get">GET</span><span class="method method-post">POST</span></td><td><code>/api/profiles</code></td><td data-i18n="api.profiles">读取或保存测速配置</td></tr>
+                <tr><td><span class="method method-get">GET</span><span class="method method-delete">DELETE</span></td><td><code>/api/history</code></td><td data-i18n="api.history">分页读取或清除历史记录</td></tr>
+                <tr><td><span class="method method-get">GET</span><span class="method method-post">POST</span></td><td><code>/api/settings</code></td><td data-i18n="api.settings">读写测速参数（原子落盘）</td></tr>
+                <tr><td><span class="method method-post">POST</span></td><td><code>/api/test/start</code></td><td data-i18n="api.testStart">开始测速（运行态确认后返回 200）</td></tr>
+                <tr><td><span class="method method-post">POST</span></td><td><code>/api/test/stop</code></td><td data-i18n="api.testStop">停止测速（准备阶段同样可取消）</td></tr>
+                <tr><td><span class="method method-get">GET</span></td><td><code>/api/server</code></td><td data-i18n="api.server">端口、局域网状态与网段绑定</td></tr>
               </tbody>
             </table>
           </div>
@@ -325,235 +442,456 @@
     </section>
 
     <!-- Architecture -->
-    <section class="section" id="architecture">
+    <section class="section section-alt" id="architecture" data-section="architecture">
       <div class="container">
         <div class="section-head">
-          <span class="section-kicker">技术架构</span>
-          <h2>干净、现代、可扩展</h2>
-          <p>基于 .NET 8 与 WPF 的 MVVM 架构，依赖项克制而清晰。</p>
+          <span class="kicker" data-i18n="architecture.kicker">工程实现</span>
+          <h2 class="section-title" data-i18n="section.architecture.title">技术架构</h2>
+          <p class="section-lede" data-i18n="architecture.lede">基于 .NET 8 与 WPF 的 MVVM 架构，依赖克制而清晰。</p>
         </div>
+
         <div class="stack-grid">
-          <div class="stack-item reveal">
-            <span class="stack-badge">运行时</span>
-            <strong>.NET 8.0-windows</strong>
-            <small>单文件发布</small>
-          </div>
-          <div class="stack-item reveal">
-            <span class="stack-badge">UI 框架</span>
-            <strong>WPF</strong>
-            <small>Windows 原生体验</small>
-          </div>
-          <div class="stack-item reveal">
-            <span class="stack-badge">架构模式</span>
-            <strong>MVVM</strong>
-            <small>CommunityToolkit.Mvvm</small>
-          </div>
-          <div class="stack-item reveal">
-            <span class="stack-badge">实时图表</span>
-            <strong>LiveCharts2</strong>
-            <small>SkiaSharp 硬件渲染</small>
-          </div>
-          <div class="stack-item reveal">
-            <span class="stack-badge">数据持久化</span>
-            <strong>SQLite</strong>
-            <small>Microsoft.Data.Sqlite</small>
-          </div>
-          <div class="stack-item reveal">
-            <span class="stack-badge">DI &amp; 配置</span>
-            <strong>Microsoft.Extensions</strong>
-            <small>标准配置管线</small>
-          </div>
+          <div class="stack-item reveal"><span class="stack-badge" data-i18n="stack.runtime.label">运行时</span><strong>.NET 8.0-windows</strong><small data-i18n="stack.runtime.note">单文件自包含发布</small></div>
+          <div class="stack-item reveal"><span class="stack-badge" data-i18n="stack.ui.label">UI 框架</span><strong>WPF</strong><small data-i18n="stack.ui.note">自绘标题栏 + 内嵌页</small></div>
+          <div class="stack-item reveal"><span class="stack-badge" data-i18n="stack.mvvm.label">架构模式</span><strong>MVVM</strong><small>CommunityToolkit.Mvvm</small></div>
+          <div class="stack-item reveal"><span class="stack-badge" data-i18n="stack.charts.label">实时图表</span><strong>LiveCharts2</strong><small data-i18n="stack.charts.note">SkiaSharp 硬件渲染</small></div>
+          <div class="stack-item reveal"><span class="stack-badge" data-i18n="stack.data.label">数据持久化</span><strong>SQLite</strong><small>Microsoft.Data.Sqlite</small></div>
+          <div class="stack-item reveal"><span class="stack-badge" data-i18n="stack.web.label">Web 服务器</span><strong>HttpListener</strong><small data-i18n="stack.web.note">内嵌 wwwroot + REST API</small></div>
         </div>
+
+        <pre class="tree" aria-label="项目结构">NetSpeedTest/
+├─ NetSpeedTest/            <span class="comment"># WPF app: MVVM, services, themes</span>
+├─ NetSpeedTest.Tests/      <span class="comment"># xUnit regression suite</span>
+├─ assets/                  <span class="comment"># icons, screenshots, site assets</span>
+├─ docs/                    <span class="comment"># design system &amp; QA archive</span>
+├─ tools/                   <span class="comment"># verification &amp; capture scripts</span>
+├─ index.html               <span class="comment"># GitHub Pages landing page</span>
+└─ README.md / CHANGELOG.md</pre>
       </div>
     </section>
 
     <!-- Changelog -->
-    <section class="section section-alt" id="changelog">
-      <div class="container changelog-wrap">
+    <section class="section" id="changelog" data-section="changelog">
+      <div class="container">
         <div class="section-head">
-          <span class="section-kicker">更新日志</span>
-          <h2>持续迭代</h2>
-          <p>每个版本都经过实机测速验证，拒绝空壳功能。</p>
+          <span class="kicker" data-i18n="changelog.kicker">版本</span>
+          <h2 class="section-title" data-i18n="section.changelog.title">更新日志</h2>
+          <p class="section-lede" data-i18n="changelog.lede">每个版本都经过实机测速验证，拒绝空壳功能。</p>
         </div>
 
         <div class="changelog">
           <details class="changelog-item" open>
-              <summary>
-                <span class="version-tag">v1.4.4</span>
-                <span class="version-date">2026-10-01</span>
-                <span class="version-title">缺陷修复与启动权限加固</span>
-                <span class="chevron" aria-hidden="true"></span>
-              </summary>
-              <div class="changelog-body">
-                <h4>🛠️ 修复</h4>
-                <ul>
-                  <li>远程（网页/手机）发起的测速结果正常保存到历史并更新最近结果，不再「白测」</li>
-                  <li>双向测速正确合并下载/上传节点明细与成功数量，不再传输正常却提示「0 成功」</li>
-                  <li>测速中途停止的记录补填已产生的流量与峰值速率，三列不再为 0（无流量时仍为 0）</li>
-                  <li>MTU 探测固定合理 TTL，跨网关外网目标可正常测出路径 MTU，并更正净荷/MTU 文案</li>
-                  <li>下载耗时拦截带宽 0/负数/空值；子网掩码校验连续性、拒绝非法掩码（/0 放行并提示）</li>
-                  <li>设置范围界面与网页统一，互相矛盾的设置（如超时小于延迟）报错并还原，不静默落盘</li>
-                  <li>兜底页补访问令牌，同网段设备写操作不再被拒（403）；防火墙启动真实创建入站规则、状态据实显示</li>
-                </ul>
-                <h4>⚠️ 变更</h4>
-                <ul>
-                  <li>程序默认请求管理员权限：每次启动弹 UAC，点「是」运行（用于自动放行防火墙），拒绝提权将无法启动</li>
-                </ul>
-              </div>
-            </details>
+            <summary>
+              <span class="version-tag">v1.4.4</span>
+              <span class="version-date">2026-10-01</span>
+              <span class="version-title" data-i18n="changelog.v144.title">缺陷修复与启动权限加固</span>
+              <span class="chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="changelog-body">
+              <ul>
+                <li data-i18n="changelog.v144.b1">远程发起的测速结果正常写入历史并更新最近结果</li>
+                <li data-i18n="changelog.v144.b2">双向测速正确合并下载 / 上传节点明细与成功数</li>
+                <li data-i18n="changelog.v144.b3">中途停止的历史补填流量与峰值速率</li>
+                <li data-i18n="changelog.v144.b4">启动自动创建防火墙入站规则；默认请求管理员权限</li>
+              </ul>
+            </div>
+          </details>
           <details class="changelog-item">
-              <summary>
-                <span class="version-tag">v1.4.3</span>
-                <span class="version-date">2026-09-14</span>
-                <span class="version-title">检查更新修复</span>
-                <span class="chevron" aria-hidden="true"></span>
-              </summary>
-              <div class="changelog-body">
-                <h4>🛠️ 修复</h4>
-                <ul>
-                  <li>修复 Release 全部为预发布时 /releases/latest 返回 404：自动回退 Release 列表并选择最新版本</li>
-                  <li>修复更新资产选择：优先 NetSpeedTest*.exe，跳过 source.zip 与校验文件</li>
-                  <li>修复并发重复检查与关于页检查中状态卡住的问题</li>
-                </ul>
-                <h4>✨ 优化</h4>
-                <ul>
-                  <li>更新源默认改为 Release 列表；直连失败时自动用系统代理重试一次</li>
-                </ul>
-              </div>
-            </details>
+            <summary>
+              <span class="version-tag">v1.4.3</span>
+              <span class="version-date">2026-09-14</span>
+              <span class="version-title" data-i18n="changelog.v143.title">检查更新修复</span>
+              <span class="chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="changelog-body">
+              <ul>
+                <li data-i18n="changelog.v143.b1">预发布版本导致 /releases/latest 404 时自动回退并选最新</li>
+                <li data-i18n="changelog.v143.b2">更新资产优先选择 NetSpeedTest*.exe</li>
+                <li data-i18n="changelog.v143.b3">并发检查复用同一次请求，状态不再卡住</li>
+              </ul>
+            </div>
+          </details>
           <details class="changelog-item">
-              <summary>
-                <span class="version-tag">v1.4.2</span>
-                <span class="version-date">2026-09-12</span>
-                <span class="version-title">端口自动避让与网卡独立指标</span>
-                <span class="chevron" aria-hidden="true"></span>
-              </summary>
-              <div class="changelog-body">
-                <h4>🚀 新增</h4>
-                <ul>
-                  <li>网卡独立延迟与丢包率显示：每张网卡分别呈现内网延迟、外网延迟、抖动与丢包</li>
-                  <li>Web 端口自动检测避让以及自定义端口：端口被占用自动顺延，也可指定固定端口</li>
-                </ul>
-                <h4>✨ 优化</h4>
-                <ul>
-                  <li>URL 以及线程分配逻辑：轮转分配 + 健康度评分，避免部分节点永远分不到流量</li>
-                  <li>多网卡延迟、丢包率显示逻辑：UDP 五层回退探测，指标不再恒为 0 或 100%</li>
-                  <li>程序响应速度：网络状态、设置读写、测速启停不再阻塞 UI，等待超时按失败返回</li>
-                  <li>视觉界面美观度：统一响应头与错误文案，Web 控制台与桌面端风格对齐</li>
-                </ul>
-                <h4>🛠️ 修复</h4>
-                <ul>
-                  <li>修复网卡、配置等变动不刷新的问题</li>
-                  <li>修复上传测速未校验响应状态码，4xx/5xx 被计入虚假上传速度的问题</li>
-                  <li>修复丢包率恒为 100%、网关延迟恒为 0 的探测判定问题</li>
-                  <li>修复测速启动假成功、准备阶段停止请求被忽略的问题</li>
-                  <li>修复结果弹窗占住 UI 线程导致 Web API 全部超时的问题</li>
-                  <li>修复设置写入非原子、并发保存产生半截配置的问题</li>
-                  <li>修复目标地址校验可被重定向绕过（SSRF）与内部错误信息外泄的问题</li>
-                  <li>修复写操作缺少会话令牌校验，以及测速目标缺少白名单校验的问题</li>
-                  <li>修复自适应线程控制器的竞态与速率队列并发枚举崩溃的问题</li>
-                </ul>
-              </div>
-            </details>
+            <summary>
+              <span class="version-tag">v1.4.2</span>
+              <span class="version-date">2026-09-12</span>
+              <span class="version-title" data-i18n="changelog.v142.title">端口自动避让与网卡独立指标</span>
+              <span class="chevron" aria-hidden="true"></span>
+            </summary>
+            <div class="changelog-body">
+              <ul>
+                <li data-i18n="changelog.v142.b1">每张网卡独立显示延迟、抖动与丢包率</li>
+                <li data-i18n="changelog.v142.b2">Web 端口自动避让，也可指定固定端口</li>
+                <li data-i18n="changelog.v142.b3">URL 轮转分配 + 健康度评分，节点流量更均衡</li>
+              </ul>
+            </div>
+          </details>
         </div>
 
         <p class="changelog-more">
-          最近三个版本更新日志请查看
+          <span data-i18n="changelog.more">最近三个版本如上，完整记录见</span>
           <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/CHANGELOG.md">CHANGELOG.md →</a>
         </p>
       </div>
     </section>
 
     <!-- Download -->
-    <section class="section download-section" id="download">
-      <div class="container download-box">
-        <img src="NetSpeedTest/Resources/app.png" alt="" class="download-icon" width="96" height="96" />
-        <span class="section-kicker">立即体验</span>
-        <h2>下载 NetSpeedTest</h2>
-        <p>Windows 10 / 11 · .NET 8 单文件发布 · 约 170 MB · MIT 开源免费</p>
-        <div class="download-actions">
-          <a class="btn btn-primary btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest/releases/latest">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a1 1 0 0 1 1 1v9.586l3.293-3.293a1 1 0 1 1 1.414 1.414l-5 5a1 1 0 0 1-1.414 0l-5-5a1 1 0 1 1 1.414-1.414L11 13.586V4a1 1 0 0 1 1-1Z"/><path d="M5 17v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 1 0-2 0v1H7v-1a1 1 0 1 0-2 0Z"/></svg>
-            前往 Releases 下载
-          </a>
-          <a class="btn btn-ghost btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest">浏览源代码</a>
+    <section class="section section-alt" id="download" data-section="download">
+      <div class="container">
+        <div class="download-box">
+          <img class="download-icon" src="assets/app-icon.png" alt="" width="76" height="76" loading="lazy" />
+          <span class="kicker" data-i18n="download.kicker">立即体验</span>
+          <h2 data-i18n="section.download.title">下载</h2>
+          <p data-i18n="download.lede">Windows 10 / 11 · .NET 8 单文件发布 · 约 170 MB · MIT 开源免费</p>
+          <div class="download-actions">
+            <a class="btn btn-primary btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest/releases/latest">
+              <svg aria-hidden="true"><use href="#i-download"></use></svg>
+              <span data-i18n="download.cta1">前往 Releases 下载</span>
+            </a>
+            <a class="btn btn-ghost btn-lg" href="https://github.com/lingyingaojue/NetSpeedTest">
+              <svg aria-hidden="true"><use href="#i-github"></use></svg>
+              <span data-i18n="download.cta2">浏览源代码</span>
+            </a>
+          </div>
+          <p class="build-step"><span data-i18n="download.build">或者从源码构建：</span><code>git clone https://github.com/lingyingaojue/NetSpeedTest.git &amp;&amp; cd NetSpeedTest &amp;&amp; dotnet run --project NetSpeedTest/NetSpeedTest.csproj</code></p>
         </div>
-        <div class="build-steps">
-          <span>或者从源码构建：</span>
-          <code>git clone https://github.com/lingyingaojue/NetSpeedTest.git &amp;&amp; cd NetSpeedTest &amp;&amp; dotnet run --project NetSpeedTest/NetSpeedTest.csproj</code>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="section" id="contact" data-section="contact">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker" data-i18n="contact.kicker">联系方式</span>
+          <h2 class="section-title" data-i18n="section.contact.title">反馈与联系</h2>
+          <p class="section-lede" data-i18n="contact.lede">欢迎反馈问题、交流使用经验或合作。</p>
+        </div>
+
+        <div class="contact-grid">
+          <div class="contact-card reveal">
+            <span class="contact-icon"><svg aria-hidden="true"><use href="#i-mail"></use></svg></span>
+            <h3 data-i18n="contact.email.title">邮箱</h3>
+            <p><a href="mailto:mashuo2010az@163.com">mashuo2010az@163.com</a></p>
+            <div class="contact-actions">
+              <button class="btn btn-ghost btn-sm" type="button" id="copyEmailBtn" data-email="mashuo2010az@163.com" data-i18n="contact.email.btn">复制邮箱</button>
+            </div>
+          </div>
+
+          <div class="contact-card reveal">
+            <a href="assets/contact/wechat.png" target="_blank" rel="noreferrer">
+              <img class="qr" src="assets/contact/wechat.png" alt="微信好友二维码" width="132" height="132" loading="lazy" />
+            </a>
+            <h3 data-i18n="contact.wechat.title">微信好友</h3>
+            <p data-i18n="contact.wechat.desc">扫码添加</p>
+            <div class="contact-actions">
+              <a class="btn btn-ghost btn-sm" href="assets/contact/wechat.png" target="_blank" rel="noreferrer" data-i18n="contact.open">打开</a>
+            </div>
+          </div>
+
+          <div class="contact-card reveal">
+            <a href="assets/contact/qq-friend.png" target="_blank" rel="noreferrer">
+              <img class="qr" src="assets/contact/qq-friend.png" alt="QQ 好友二维码" width="132" height="132" loading="lazy" />
+            </a>
+            <h3 data-i18n="contact.qq.title">QQ 好友</h3>
+            <p data-i18n="contact.qq.desc">扫码添加</p>
+            <div class="contact-actions">
+              <a class="btn btn-ghost btn-sm" href="assets/contact/qq-friend.png" target="_blank" rel="noreferrer" data-i18n="contact.open">打开</a>
+            </div>
+          </div>
+
+          <div class="contact-card reveal">
+            <a href="assets/contact/qq-group.jpg" target="_blank" rel="noreferrer">
+              <img class="qr" src="assets/contact/qq-group.jpg" alt="QQ 交流群二维码" width="132" height="132" loading="lazy" />
+            </a>
+            <h3 data-i18n="contact.group.title">QQ 交流群</h3>
+            <p data-i18n="contact.group.desc">扫码加入</p>
+            <div class="contact-actions">
+              <a class="btn btn-ghost btn-sm" href="assets/contact/qq-group.jpg" target="_blank" rel="noreferrer" data-i18n="contact.open">打开</a>
+            </div>
+          </div>
         </div>
       </div>
     </section>
   </main>
 
-  <section class="section section-alt" id="contact">
-      <div class="container">
-        <div class="section-head">
-          <span class="section-kicker">联系方式</span>
-          <h2>找到我们</h2>
-          <p>欢迎反馈问题、交流使用经验或合作。</p>
-        </div>
-                  <div class="contact-grid">
-            <div class="contact-card reveal">
-              <span class="contact-icon">✉️</span>
-              <h3>邮箱</h3>
-              <p><a href="mailto:mashuo2010az@163.com">mashuo2010az@163.com</a></p>
-              <button class="btn btn-ghost btn-sm" type="button" id="copyEmailBtn">复制邮箱</button>
-            </div>
-            <div class="contact-card reveal">
-              <a class="qr-link" href="assets/contact/wechat.png" target="_blank" rel="noreferrer">
-                <img src="assets/contact/wechat.png" alt="微信好友二维码" loading="lazy" />
-              </a>
-              <h3>微信好友</h3>
-              <p>扫码添加</p>
-              <div class="contact-actions">
-                <a class="btn btn-ghost btn-sm" href="assets/contact/wechat.png" target="_blank" rel="noreferrer">打开</a>
-                <a class="btn btn-ghost btn-sm" href="assets/contact/wechat.png" download="微信好友二维码.png">保存</a>
-              </div>
-            </div>
-            <div class="contact-card reveal">
-              <a class="qr-link" href="assets/contact/qq-friend.png" target="_blank" rel="noreferrer">
-                <img src="assets/contact/qq-friend.png" alt="QQ好友二维码" loading="lazy" />
-              </a>
-              <h3>QQ好友</h3>
-              <p>扫码添加</p>
-              <div class="contact-actions">
-                <a class="btn btn-ghost btn-sm" href="assets/contact/qq-friend.png" target="_blank" rel="noreferrer">打开</a>
-                <a class="btn btn-ghost btn-sm" href="assets/contact/qq-friend.png" download="QQ好友二维码.png">保存</a>
-              </div>
-            </div>
-            <div class="contact-card reveal">
-              <a class="qr-link" href="assets/contact/qq-group.jpg" target="_blank" rel="noreferrer">
-                <img src="assets/contact/qq-group.jpg" alt="QQ交流群二维码" loading="lazy" />
-              </a>
-              <h3>QQ交流群</h3>
-              <p>扫码加入</p>
-              <div class="contact-actions">
-                <a class="btn btn-ghost btn-sm" href="assets/contact/qq-group.jpg" target="_blank" rel="noreferrer">打开</a>
-                <a class="btn btn-ghost btn-sm" href="assets/contact/qq-group.jpg" download="QQ交流群二维码.jpg">保存</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    <footer class="site-footer">
-      <div class="container footer-inner">
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
         <div class="footer-brand">
-          <img src="NetSpeedTest/Resources/app.png" alt="" width="32" height="32" />
+          <img src="assets/app-icon.png" alt="" width="32" height="32" />
           <strong>NetSpeedTest</strong>
         </div>
-        <p>Windows 桌面端网络测速工具 · 专业级 · 开源免费</p>
-        <p class="footer-meta">MIT License · © <span id="year">2026</span> lingyingaojue</p>
-        <div class="footer-links">
-          <a href="https://github.com/lingyingaojue/NetSpeedTest">GitHub</a>
-          <a href="https://github.com/lingyingaojue/NetSpeedTest/releases">Releases</a>
-          <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/CHANGELOG.md">更新日志</a>
+        <div class="footer-col">
+          <h4 data-i18n="footer.project">项目</h4>
+          <div class="footer-links">
+            <a href="https://github.com/lingyingaojue/NetSpeedTest">GitHub</a>
+            <a href="https://github.com/lingyingaojue/NetSpeedTest/releases">Releases</a>
+            <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/CHANGELOG.md">CHANGELOG.md</a>
+            <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/docs/DESIGN.md" data-i18n="footer.design">设计规范</a>
+          </div>
         </div>
-        <p class="footer-credit">凌影傲爵 · DeepSeek</p>
+        <div class="footer-col">
+          <h4 data-i18n="footer.resources">资源</h4>
+          <div class="footer-links">
+            <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/README.md">README</a>
+            <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/SECURITY.md" data-i18n="footer.security">安全策略</a>
+            <a href="https://github.com/lingyingaojue/NetSpeedTest/issues" data-i18n="footer.issues">问题反馈</a>
+            <a href="https://github.com/lingyingaojue/NetSpeedTest/blob/main/LICENSE">MIT License</a>
+          </div>
+        </div>
       </div>
-    </footer>
 
+      <p class="footer-tagline" data-i18n="footer.tagline">Windows 桌面端网络测速工具 · 专业级 · 开源免费</p>
+      <p class="footer-credit">凌影傲爵 · DeepSeek</p>
+
+      <div class="footer-bottom">
+        <span>© <span id="year">2026</span> lingyingaojue · MIT License</span>
+        <span data-i18n="footer.built">由 DeepSeek 协作开发</span>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="application/json" id="i18n-data">
+  {
+    "en": {
+      "meta.title": "NetSpeedTest — Professional Windows Network Speed Test",
+      "meta.description": "An open-source, free Windows desktop network speed test tool: 128-thread engine, multi-NIC parallel testing, UDP-first latency probing, 18-in-1 toolbox and a remote web console.",
+      "header.skip": "Skip to content",
+      "header.menu": "Open navigation menu",
+      "header.nav": "Main navigation",
+      "header.theme": "Toggle theme",
+      "header.lang": "Language",
+      "brand.sub": "Windows network speed test",
+      "nav.features": "Features",
+      "nav.screenshot": "Screenshots",
+      "nav.toolbox": "Toolbox",
+      "nav.reference": "Parameters",
+      "nav.api": "API",
+      "nav.architecture": "Architecture",
+      "nav.changelog": "Changelog",
+      "nav.download": "Download",
+      "hero.badge": "v1.4.4 released · 9 fixes and startup privilege hardening",
+      "hero.title": "Network speed tests,<br /><span class=\"grad\">done right</span>",
+      "hero.sub": "Smart CDN routing · adaptive threading · multi-NIC parallel testing · UDP-first five-tier latency probing · 18-in-1 toolbox. One app covers it all.",
+      "hero.cta.download": "Download for Windows",
+      "hero.cta.github": "GitHub repository",
+      "hero.meta.os": "Windows 10 / 11",
+      "hero.meta.build": ".NET 8 single-file build",
+      "hero.meta.license": "MIT open source",
+      "demo.title": "Live waveform demo",
+      "demo.live": "LIVE",
+      "demo.chart": "Simulated speed test waveform",
+      "demo.download": "Download",
+      "demo.upload": "Upload",
+      "demo.total": "Total",
+      "demo.legend.download": "Download",
+      "demo.legend.upload": "Upload",
+      "demo.legend.avg": "Average reference",
+      "stats.threads.unit": "threads",
+      "stats.threads.label": "Default concurrent download / upload",
+      "stats.adaptive.unit": "ceiling",
+      "stats.adaptive.label": "Adaptive thread steps",
+      "stats.tools.unit": "tools",
+      "stats.tools.label": "Network diagnostic tools",
+      "stats.nodes.unit": "nodes",
+      "stats.nodes.label": "Built-in CDN nodes",
+      "features.kicker": "Core capabilities",
+      "section.features.title": "Core Features",
+      "features.lede": "From thread scheduling and link probing to result metering, every layer is engineered to professional standards.",
+      "feature.engine.title": "Smart Speed Engine",
+      "feature.engine.b1": "128 threads of concurrent HTTP GET/POST, up to 1024 in adaptive mode",
+      "feature.engine.b2": "URL rotation with health scoring; failing nodes cool down and get down-weighted",
+      "feature.engine.b3": "Emergency drop compensation adds threads and corrects the result",
+      "feature.engine.b4": "Ramp-up excluded from the average, 3 s sliding-window smoothing",
+      "feature.engine.b5": "Gradual startup so the link is never saturated instantly",
+      "feature.multinic.title": "Multi-NIC Parallel Testing",
+      "feature.multinic.b1": "Test several NICs at once, each bound to its own source IP",
+      "feature.multinic.b2": "Default-gateway adapters are selected automatically",
+      "feature.multinic.b3": "Download/upload charts switch between combined and per-NIC curves",
+      "feature.multinic.b4": "One failing adapter never blocks the others",
+      "feature.multinic.b5": "Virtual adapters are filtered by default and can be allowed in Settings",
+      "feature.latency.title": "Full-Chain Latency Probing",
+      "feature.latency.b1": "Five-tier fallback: UDP → ICMP → TCP 443 → HTTPS HEAD → HTTP HEAD",
+      "feature.latency.b2": "Internet latency, jitter and LAN latency share one probe chain",
+      "feature.latency.b3": "Jitter is smoothed with a sliding-window standard deviation",
+      "feature.latency.b4": "Packet loss is probed in 5-packet batches with an automatic UDP recheck",
+      "feature.latency.b5": "Every adapter shows its own latency, jitter and packet loss",
+      "feature.metering.title": "NIC-Level Precision Metering",
+      "feature.metering.b1": "Differentially derived from IPv4Statistics, free of HTTP overhead",
+      "feature.metering.b2": "Kbps / Mbps / Gbps switch automatically",
+      "feature.metering.b3": "Dual LiveCharts2 line charts, 200 ms sampling, 500-point window",
+      "feature.metering.b4": "Nine-detail info card per adapter plus active thread counts",
+      "feature.metering.b5": "Draggable chart splitter and animated mode transitions",
+      "feature.ux.title": "Professional Interaction",
+      "feature.ux.b1": "Custom title bar with embedded sidebar pages; switching is locked while testing",
+      "feature.ux.b2": "Dark/light themes and Chinese/English switch instantly and persist",
+      "feature.ux.b3": "System-tray residency with state sync and balloon notifications",
+      "feature.ux.b4": "GitHub OTA updates checked automatically at startup",
+      "feature.ux.b5": "Shortcuts: Enter / Esc / Ctrl+D / Ctrl+U / Ctrl+B",
+      "feature.history.title": "History & Profile Management",
+      "feature.history.b1": "SQLite history with paging, a statistics bar and CSV export",
+      "feature.history.b2": "8 built-in CDN nodes plus profile import/export (HBCS-compatible)",
+      "feature.history.b3": "Atomic settings writes, so an interrupted save never loses configuration",
+      "feature.history.b4": "Built-in web server and REST API for remote control",
+      "feature.history.b5": "Multi-NIC export carries the aggregate result, per-adapter details and BatchId",
+      "screenshot.kicker": "Real interface",
+      "section.screenshot.title": "Screenshots",
+      "screenshot.lede": "Dark theme, embedded sidebar pages and a custom title bar: testing, history, settings and remote control in one window.",
+      "screenshot.main.title": "Main window",
+      "screenshot.main.caption": "Pick a mode, select adapters and start with one click.",
+      "screenshot.settings.title": "Settings",
+      "screenshot.settings.caption": "Tune threads, duration and compensation parameters.",
+      "toolbox.kicker": "One-stop troubleshooting",
+      "section.toolbox.title": "Network Toolbox",
+      "toolbox.lede": "18 professional diagnostics built in, covering connectivity, resolution, certificates and NAT beyond speed testing.",
+      "tool.ping.name": "Ping",
+      "tool.ping.desc": "ICMP connectivity with per-packet RTT and TTL",
+      "tool.dns.name": "DNS Query",
+      "tool.dns.desc": "A / AAAA resolution with elapsed time",
+      "tool.http.name": "HTTP Request",
+      "tool.http.desc": "HEAD probe for status code and response time",
+      "tool.traceroute.name": "Traceroute",
+      "tool.traceroute.desc": "ICMP TTL hop-by-hop trace",
+      "tool.port.name": "Port Test",
+      "tool.port.desc": "TCP port connectivity check",
+      "tool.mtu.name": "MTU Probe",
+      "tool.mtu.desc": "Binary-search path MTU discovery",
+      "tool.dnsCompare.name": "DNS Compare",
+      "tool.dnsCompare.desc": "Side-by-side DNS server latency",
+      "tool.geo.name": "IP Geo",
+      "tool.geo.desc": "Location, ISP and AS lookup",
+      "tool.publicIp.name": "Public IP",
+      "tool.publicIp.desc": "Multi-source egress IP probe",
+      "tool.ssl.name": "SSL Certificate",
+      "tool.ssl.desc": "Issuer, expiry and signature algorithm",
+      "tool.header.name": "HTTP Header",
+      "tool.header.desc": "Full response headers for any URL",
+      "tool.subnet.name": "Subnet Calculator",
+      "tool.subnet.desc": "Network, broadcast and usable hosts",
+      "tool.bandwidth.name": "Bandwidth",
+      "tool.bandwidth.desc": "Mbps ↔ MB/s and more",
+      "tool.timestamp.name": "Timestamp",
+      "tool.timestamp.desc": "Unix time ↔ date conversion",
+      "tool.hash.name": "Hash",
+      "tool.hash.desc": "MD5 / SHA1 / SHA256",
+      "tool.base64.name": "Base64",
+      "tool.base64.desc": "Encode and decode",
+      "tool.uuid.name": "UUID",
+      "tool.uuid.desc": "Batch v4 generation",
+      "tool.nat.name": "NAT Detection",
+      "tool.nat.desc": "STUN mapping behaviour and port preservation",
+      "reference.kicker": "Control",
+      "section.reference.title": "Shortcuts & Parameters",
+      "reference.lede": "The defaults are already fast; every parameter stays tunable for power users.",
+      "reference.shortcuts": "Keyboard shortcuts",
+      "reference.params": "Tunable parameters",
+      "reference.col.param": "Parameter",
+      "reference.col.range": "Range",
+      "reference.col.default": "Default",
+      "shortcut.start": "Start a test (download mode)",
+      "shortcut.stop": "Stop the test",
+      "shortcut.download": "+ D download only",
+      "shortcut.upload": "+ U upload only",
+      "shortcut.both": "+ B full-speed bidirectional",
+      "param.ThreadCount": "Concurrent threads",
+      "param.TestTimeoutSec": "Test duration",
+      "param.ThreadRampUpMs": "Thread ramp-up interval",
+      "param.AverageDelaySec": "Average measurement delay",
+      "param.RateWindowSec": "Rate smoothing window",
+      "param.NicPollIntervalMs": "NIC poll interval",
+      "param.LatencyPollIntervalMs": "Latency poll interval",
+      "param.JitterPollIntervalMs": "Jitter sample interval",
+      "param.JitterTargetHost": "Jitter target host",
+      "param.PacketLossTargetHost": "Packet loss target host",
+      "param.PacketLossPollIntervalMs": "Packet loss poll interval",
+      "param.CompensationThreshold": "Compensation threshold",
+      "param.CompensationConfirmSec": "Compensation confirm window",
+      "param.AdaptiveStartThreads": "Adaptive start threads",
+      "param.adaptiveCeiling": "Adaptive thread ceiling (derived)",
+      "param.webPort": "Web server port",
+      "reference.note": "The adaptive ceiling is derived by the engine: 1024 on a single NIC, scaled by each NIC's share. The web port is set on the Web Server page; every other parameter lives on the Settings page.",
+      "api.kicker": "Remote control",
+      "section.api.title": "Web Console & REST API",
+      "api.lede": "A built-in HTTP server lets a phone or another PC on the same subnet watch and drive tests from a browser.",
+      "api.cap1": "Session token: writes require the X-NST-Token generated at startup",
+      "api.cap2": "LAN access control: only same-subnet devices are served, others get 403",
+      "api.cap3": "SSRF protection: redirects are validated hop by hop, private targets are blocked",
+      "api.cap4": "Security headers: nosniff, X-Frame-Options: DENY and no-referrer",
+      "api.cap5": "2-second timeout: UI-thread waits return 503 instead of hanging",
+      "api.col.method": "Method",
+      "api.col.path": "Path",
+      "api.col.desc": "Description",
+      "api.status": "Test state, live rate and current port",
+      "api.adapters": "Adapter list and selection state",
+      "api.adapterSelect": "Choose which adapters take part in the test",
+      "api.profiles": "Read or save speed test profiles",
+      "api.history": "Page through or clear history records",
+      "api.settings": "Read or write test parameters (atomic persist)",
+      "api.testStart": "Start a test (returns 200 once running)",
+      "api.testStop": "Stop a test (also cancels during preparation)",
+      "api.server": "Port, LAN state and adapter-subnet bindings",
+      "architecture.kicker": "Engineering",
+      "section.architecture.title": "Tech Stack",
+      "architecture.lede": "A .NET 8 and WPF MVVM architecture with restrained, clear dependencies.",
+      "stack.runtime.label": "Runtime",
+      "stack.runtime.note": "Self-contained single-file build",
+      "stack.ui.label": "UI framework",
+      "stack.ui.note": "Custom title bar + embedded pages",
+      "stack.mvvm.label": "Architecture",
+      "stack.charts.label": "Charts",
+      "stack.charts.note": "SkiaSharp hardware rendering",
+      "stack.data.label": "Persistence",
+      "stack.web.label": "Web server",
+      "stack.web.note": "Embedded wwwroot + REST API",
+      "changelog.kicker": "Releases",
+      "section.changelog.title": "Changelog",
+      "changelog.lede": "Every release is verified on real hardware — no placeholder features.",
+      "changelog.v144.title": "Bug fixes and startup privilege hardening",
+      "changelog.v144.b1": "Remote-triggered results are saved to history and update the latest result",
+      "changelog.v144.b2": "Bidirectional tests merge download/upload node details and success counts",
+      "changelog.v144.b3": "Cancelled tests now record traffic and peak rate",
+      "changelog.v144.b4": "Firewall inbound rules are created at startup; admin rights are requested by default",
+      "changelog.v143.title": "Update checker fixes",
+      "changelog.v143.b1": "Falls back to the release list when /releases/latest returns 404 for pre-releases",
+      "changelog.v143.b2": "Update assets prefer NetSpeedTest*.exe",
+      "changelog.v143.b3": "Concurrent checks reuse one request and never get stuck",
+      "changelog.v142.title": "Port fallback and per-NIC metrics",
+      "changelog.v142.b1": "Every adapter shows its own latency, jitter and packet loss",
+      "changelog.v142.b2": "Automatic web-port fallback, or pin a fixed port",
+      "changelog.v142.b3": "URL rotation plus health scoring balances node traffic",
+      "changelog.more": "These are the latest three releases; see the full log in",
+      "download.kicker": "Get started",
+      "section.download.title": "Download",
+      "download.lede": "Windows 10 / 11 · .NET 8 single-file build · about 170 MB · MIT open source",
+      "download.cta1": "Download from Releases",
+      "download.cta2": "Browse the source",
+      "download.build": "Or build from source:",
+      "contact.kicker": "Contact",
+      "section.contact.title": "Feedback & Contact",
+      "contact.lede": "Bug reports, usage feedback and collaboration are all welcome.",
+      "contact.email.title": "Email",
+      "contact.email.btn": "Copy email",
+      "contact.wechat.title": "WeChat",
+      "contact.wechat.desc": "Scan to add",
+      "contact.qq.title": "QQ friend",
+      "contact.qq.desc": "Scan to add",
+      "contact.group.title": "QQ group",
+      "contact.group.desc": "Scan to join",
+      "contact.open": "Open",
+      "footer.project": "Project",
+      "footer.resources": "Resources",
+      "footer.design": "Design system",
+      "footer.security": "Security policy",
+      "footer.issues": "Issues",
+      "footer.tagline": "Professional Windows network speed test tool · open source and free",
+      "footer.built": "Built with DeepSeek",
+      "toast.copied": "Email copied",
+      "toast.copyFailed": "Copy failed — please copy manually"
+    }
+  }
+  </script>
   <script src="assets/site.js"></script>
 </body>
 </html>

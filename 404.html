@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — 页面不存在 · NetSpeedTest</title>
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#1c1c1e" />
+  <link rel="icon" href="assets/site-icon.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png" />
+  <link rel="stylesheet" href="assets/site.css" />
+  <style>
+    .not-found {
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      padding: 48px 24px;
+      text-align: center;
+    }
+
+    .not-found .brand {
+      justify-content: center;
+    }
+
+    .not-found-code {
+      margin-top: 32px;
+      font-family: var(--font-mono);
+      font-size: clamp(4rem, 16vw, 8rem);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -0.06em;
+      background: var(--grad);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .not-found h1 {
+      margin-top: 12px;
+      font-size: clamp(1.4rem, 3vw, 1.9rem);
+    }
+
+    .not-found p {
+      margin-top: 12px;
+      color: var(--text-2);
+      font-size: 14.5px;
+    }
+
+    .not-found .hero-actions {
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <main class="not-found">
+    <div>
+      <a class="brand" href="index.html">
+        <img src="assets/app-icon.png" alt="" width="38" height="38" />
+        <span class="brand-text"><strong>NetSpeedTest</strong><span>Windows 网络测速</span></span>
+      </a>
+      <div class="not-found-code">404</div>
+      <h1>这个页面不存在</h1>
+      <p>地址可能已变更或输入有误。回到首页继续查看特性、工具箱与下载。</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="index.html">返回首页</a>
+        <a class="btn btn-ghost" href="https://github.com/lingyingaojue/NetSpeedTest">GitHub 仓库</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
