@@ -34,8 +34,8 @@
 
 > 主操作用程序 Hero 按钮的绿色，强调用侧边栏高亮的蓝色，上传用图表粉色 —— 官网与截图同源。
 
-徽章统一 `style=flat-square`，固定 7 枚且顺序不变：
-`Release(v{ver})` · `License(MIT)` · `Platform(Windows)` · `.NET 8` · `Downloads` · `Stars` · `AI(DeepSeek)`。
+徽章统一 `style=flat-square`，固定 8 枚且顺序不变：
+`CI` · `Release(v{ver})` · `License(MIT)` · `Platform(Windows)` · `.NET 8` · `Downloads` · `Stars` · `AI(DeepSeek)`。
 
 ## 2. 字体与排版
 

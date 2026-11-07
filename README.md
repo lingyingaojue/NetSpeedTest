@@ -8,6 +8,7 @@
 
 **Windows 桌面端网络测速工具 · 专业级 · 开源免费**
 
+[![CI](https://github.com/lingyingaojue/NetSpeedTest/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/lingyingaojue/NetSpeedTest/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/badge/release-v1.4.4-green?style=flat-square)](https://github.com/lingyingaojue/NetSpeedTest/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square&logo=windows)](https://github.com/lingyingaojue/NetSpeedTest)
