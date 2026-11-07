@@ -1,0 +1,22 @@
+# 统一换行与二进制标记；新增/修改文件由 git 自动归一化，无需 git add --renormalize。
+* text=auto
+
+# Windows 源文件与文档保持 CRLF
+*.md text eol=crlf
+*.cs text eol=crlf
+*.xaml text eol=crlf
+*.csproj text eol=crlf
+*.sln text eol=crlf
+*.ps1 text eol=crlf
+*.cmd text eol=crlf
+
+# CI / 配置文件按 LF 存储
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# 图片与图标按二进制处理
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.svg binary
