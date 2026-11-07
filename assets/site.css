@@ -32,7 +32,22 @@
 
   --grad: linear-gradient(120deg, var(--download), var(--upload));
   --container: 1160px;
-  --header-h: 68px;
+  --header-h: 72px;
+
+  /* 顶栏液态玻璃 */
+  --nav-glass-bg: rgba(22, 22, 26, 0.34);
+  --nav-glass-bg-strong: rgba(22, 22, 26, 0.48);
+  --nav-glass-border: rgba(255, 255, 255, 0.14);
+  --nav-glass-highlight: rgba(255, 255, 255, 0.10);
+  --nav-glass-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+  --nav-glass-panel-bg: rgba(24, 24, 28, 0.92);
+  --nav-chip-bg: rgba(255, 255, 255, 0.06);
+  --nav-chip-hover: rgba(255, 255, 255, 0.12);
+  --nav-item-border: rgba(255, 255, 255, 0.16);
+  --nav-item-hover: rgba(255, 255, 255, 0.10);
+  --nav-item-active: rgba(255, 255, 255, 0.14);
+  --nav-bleed: 12px;
+  --nav-panel-gap: 12px;
 
   --radius-s: 10px;
   --radius-m: 16px;
@@ -71,6 +86,18 @@
   --text: #1a1a1e;
   --text-2: #55555c;
   --text-3: #5f6b7a;
+
+  --nav-glass-bg: rgba(255, 255, 255, 0.46);
+  --nav-glass-bg-strong: rgba(255, 255, 255, 0.62);
+  --nav-glass-border: rgba(255, 255, 255, 0.72);
+  --nav-glass-highlight: rgba(255, 255, 255, 0.55);
+  --nav-glass-shadow: 0 18px 44px rgba(24, 32, 46, 0.18);
+  --nav-glass-panel-bg: rgba(252, 252, 254, 0.94);
+  --nav-chip-bg: rgba(255, 255, 255, 0.50);
+  --nav-chip-hover: rgba(255, 255, 255, 0.78);
+  --nav-item-border: rgba(24, 32, 46, 0.10);
+  --nav-item-hover: rgba(0, 0, 0, 0.05);
+  --nav-item-active: rgba(0, 0, 0, 0.08);
 
   --shadow-s: 0 1px 2px rgba(24, 32, 46, 0.08);
   --shadow-m: 0 16px 40px rgba(24, 32, 46, 0.12);
@@ -215,7 +242,7 @@ pre {
   border: 0;
 }
 
-/* ---------- 3. 顶栏 ---------- */
+/* ---------- 3. 顶栏（悬浮液态玻璃） ---------- */
 .site-header {
   position: sticky;
   top: 0;
@@ -223,28 +250,47 @@ pre {
   height: var(--header-h);
   display: flex;
   align-items: center;
-  background: color-mix(in srgb, var(--bg) 82%, transparent);
-  border-bottom: 1px solid transparent;
-  transition: border-color 180ms var(--ease), background 180ms var(--ease), box-shadow 180ms var(--ease);
+  background: transparent;
 }
 
-@supports not (background: color-mix(in srgb, red 50%, blue)) {
-  .site-header {
-    background: var(--bg);
-  }
+/* 装饰性玻璃层：只负责背景折射，不承接点击，也不承载文字。
+   Chromium 下由 hyalite 写入 --hyalite（url(#...) 位移滤镜）；
+   Safari / Firefox 或 ?glass=off 时回落到 blur 霜化玻璃。 */
+.nav-glass {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 0;
+  width: min(calc(100% - 24px), calc(var(--container) + 24px));
+  height: calc(var(--header-h) - 16px);
+  transform: translateX(-50%);
+  border: 1px solid var(--nav-glass-border);
+  border-radius: 20px;
+  background:
+    linear-gradient(180deg, var(--nav-glass-highlight), rgba(255, 255, 255, 0) 42%, rgba(0, 0, 0, 0.1)),
+    var(--nav-glass-bg);
+  box-shadow: var(--hyalite-edge, none), var(--nav-glass-shadow);
+  -webkit-backdrop-filter: blur(8px) saturate(1.4);
+  backdrop-filter: blur(8px) saturate(1.4);
+  -webkit-backdrop-filter: var(--hyalite, blur(8px) saturate(1.4));
+  backdrop-filter: var(--hyalite, blur(8px) saturate(1.4));
+  pointer-events: none;
+  transition: background 200ms var(--ease), box-shadow 200ms var(--ease);
 }
 
-.site-header.is-scrolled {
-  border-bottom-color: var(--border);
-  box-shadow: var(--shadow-s);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
+.site-header.is-scrolled .nav-glass {
+  background:
+    linear-gradient(180deg, var(--nav-glass-highlight), rgba(255, 255, 255, 0) 42%, rgba(0, 0, 0, 0.14)),
+    var(--nav-glass-bg-strong);
 }
 
 .header-inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 20px;
+  height: calc(var(--header-h) - 16px);
 }
 
 .brand {
@@ -264,7 +310,7 @@ pre {
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--nav-glass-border);
 }
 
 .brand-text {
@@ -285,11 +331,16 @@ pre {
   letter-spacing: 0.02em;
 }
 
+:root[data-theme="dark"] .site-nav a,
+:root[data-theme="dark"] .brand-text strong {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
 .version-chip {
   padding: 2px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--nav-item-border);
   border-radius: 999px;
-  background: var(--bg-elev);
+  background: var(--nav-chip-bg);
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--success);
@@ -306,7 +357,7 @@ pre {
 
 .site-nav a {
   padding: 7px 11px;
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--text-2);
   font-size: 14px;
   font-weight: 500;
@@ -317,13 +368,13 @@ pre {
 
 .site-nav a:hover {
   color: var(--text);
-  background: var(--bg-elev);
+  background: var(--nav-item-hover);
 }
 
 .site-nav a.is-active {
   color: var(--text);
-  background: var(--bg-card);
-  box-shadow: inset 0 0 0 1px var(--border);
+  background: var(--nav-item-active);
+  box-shadow: inset 0 0 0 1px var(--nav-item-border);
 }
 
 .header-tools {
@@ -338,9 +389,9 @@ pre {
   place-items: center;
   width: 36px;
   height: 36px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--nav-item-border);
   border-radius: 10px;
-  background: var(--bg-elev);
+  background: var(--nav-chip-bg);
   color: var(--text-2);
   cursor: pointer;
   transition: color 160ms var(--ease), border-color 160ms var(--ease), background 160ms var(--ease);
@@ -348,7 +399,8 @@ pre {
 
 .icon-btn:hover {
   color: var(--text);
-  border-color: var(--text-3);
+  background: var(--nav-chip-hover);
+  border-color: var(--nav-item-border);
 }
 
 .icon-btn svg {
@@ -371,9 +423,9 @@ pre {
 .lang-switch {
   display: inline-flex;
   padding: 3px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--nav-item-border);
   border-radius: 10px;
-  background: var(--bg-elev);
+  background: var(--nav-chip-bg);
 }
 
 .lang-switch button {
@@ -393,22 +445,26 @@ pre {
 }
 
 .lang-switch button.is-active {
-  background: var(--bg-card);
+  background: var(--nav-item-active);
   color: var(--text);
-  box-shadow: inset 0 0 0 1px var(--border);
+  box-shadow: inset 0 0 0 1px var(--nav-item-border);
 }
 
 .nav-toggle {
   display: none;
   width: 38px;
   height: 38px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--nav-item-border);
   border-radius: 10px;
-  background: var(--bg-elev);
+  background: var(--nav-chip-bg);
   cursor: pointer;
   padding: 9px;
   flex-direction: column;
   justify-content: space-between;
+}
+
+.nav-toggle:hover {
+  background: var(--nav-chip-hover);
 }
 
 .nav-toggle span {
@@ -1653,20 +1709,24 @@ html.js .reveal.is-visible {
   }
 }
 
-@media (max-width: 900px) {
+/* 英文导航标签较长：≤1160px 就折叠为菜单，避免顶栏横向溢出。 */
+@media (max-width: 1160px) {
   .site-nav {
     position: absolute;
-    top: var(--header-h);
-    left: 0;
-    right: 0;
+    top: calc(100% + var(--nav-panel-gap));
+    left: calc(-1 * var(--nav-bleed));
+    right: calc(-1 * var(--nav-bleed));
     display: none;
     flex-direction: column;
     align-items: stretch;
     gap: 2px;
-    padding: 12px 24px 18px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg);
-    box-shadow: var(--shadow-m);
+    padding: 14px 14px 16px;
+    border: 1px solid var(--nav-glass-border);
+    border-radius: 20px;
+    background: var(--nav-glass-panel-bg);
+    box-shadow: var(--nav-glass-shadow);
+    -webkit-backdrop-filter: blur(22px) saturate(1.4);
+    backdrop-filter: blur(22px) saturate(1.4);
   }
 
   .site-nav.is-open {
@@ -1689,7 +1749,9 @@ html.js .reveal.is-visible {
   .header-inner {
     gap: 12px;
   }
+}
 
+@media (max-width: 900px) {
   .hero {
     padding-top: 52px;
   }
@@ -1732,8 +1794,16 @@ html.js .reveal.is-visible {
 }
 
 @media (max-width: 620px) {
+  :root {
+    --nav-bleed: 8px;
+  }
+
   .container {
     width: calc(100% - 32px);
+  }
+
+  .nav-glass {
+    width: calc(100% - 16px);
   }
 
   .header-inner {
@@ -1846,8 +1916,38 @@ html.js .reveal.is-visible {
   }
 }
 
+/* 不支持 backdrop-filter 的浏览器：玻璃退化为近实色面板，保证可读 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav-glass,
+  .site-nav {
+    background: var(--nav-glass-panel-bg);
+  }
+}
+
+/* Windows 高对比度模式：隐藏装饰玻璃，回到系统色 */
+@media (forced-colors: active) {
+  .nav-glass {
+    display: none;
+  }
+
+  .site-header {
+    background: Canvas;
+    border-bottom: 1px solid CanvasText;
+  }
+
+  .site-nav {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+
+  .site-nav a.is-active {
+    outline: 1px solid CanvasText;
+  }
+}
+
 @media print {
   .site-header,
+  .nav-glass,
   .nav-toggle,
   .header-tools,
   .hero-actions,

@@ -251,6 +251,8 @@ NetSpeedTest/
 └─ tools/                   # Screenshot, documentation check and smoke scripts
 ```
 
+> The website navigation glass is powered by [hyalite](https://github.com/VII-Cae/hyalite--liquid-glass) v0.5.0 (MIT, © 2026 VII-Cae); see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for the license.
+
 ## 🚀 Quick Start
 
 ### Requirements

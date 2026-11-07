@@ -592,6 +592,45 @@ public class SiteTemplateTests
             "官网资源必须全部本地（无 CDN、无外链脚本、无外部字体）：" + Environment.NewLine + string.Join(Environment.NewLine, violations));
     }
 
+    /// <summary>
+    /// DESIGN §3.1 / §8：官网顶栏使用 vendored hyalite 液态玻璃。装饰层、脚本顺序、CSS 降级与
+    /// MIT 许可声明必须齐全，上游版本与 commit 被固定，避免「悄悄升级」或漏带许可。
+    /// </summary>
+    [Fact]
+    public void LandingPage_navbar_uses_vendored_liquid_glass()
+    {
+        var landing = LandingPage();
+
+        var layer = Regex.Match(landing, @"<div[^>]*\bid=""navGlass""[^>]*>");
+        Assert.True(layer.Success, "index.html 缺少 #navGlass 玻璃装饰层");
+        Assert.Contains("class=\"nav-glass\"", layer.Value, StringComparison.Ordinal);
+        Assert.Contains("aria-hidden=\"true\"", layer.Value, StringComparison.Ordinal);
+
+        Assert.Contains("assets/vendor/hyalite.js", landing, StringComparison.Ordinal);
+        Assert.True(
+            landing.IndexOf("assets/vendor/hyalite.js", StringComparison.Ordinal)
+                < landing.IndexOf("assets/site.js", StringComparison.Ordinal),
+            "hyalite.js 必须先于 assets/site.js 加载");
+
+        var css = ReadmeAssertions.ReadSourceFile(Path.Combine("assets", "site.css"));
+        Assert.Contains("var(--hyalite", css, StringComparison.Ordinal);
+        Assert.Contains("backdrop-filter: blur(", css, StringComparison.Ordinal);
+        Assert.Contains("--nav-glass-bg", css, StringComparison.Ordinal);
+
+        var vendor = ReadmeAssertions.ReadSourceFile(Path.Combine("assets", "vendor", "hyalite.js"));
+        Assert.Contains("hyalite v0.5.0", vendor, StringComparison.Ordinal);
+        Assert.Contains("MIT © 2026 VII-Cae", vendor, StringComparison.Ordinal);
+
+        var license = ReadmeAssertions.ReadSourceFile(Path.Combine("assets", "vendor", "hyalite.LICENSE"));
+        Assert.Contains("MIT License", license, StringComparison.Ordinal);
+        Assert.Contains("Copyright (c) 2026 VII-Cae", license, StringComparison.Ordinal);
+
+        var notices = ReadmeAssertions.ReadSourceFile("THIRD-PARTY-NOTICES.md");
+        Assert.Contains("hyalite", notices, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("https://github.com/VII-Cae/hyalite--liquid-glass", notices, StringComparison.Ordinal);
+        Assert.Contains("b9f27192a7256bf5295bf027b582b86864f9b59d", notices, StringComparison.Ordinal);
+    }
+
     // ========== 辅助方法 ==========
 
     private static string LandingPage() => ReadmeAssertions.ReadSourceFile("index.html");

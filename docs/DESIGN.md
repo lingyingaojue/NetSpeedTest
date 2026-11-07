@@ -37,6 +37,19 @@
 徽章统一 `style=flat-square`，固定 8 枚且顺序不变：
 `CI` · `Release(v{ver})` · `License(MIT)` · `Platform(Windows)` · `.NET 8` · `Downloads` · `Stars` · `AI(DeepSeek)`。
 
+**顶栏液态玻璃令牌**（§3.1 使用，深/浅按主题切换）：
+
+| 令牌 | 深色 | 浅色 |
+|:--|:--|:--|
+| `--nav-glass-bg` | `rgba(22,22,26,.34)` | `rgba(255,255,255,.46)` |
+| `--nav-glass-bg-strong` | `rgba(22,22,26,.48)` | `rgba(255,255,255,.62)` |
+| `--nav-glass-border` | `rgba(255,255,255,.14)` | `rgba(255,255,255,.72)` |
+| `--nav-glass-shadow` | `0 18px 44px rgba(0,0,0,.42)` | `0 18px 44px rgba(24,32,46,.18)` |
+| `--nav-glass-panel-bg` | `rgba(24,24,28,.92)` | `rgba(252,252,254,.94)` |
+| `--nav-item-hover` | `rgba(255,255,255,.10)` | `rgba(0,0,0,.05)` |
+| `--nav-item-active` | `rgba(255,255,255,.14)` | `rgba(0,0,0,.08)` |
+| `--nav-item-border` | `rgba(255,255,255,.16)` | `rgba(24,32,46,.10)` |
+
 ## 2. 字体与排版
 
 - 无衬线：`"Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "PingFang SC", "Noto Sans SC", system-ui, sans-serif`
@@ -53,6 +66,23 @@
 - 圆角：小 10px、中 16px、大 24px；按钮 10px；胶囊 999px。
 - 阴影：`0 1px 2px rgba(0,0,0,.24)` / `0 16px 40px rgba(0,0,0,.28)` / `0 28px 70px rgba(0,0,0,.36)`。
 - 过渡 180ms `cubic-bezier(.2,.7,.3,1)`；滚动显现 600ms、位移 12px；`prefers-reduced-motion` 下全部关闭。
+
+### 3.1 顶栏液态玻璃（hyalite）
+
+- 结构：`.site-header` 高 `--header-h: 72px`、透明 sticky；装饰层 `.nav-glass#navGlass`（`aria-hidden`、`pointer-events:none`）
+  悬浮于顶部 8px，高 56px、圆角 20px；内容 `.header-inner` 高 56px、`z-index: 1`。
+- 宽度：`min(calc(100% - 24px), calc(var(--container) + 24px))`；≤620px 为 `calc(100% - 16px)`，
+  两侧出血 `--nav-bleed: 8px`（其余屏 12px）。
+- 断点：≤1160px 折叠为汉堡菜单（英文导航标签较长，避免顶栏横向溢出）；≤900px 其余版式同步收窄。
+- 材质：vendored [hyalite](https://github.com/VII-Cae/hyalite--liquid-glass) v0.5.0（MIT，固定 commit `b9f2719…`），
+  Chromium 下真实折射；Safari / Firefox 与 `?glass=off` 回落 `blur(8px) saturate(1.4)` 霜化玻璃。
+- 参数初始值：`bevel:18, thickness:16, slope:2.2, blur:6, dispersion:1.1, shade:.42, rim:1.25,
+  edgeW:7, sat:.92, light:-100, materialize:0`；以截图验收为准微调后回写本节。
+- 滚动状态：`.site-header.is-scrolled` 只增强纱底与投影，不做尺寸动画（避免贴图反复重建）。
+- 移动菜单：`.site-nav` 锚定胶囊下缘，近实色玻璃面板 + `blur(22px)`，保证可读。
+- 降级/无障碍：`@supports not (backdrop-filter…)` 退化为 `--nav-glass-panel-bg`；`forced-colors` 隐藏玻璃层；打印隐藏。
+- 许可：`assets/vendor/hyalite.js` + `assets/vendor/hyalite.LICENSE` + [THIRD-PARTY-NOTICES.md](../THIRD-PARTY-NOTICES.md)；
+  升级流程见 notices。
 
 ## 4. 章节模板（canonical）
 
@@ -229,13 +259,18 @@ Base64 · UUID · NAT Detection
   `<script type="application/json" id="i18n-data">{"en":{...}}</script>`，键为点分小写；
   文字节点用 `data-i18n="key"`，富文本用 `data-i18n-html="key"`，属性用 `data-i18n-aria` / `data-i18n-title`。
   JS 首次切换语言时缓存中文原文，切回中文即还原；`meta.title` / `meta.description` 也走字典。
+- 顶栏：`<div class="nav-glass" id="navGlass" aria-hidden="true"></div>`（装饰层，`pointer-events:none`），
+  内容在 `.header-inner`；脚本顺序 `assets/vendor/hyalite.js` → `assets/site.js`。`Hyalite.supported()` 时挂载，
+  并把 `data-glass` 写为 `hyalite`，否则为 `fallback`。
+- 降级开关：`?glass=off` 强制兜底、`?glass=on` 强制引擎；与 `?lang`、`?theme`、`?motion` 并列。
 - 页脚：`<p class="footer-credit">凌影傲爵 · DeepSeek</p>`（`VersionConsistencyTests` 依赖该 class）。
-- 资源全部本地（无 CDN、无外部字体、无外链脚本）；favicon 使用 `assets/site-icon.svg`。
+- 资源全部本地（无 CDN、无外部字体、无外链脚本）；favicon 使用 `assets/site-icon.svg`；
+  唯一 vendored 运行时依赖是 `assets/vendor/hyalite.js`（MIT，见 `THIRD-PARTY-NOTICES.md`）。
 
 ## 9. README 契约（`README.md` / `README.en.md`）
 
 1. 头部居中：`<div align="center">` + 图标 `<img src="assets/app-icon.png" width="96" />` + 双语切换
-   （`[English](README.en.md)` / `[中文](README.md)`）+ H1 + 一句话定位 + 7 枚徽章 + 入口行。
+   （`[English](README.en.md)` / `[中文](README.md)`）+ H1 + 一句话定位 + 8 枚徽章 + 入口行。
 2. 徽章必须包含 `release-v{版本}`；更新日志一节必须包含 `当前版本 **v{版本}**`（英文 `Current version: **v{版本}**`）。
 3. 工具箱一节必须包含 `内置 **18 种专业网络诊断工具**` 与 `<b>18 合 1 工具箱</b>`
    （英文 `<b>18-in-1 Toolbox</b>`，且 18 个英文工具名全部出现）。
@@ -251,7 +286,7 @@ Base64 · UUID · NAT Detection
 8. API 表：以反引号包裹全部 9 条 `/api/...` 路由，中英集合一致。
 9. 编码：UTF-8 无 BOM、单个结尾换行、CRLF（`tools/verify-docs.ps1` 校验）。
 10. 所有本地链接与图片必须存在：`assets/app-icon.png`、`assets/screenshot.png`、
-    `LICENSE`、`CHANGELOG.md`、`CONTRIBUTING.md`、`SECURITY.md`、`CODE_OF_CONDUCT.md`。
+    `LICENSE`、`CHANGELOG.md`、`CONTRIBUTING.md`、`SECURITY.md`、`CODE_OF_CONDUCT.md`、`THIRD-PARTY-NOTICES.md`。
 
 ## 10. 文案规范
 
@@ -264,9 +299,12 @@ Base64 · UUID · NAT Detection
 
 1. 改 `NetSpeedTest.csproj` 的 `<Version>`。
 2. README 徽章、README 更新日志、CHANGELOG、关于页、官网版本胶囊与更新日志同步。
-3. 重拍截图：`pwsh tools/capture-screenshots.ps1`（本机无 pwsh 时用 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File`）。
-4. `dotnet test`、`pwsh tools/verify-docs.ps1` 全绿。
-5. 推送后核对 GitHub Pages 与仓库页渲染。
+3. 如更新液态玻璃引擎：按 `THIRD-PARTY-NOTICES.md` 的固定 commit 替换 `assets/vendor/hyalite.js` 与 LICENSE，
+   同步版本号、许可与 `SiteTemplateTests` 的断言。
+4. 重拍截图：`pwsh tools/capture-screenshots.ps1`（本机无 pwsh 时用 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File`）。
+5. `dotnet test`、`pwsh tools/verify-docs.ps1` 全绿。
+6. 推送后核对 GitHub Pages 与仓库页渲染。
 
-> 官网支持 `?lang=zh|en`、`?theme=dark|light`、`?motion=off` 三个查询参数，分别用于语言/主题/关闭动画，
-> 截图与自动化测试应带上 `?motion=off` 以获得稳定画面。
+> 官网支持 `?lang=zh|en`、`?theme=dark|light`、`?motion=off`、`?glass=off|on` 四个查询参数，
+> 分别用于语言 / 主题 / 关闭动画 / 强制液态玻璃降级或启用；
+> 截图与自动化测试应带上 `?motion=off`，验收降级时加 `?glass=off`。

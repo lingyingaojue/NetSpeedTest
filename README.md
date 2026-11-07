@@ -251,6 +251,8 @@ NetSpeedTest/
 └─ tools/                   # 截图、文档校验与冒烟脚本
 ```
 
+> 官网顶栏的液态玻璃材质基于 [hyalite](https://github.com/VII-Cae/hyalite--liquid-glass) v0.5.0（MIT，© 2026 VII-Cae）；许可全文见 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)。
+
 ## 🚀 快速开始
 
 ### 环境要求

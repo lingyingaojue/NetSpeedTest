@@ -11,6 +11,9 @@ All notable changes to NetSpeedTest will be documented in this file.
 - 新增 GitHub Actions CI（`windows-latest` + .NET 8）：restore / build / test 与 `tools/verify-docs.ps1` 文档自检。
 - 新增 `.editorconfig`、`.gitattributes` 与 `docs/qa/` 历史 QA 证据归档（由 `qa-results/netspeedtest-coreqa/` 迁移）。
 
+### 优化
+- 官网顶栏改用 vendored hyalite v0.5.0 液态玻璃材质：Chromium 下真实折射，Safari / Firefox 与 `?glass=off` 回落霜化玻璃。
+
 ### 变更
 - 仓库展示改版：统一 README / 官网模板、新增社区规范与 CI、整理 docs 目录。
 - CHANGELOG 小节标题统一为「新增 / 优化 / 修复 / 变更」，不再使用 emoji 前缀。

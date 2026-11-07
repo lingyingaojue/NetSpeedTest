@@ -41,6 +41,13 @@
         }
         root.setAttribute("data-lang", lang);
         root.setAttribute("lang", lang === "zh" ? "zh-CN" : "en");
+
+        var glass = params.get("glass");
+        if (glass === "off") {
+          root.setAttribute("data-hyalite", "off");
+        } else if (glass === "on") {
+          root.setAttribute("data-hyalite", "force");
+        }
       } catch (e) { /* localStorage 不可用时保持默认 */ }
     })();
   </script>
@@ -85,6 +92,7 @@
   <a class="skip-link" href="#main" data-i18n="header.skip">跳到主要内容</a>
 
   <header class="site-header" id="siteHeader">
+    <div class="nav-glass" id="navGlass" aria-hidden="true"></div>
     <div class="container header-inner">
       <a class="brand" href="#top" aria-label="NetSpeedTest">
         <img src="assets/app-icon.png" alt="" width="38" height="38" />
@@ -892,6 +900,7 @@
     }
   }
   </script>
+  <script src="assets/vendor/hyalite.js"></script>
   <script src="assets/site.js"></script>
 </body>
 </html>

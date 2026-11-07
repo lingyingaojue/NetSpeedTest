@@ -286,6 +286,35 @@
     });
   }
 
+  /* ---------- 4.5 顶栏液态玻璃（hyalite） ---------- */
+  var navGlass = document.getElementById("navGlass");
+  if (navGlass) {
+    var glassMounted = false;
+    try {
+      if (window.Hyalite && window.Hyalite.supported()) {
+        window.Hyalite.attach(navGlass, {
+          bevel: 18,
+          thickness: 16,
+          slope: 2.2,
+          blur: 6,
+          dispersion: 1.1,
+          shade: 0.42,
+          rim: 1.25,
+          edgeW: 7,
+          sat: 0.92,
+          light: -100,
+          materialize: 0,
+          settle: 0
+        });
+        glassMounted = true;
+      }
+    } catch (error) {
+      // 能力嗅探通过但滤镜不可用时，保留 CSS 霜化兜底，不打断页面。
+      glassMounted = false;
+    }
+    navGlass.setAttribute("data-glass", glassMounted ? "hyalite" : "fallback");
+  }
+
   /* ---------- 5. 滚动显现与计数器 ---------- */
   var reveals = document.querySelectorAll(".reveal");
   var counters = document.querySelectorAll(".counter");
